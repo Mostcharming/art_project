@@ -38,6 +38,11 @@ app.use(errorHandler);
 db.sequelize.authenticate()
     .then(() => {
         console.log('Database connection established successfully.');
+        // Sync database (creates tables if they don't exist)
+        return db.sequelize.sync();
+    })
+    .then(() => {
+        console.log('Database synchronized.');
         app.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
         });
