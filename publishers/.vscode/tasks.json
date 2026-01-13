@@ -1,0 +1,56 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "React Native: Start Dev Server",
+      "type": "shell",
+      "command": "npm",
+      "args": ["start"],
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^.*$",
+          "file": 1,
+          "location": 2,
+          "message": 3
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*Expo.*starting.*",
+          "endsPattern": "^.*Ready at.*"
+        }
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "React Native: Run on iOS",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "ios"],
+      "group": {
+        "kind": "test"
+      }
+    },
+    {
+      "label": "React Native: Run on Android",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "android"],
+      "group": {
+        "kind": "test"
+      }
+    },
+    {
+      "label": "React Native: Run on Web",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "web"],
+      "group": {
+        "kind": "test"
+      }
+    }
+  ]
+}
