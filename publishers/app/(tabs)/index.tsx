@@ -1,9 +1,10 @@
 import { useAssets } from "expo-asset";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { SvgUri } from "react-native-svg";
 
 export default function HomeScreen() {
+  const { width, height } = useWindowDimensions();
   const [assets] = useAssets([
     require("@/assets/images/background.svg"),
     require("@/assets/images/carsl.svg"),
@@ -40,9 +41,25 @@ export default function HomeScreen() {
         </View>
       )}
       {carslUri && (
-        <View style={styles.centerContent}>
-          <SvgUri width={130} height={130} uri={carslUri} />
-          <Text style={styles.museumTitle}>THE MUSEUM OF MODERN ART</Text>
+        <View
+          style={[
+            styles.centerContent,
+            { top: height * 0.5, left: width * 0.5 },
+          ]}
+        >
+          <SvgUri
+            width={Math.min(width * 0.3, 130)}
+            height={Math.min(width * 0.3, 130)}
+            uri={carslUri}
+          />
+          <Text
+            style={[
+              styles.museumTitle,
+              { fontSize: Math.max(20, width * 0.08) },
+            ]}
+          >
+            THE MUSEUM OF MODERN ART
+          </Text>
         </View>
       )}
     </View>
@@ -62,8 +79,6 @@ const styles = StyleSheet.create({
   },
   centerContent: {
     position: "absolute",
-    top: "50%",
-    left: "50%",
     transform: [{ translateX: -200 }, { translateY: -120 }],
     justifyContent: "center",
     alignItems: "center",
@@ -73,6 +88,5 @@ const styles = StyleSheet.create({
     color: "white",
     textAlign: "center",
     marginTop: -45,
-    fontSize: 30,
   },
 });
