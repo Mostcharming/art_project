@@ -1,10 +1,12 @@
 import { LoadingAnimation } from "@/components/LoadingAnimation";
 import { useAssets } from "expo-asset";
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { SvgUri } from "react-native-svg";
 
 export default function HomeScreen() {
+  const router = useRouter();
   const { width, height } = useWindowDimensions();
   const [assets] = useAssets([
     require("@/assets/images/background.svg"),
@@ -19,6 +21,14 @@ export default function HomeScreen() {
       setCarslUri(assets[1].uri);
     }
   }, [assets]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      router.push("/splash/splash1");
+    }, 4000);
+
+    return () => clearTimeout(timer);
+  }, [router]);
 
   return (
     <View style={styles.container}>
