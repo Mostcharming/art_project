@@ -1,21 +1,29 @@
-import { StyleSheet } from "react-native";
-
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
+import { StyleSheet, View } from "react-native";
+import { SvgUri } from "react-native-svg";
 
 export default function HomeScreen() {
   return (
-    <ThemedView style={styles.container}>
-      <ThemedText type="title">this is carl</ThemedText>
-    </ThemedView>
+    <View style={styles.container}>
+      <SvgUri
+        width="100%"
+        height="100%"
+        uri={require("@/assets/images/background.svg")}
+        preserveAspectRatio="xMidYMid slice"
+        style={styles.background}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 20,
+    width: "100%",
+    height: "100%",
+  },
+  background: {
+    position: "absolute",
+    top: 0,
+    left: 0,
   },
 });
