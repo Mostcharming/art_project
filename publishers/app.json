@@ -11,7 +11,8 @@
     "platforms": ["ios", "android", "web"],
     "ios": {
       "supportsTablet": true,
-      "icon": "./assets/images/icon.png"
+      "icon": "./assets/images/icon.png",
+      "bundleIdentifier": "com.publishers.app"
     },
     "android": {
       "icon": "./assets/images/icon.png",
@@ -41,6 +42,16 @@
           "dark": {
             "backgroundColor": "#000000"
           }
+        }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/BankGothic Bold.ttf",
+            "./assets/fonts/BankGothic Md BT.ttf",
+            "./assets/fonts/Bank Gothic Light Regular.otf"
+          ]
         }
       ]
     ],
