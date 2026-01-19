@@ -19,7 +19,7 @@ export const LoadingAnimation = () => {
     outputRange: ["0deg", "360deg"],
   });
 
-  // Create 8 dots around the circle
+  // Create 8 dots in a line
   const dots = Array.from({ length: 8 }, (_, i) => i);
 
   return (
@@ -40,7 +40,7 @@ export const LoadingAnimation = () => {
               style={[
                 styles.dotWrapper,
                 {
-                  transform: [{ rotate: `${(index * 360) / 8}deg` }],
+                  left: (index * 50) / 8,
                 },
               ]}
             >
@@ -86,16 +86,15 @@ const styles = StyleSheet.create({
   },
   dotWrapper: {
     position: "absolute",
-    width: 50,
-    height: 50,
-    justifyContent: "flex-start",
+    width: 3,
+    height: 3,
+    justifyContent: "center",
     alignItems: "center",
   },
   dotInner: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
     backgroundColor: "rgba(200, 200, 200, 0.7)",
-    marginTop: 2,
   },
 });
