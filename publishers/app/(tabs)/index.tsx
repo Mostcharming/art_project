@@ -1,3 +1,4 @@
+import { LoadingAnimation } from "@/components/LoadingAnimation";
 import { useAssets } from "expo-asset";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
@@ -62,6 +63,7 @@ export default function HomeScreen() {
           </Text>
         </View>
       )}
+      <LoadingAnimation />
     </View>
   );
 }
