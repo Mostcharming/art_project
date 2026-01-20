@@ -5,8 +5,12 @@ import { SvgUri } from "react-native-svg";
 
 export default function Splash1() {
   const { height } = useWindowDimensions();
-  const [assets] = useAssets([require("@/assets/images/carsl.svg")]);
+  const [assets] = useAssets([
+    require("@/assets/images/carsl.svg"),
+    require("@/assets/images/splash/splashone.svg"),
+  ]);
   const [carslUri, setCarslUri] = useState<string>("");
+  const [splashOneUri, setSplashOneUri] = useState<string>("");
 
   const styles = StyleSheet.create({
     container: {
@@ -16,7 +20,7 @@ export default function Splash1() {
     },
     textSection: {
       alignItems: "flex-start",
-      marginBottom: 0,
+      marginBottom: 20,
     },
     heading: {
       fontSize: 35,
@@ -30,16 +34,29 @@ export default function Splash1() {
       alignItems: "center",
       gap: 10,
     },
-    splashText: {
-      fontSize: 32,
-      fontWeight: "bold",
+    svgGridContainer: {
+      flexDirection: "row",
+    },
+    leftColumn: {
+      gap: 10,
+    },
+    rightColumn: {
+      justifyContent: "center",
+    },
+    descriptionText: {
+      fontSize: 16,
       color: "#FFFFFF",
+      fontFamily: "BankGothicMediumBT",
+      lineHeight: 24,
+      marginTop: 30,
+      paddingRight: 20,
     },
   });
 
   useEffect(() => {
-    if (assets && assets[0]) {
+    if (assets && assets.length >= 2) {
       setCarslUri(assets[0].uri);
+      setSplashOneUri(assets[1].uri);
     }
   }, [assets]);
 
@@ -52,7 +69,26 @@ export default function Splash1() {
           {carslUri && <SvgUri uri={carslUri} />}
         </View>
       </View>
-      <Text style={styles.splashText}>Splash 1</Text>
+
+      <View style={styles.svgGridContainer}>
+        <View style={styles.leftColumn}>
+          {splashOneUri && (
+            <SvgUri uri={splashOneUri} width={220} height={220} />
+          )}
+          {splashOneUri && (
+            <SvgUri uri={splashOneUri} width={220} height={220} />
+          )}
+        </View>
+        <View style={styles.rightColumn}>
+          {splashOneUri && <SvgUri uri={splashOneUri} height={320} />}
+        </View>
+      </View>
+
+      <Text style={styles.descriptionText}>
+        For artists, galleries, and collectors, this is your world of art
+        reimagined. A place to showcase, discover, and connect through
+        creativity that inspires growth.
+      </Text>
     </View>
   );
 }
