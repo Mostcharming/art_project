@@ -1,5 +1,4 @@
-import { MaterialIcons } from "@expo/vector-icons";
-import { useAssets } from "expo-asset";
+import { usePreloadImages } from "@/hooks/usePreloadImages";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -14,7 +13,9 @@ import { SvgUri } from "react-native-svg";
 export default function Splash3() {
   const router = useRouter();
   const { height } = useWindowDimensions();
-  const [assets] = useAssets([require("@/assets/images/splash/splash3.svg")]);
+  const { imageUris } = usePreloadImages([
+    require("@/assets/images/splash/splash3.svg"),
+  ]);
   const [splash3Uri, setSplash3Uri] = useState<string>("");
 
   const styles = StyleSheet.create({
@@ -55,13 +56,18 @@ export default function Splash3() {
       alignItems: "center",
       marginTop: 40,
       marginHorizontal: 20,
+      gap: 10,
     },
     skipButton: {
-      borderWidth: 2,
-      borderColor: "#888888",
-      borderRadius: 25,
+      flex: 1,
+      borderWidth: 1,
+      borderColor: "#555555",
+      borderRadius: 12,
       paddingHorizontal: 24,
-      paddingVertical: 12,
+      paddingVertical: 16,
+      justifyContent: "center",
+      alignItems: "center",
+      minHeight: 60,
     },
     skipButtonText: {
       fontSize: 16,
@@ -70,9 +76,9 @@ export default function Splash3() {
       fontFamily: "BankGothicMediumBT",
     },
     arrowButton: {
-      width: 50,
-      height: 50,
-      borderRadius: 25,
+      flex: 1,
+      minHeight: 60,
+      borderRadius: 12,
       backgroundColor: "#D8522E",
       justifyContent: "center",
       alignItems: "center",
@@ -80,10 +86,10 @@ export default function Splash3() {
   });
 
   useEffect(() => {
-    if (assets && assets.length > 0) {
-      setSplash3Uri(assets[0].uri);
+    if (imageUris && imageUris.length > 0) {
+      setSplash3Uri(imageUris[0]);
     }
-  }, [assets]);
+  }, [imageUris]);
 
   return (
     <View style={styles.container}>
@@ -104,15 +110,17 @@ export default function Splash3() {
       <View style={styles.buttonContainer}>
         <Pressable
           style={styles.skipButton}
-          onPress={() => router.push("/auth/signup/page1")}
+          onPress={() => router.push("/auth/login")}
         >
-          <Text style={styles.skipButtonText}>Skip {">>"}</Text>
+          <Text style={styles.skipButtonText}>Sign In</Text>
         </Pressable>
         <Pressable
           style={styles.arrowButton}
           onPress={() => router.push("/auth/signup/page1")}
         >
-          <MaterialIcons name="arrow-forward" size={24} color="#FFFFFF" />
+          <Text style={{ fontSize: 16, fontWeight: "bold", color: "#FFFFFF" }}>
+            Sign Up
+          </Text>
         </Pressable>
       </View>
     </View>

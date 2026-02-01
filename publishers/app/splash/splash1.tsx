@@ -1,5 +1,5 @@
+import { usePreloadImages } from "@/hooks/usePreloadImages";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useAssets } from "expo-asset";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -14,7 +14,7 @@ import { SvgUri } from "react-native-svg";
 export default function Splash1() {
   const router = useRouter();
   const { height } = useWindowDimensions();
-  const [assets] = useAssets([
+  const { imageUris } = usePreloadImages([
     require("@/assets/images/carsl.svg"),
     require("@/assets/images/splash/splashone.svg"),
     require("@/assets/images/splash/splashtwo.svg"),
@@ -72,8 +72,8 @@ export default function Splash1() {
       marginHorizontal: 20,
     },
     skipButton: {
-      borderWidth: 2,
-      borderColor: "#888888",
+      borderWidth: 1,
+      borderColor: "#555555",
       borderRadius: 25,
       paddingHorizontal: 24,
       paddingVertical: 12,
@@ -95,13 +95,13 @@ export default function Splash1() {
   });
 
   useEffect(() => {
-    if (assets && assets.length >= 4) {
-      setCarslUri(assets[0].uri);
-      setSplashOneUri(assets[1].uri);
-      setSplashTwoUri(assets[2].uri);
-      setSplashThreeUri(assets[3].uri);
+    if (imageUris && imageUris.length >= 4) {
+      setCarslUri(imageUris[0]);
+      setSplashOneUri(imageUris[1]);
+      setSplashTwoUri(imageUris[2]);
+      setSplashThreeUri(imageUris[3]);
     }
-  }, [assets]);
+  }, [imageUris]);
 
   return (
     <View style={styles.container}>
@@ -116,14 +116,14 @@ export default function Splash1() {
       <View style={styles.svgGridContainer}>
         <View style={styles.leftColumn}>
           {splashOneUri && (
-            <SvgUri uri={splashOneUri} width={220} height={220} />
+            <SvgUri uri={splashOneUri} width={240} height={240} />
           )}
           {splashTwoUri && (
-            <SvgUri uri={splashTwoUri} width={220} height={220} />
+            <SvgUri uri={splashTwoUri} width={240} height={240} />
           )}
         </View>
         <View style={styles.rightColumn}>
-          {splashThreeUri && <SvgUri uri={splashThreeUri} height={320} />}
+          {splashThreeUri && <SvgUri uri={splashThreeUri} height={340} />}
         </View>
       </View>
 

@@ -1,5 +1,5 @@
+import { usePreloadImages } from "@/hooks/usePreloadImages";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useAssets } from "expo-asset";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -14,7 +14,9 @@ import { SvgUri } from "react-native-svg";
 export default function Splash2() {
   const router = useRouter();
   const { height } = useWindowDimensions();
-  const [assets] = useAssets([require("@/assets/images/splash/splash2.svg")]);
+  const { imageUris, isLoading } = usePreloadImages([
+    require("@/assets/images/splash/splash2.svg"),
+  ]);
   const [splash2Uri, setSplash2Uri] = useState<string>("");
 
   const styles = StyleSheet.create({
@@ -39,6 +41,8 @@ export default function Splash2() {
       justifyContent: "center",
       alignItems: "center",
       marginVertical: 10,
+      // width: 500,
+      height: 500,
     },
     descriptionText: {
       fontSize: 16,
@@ -57,8 +61,8 @@ export default function Splash2() {
       marginHorizontal: 20,
     },
     skipButton: {
-      borderWidth: 2,
-      borderColor: "#888888",
+      borderWidth: 1,
+      borderColor: "#555555",
       borderRadius: 25,
       paddingHorizontal: 24,
       paddingVertical: 12,
@@ -80,10 +84,10 @@ export default function Splash2() {
   });
 
   useEffect(() => {
-    if (assets && assets.length > 0) {
-      setSplash2Uri(assets[0].uri);
+    if (imageUris && imageUris.length > 0) {
+      setSplash2Uri(imageUris[0]);
     }
-  }, [assets]);
+  }, [imageUris]);
 
   return (
     <View style={styles.container}>
@@ -92,7 +96,19 @@ export default function Splash2() {
       </View>
 
       <View style={styles.imageContainer}>
-        {splash2Uri && <SvgUri uri={splash2Uri} width={500} height={500} />}
+        {splash2Uri ? (
+          <SvgUri uri={splash2Uri} width={500} height={500} />
+        ) : (
+          <View
+            style={{
+              width: 500,
+              height: 500,
+              backgroundColor: isLoading ? "#222222" : "#1a1a1a",
+              borderRadius: 8,
+              opacity: 0.6,
+            }}
+          />
+        )}
       </View>
 
       <Text style={styles.descriptionText}>
