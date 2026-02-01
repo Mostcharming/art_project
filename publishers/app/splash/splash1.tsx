@@ -1,5 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { useAssets } from "expo-asset";
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Pressable,
@@ -11,6 +12,7 @@ import {
 import { SvgUri } from "react-native-svg";
 
 export default function Splash1() {
+  const router = useRouter();
   const { height } = useWindowDimensions();
   const [assets] = useAssets([
     require("@/assets/images/carsl.svg"),
@@ -132,10 +134,16 @@ export default function Splash1() {
       </Text>
 
       <View style={styles.buttonContainer}>
-        <Pressable style={styles.skipButton} onPress={() => {}}>
+        <Pressable
+          style={styles.skipButton}
+          onPress={() => router.push("/auth/signup/page1")}
+        >
           <Text style={styles.skipButtonText}>Skip {">>"}</Text>
         </Pressable>
-        <Pressable style={styles.arrowButton} onPress={() => {}}>
+        <Pressable
+          style={styles.arrowButton}
+          onPress={() => router.push("/splash/splash2")}
+        >
           <MaterialIcons name="arrow-forward" size={24} color="#FFFFFF" />
         </Pressable>
       </View>
