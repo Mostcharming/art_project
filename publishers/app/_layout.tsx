@@ -58,7 +58,11 @@ export default function RootLayout() {
           options={{ headerShown: false }}
         />
       </Stack>
-      <StatusBar style="auto" />
+      <StatusBar
+        style="light"
+        translucent={true}
+        backgroundColor="transparent"
+      />
     </ThemeProvider>
   );
 }

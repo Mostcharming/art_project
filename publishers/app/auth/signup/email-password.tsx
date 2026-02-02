@@ -28,7 +28,7 @@ export default function SignUpPage1() {
     container: {
       flex: 1,
       backgroundColor: "#000000",
-      paddingTop: insets.top + 20,
+      paddingTop: insets.top + 160,
       paddingHorizontal: 20,
     },
     textSection: {
