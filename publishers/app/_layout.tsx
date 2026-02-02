@@ -57,6 +57,10 @@ export default function RootLayout() {
           name="auth/signup/email-password"
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name="auth/signup/token"
+          options={{ headerShown: false }}
+        />
       </Stack>
       <StatusBar
         style="light"

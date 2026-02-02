@@ -1,4 +1,6 @@
 import { getBaseUrl } from "@/constants/api.config";
+import { useUserStore } from "@/store/userStore";
+import axios, { isAxiosError } from "axios";
 import { useState } from "react";
 
 export type ApiMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
@@ -14,36 +16,13 @@ interface RequestOptions {
   method?: ApiMethod;
   dataType?: DataType;
   headers?: Record<string, string>;
-  token?: string;
 }
 
-/**
- * useApiMutate Hook
- * Provides a mutate function for API calls with automatic state management
- *
- * @example
- * const { mutate, data, error, isLoading } = useApiMutate();
- *
- * // JSON request
- * await mutate("/auth/login", {
- *   method: "POST",
- *   dataType: "json",
- *   payload: { email: "user@example.com", password: "123456" }
- * });
- *
- * // FormData request
- * const formData = new FormData();
- * formData.append("file", file);
- * await mutate("/upload", {
- *   method: "POST",
- *   dataType: "formdata",
- *   payload: formData
- * });
- */
 export const useApiMutate = () => {
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const token = useUserStore((state) => state.token);
 
   const mutate = async (
     subUrl: string,
@@ -53,7 +32,6 @@ export const useApiMutate = () => {
       method = "GET",
       dataType = "json",
       headers = {},
-      token,
       payload,
     } = options;
 
@@ -64,7 +42,6 @@ export const useApiMutate = () => {
       const baseUrl = getBaseUrl();
       const url = `${baseUrl}${subUrl}`;
 
-      // Prepare headers
       const requestHeaders: Record<string, string> = {
         ...headers,
       };
@@ -74,8 +51,7 @@ export const useApiMutate = () => {
         requestHeaders.Authorization = `Bearer ${token}`;
       }
 
-      // Prepare body
-      let body: string | FormData | undefined;
+      let data: any = undefined;
 
       if (
         payload &&
@@ -83,62 +59,61 @@ export const useApiMutate = () => {
       ) {
         if (dataType === "json") {
           requestHeaders["Content-Type"] = "application/json";
-          body = JSON.stringify(payload);
+          data = payload;
         } else if (dataType === "formdata") {
-          // Don't set Content-Type for FormData - browser will set it with boundary
-          body = payload; // payload should be FormData
+          data = payload;
         }
       }
 
-      // Make the request
-      const response = await fetch(url, {
+      console.log("API Request:", {
+        url,
         method,
         headers: requestHeaders,
-        body,
+        data,
       });
 
-      // Handle response
-      if (!response.ok) {
-        let errorMessage = `Error: ${response.status} ${response.statusText}`;
+      const response = await axios({
+        method: method as any,
+        url,
+        headers: requestHeaders,
+        data,
+        timeout: 30000,
+      });
 
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorData.error || errorMessage;
-        } catch {
-          // If response is not JSON, use the default error message
-        }
-
-        setError(errorMessage);
-        setIsLoading(false);
-
-        return {
-          data: null,
-          error: errorMessage,
-          isLoading: false,
-        };
-      }
-
-      // Parse response
-      let responseData;
-      const contentType = response.headers.get("content-type");
-
-      if (contentType?.includes("application/json")) {
-        responseData = await response.json();
-      } else {
-        responseData = await response.text();
-      }
-
-      setData(responseData);
+      setData(response.data);
       setIsLoading(false);
 
       return {
-        data: responseData,
+        data: response.data,
         error: null,
         isLoading: false,
       };
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "An unknown error occurred";
+      let errorMessage = "An unknown error occurred";
+      let details = {};
+
+      if (isAxiosError(err)) {
+        if (err.response) {
+          errorMessage =
+            err.response.data?.message ||
+            err.response.data?.error ||
+            `Error: ${err.response.status} ${err.response.statusText}`;
+          details = {
+            status: err.response.status,
+            data: err.response.data,
+          };
+        } else if (err.request) {
+          errorMessage =
+            "No response from server. Check if backend is running.";
+          details = { request: err.request };
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+
+      console.error("API Error:", { errorMessage, details });
 
       setError(errorMessage);
       setIsLoading(false);

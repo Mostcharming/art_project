@@ -1,4 +1,6 @@
+import { useApiMutate } from "@/hooks/useApiMutate";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
   Keyboard,
@@ -13,9 +15,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function SignUpPage1() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { mutate, isLoading } = useApiMutate();
 
   // Validation logic
   const hasMinLength = password.length >= 8;
@@ -23,6 +28,29 @@ export default function SignUpPage1() {
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isFormValid =
     email.trim() !== "" && hasMinLength && hasSpecialChar && isEmailValid;
+
+  const handleCreateAccount = async () => {
+    if (!isFormValid) return;
+
+    setError(null);
+
+    const response = await mutate("/auth/signup", {
+      method: "POST",
+      dataType: "json",
+      payload: {
+        email,
+        password,
+      },
+    });
+
+    if (response.error) {
+      console.error("Signup error:", response);
+      setError("Error signing up, try again later");
+    } else {
+      console.log("Signup successful:", response.data);
+      router.push("/auth/signup/token");
+    }
+  };
 
   const styles = StyleSheet.create({
     container: {
@@ -94,6 +122,15 @@ export default function SignUpPage1() {
       borderRadius: 8,
       paddingHorizontal: 16,
     },
+    inputWrapperError: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: "#333333",
+      borderRadius: 8,
+      paddingHorizontal: 16,
+      borderWidth: 2,
+      borderColor: "#FF4444",
+    },
     inputField: {
       flex: 1,
       paddingVertical: 12,
@@ -107,6 +144,13 @@ export default function SignUpPage1() {
     passwordInstructions: {
       fontSize: 12,
       color: "#999999",
+      fontFamily: "BankGothicMediumBT",
+      marginTop: 8,
+      lineHeight: 18,
+    },
+    errorMessage: {
+      fontSize: 12,
+      color: "#FF4444",
       fontFamily: "BankGothicMediumBT",
       marginTop: 8,
       lineHeight: 18,
@@ -135,6 +179,16 @@ export default function SignUpPage1() {
       textDecorationLine: "underline",
       color: "#FFFFFF",
     },
+    loginLinkContainer: {
+      marginTop: 200,
+      alignItems: "center",
+    },
+    loginLinkText: {
+      fontSize: 14,
+      color: "#FFFFFF",
+      fontFamily: "BankGothicMediumBT",
+      textDecorationLine: "underline",
+    },
   });
 
   return (
@@ -149,7 +203,7 @@ export default function SignUpPage1() {
 
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Email</Text>
-          <View style={styles.inputWrapper}>
+          <View style={error ? styles.inputWrapperError : styles.inputWrapper}>
             <TextInput
               style={styles.inputField}
               placeholder="Example@gmail.com"
@@ -164,7 +218,7 @@ export default function SignUpPage1() {
 
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Create Password</Text>
-          <View style={styles.inputWrapper}>
+          <View style={error ? styles.inputWrapperError : styles.inputWrapper}>
             <TextInput
               style={styles.inputField}
               placeholder="Enter your password"
@@ -184,8 +238,10 @@ export default function SignUpPage1() {
               />
             </Pressable>
           </View>
-          <Text style={styles.passwordInstructions}>
-            At least 8 letters, 1 special character *%#@!
+          <Text
+            style={error ? styles.errorMessage : styles.passwordInstructions}
+          >
+            {error ? error : "At least 8 letters, 1 special character *%#@!"}
           </Text>
         </View>
 
@@ -193,7 +249,8 @@ export default function SignUpPage1() {
           style={
             isFormValid ? styles.createButton : styles.createButtonDisabled
           }
-          disabled={!isFormValid}
+          disabled={!isFormValid || isLoading}
+          onPress={handleCreateAccount}
         >
           <Text
             style={
@@ -202,7 +259,7 @@ export default function SignUpPage1() {
                 : styles.createButtonTextDisabled
             }
           >
-            Create Account
+            {isLoading ? "Creating Account..." : "Create Account"}
           </Text>
         </Pressable>
 
@@ -212,6 +269,14 @@ export default function SignUpPage1() {
             <Text style={styles.termsLink}>Terms of Service</Text> and{" "}
             <Text style={styles.termsLink}>Privacy Policy</Text>
           </Text>
+        </View>
+
+        <View style={styles.loginLinkContainer}>
+          <Pressable onPress={() => router.push("/auth/login")}>
+            <Text style={styles.loginLinkText}>
+              Already have an account? Log in
+            </Text>
+          </Pressable>
         </View>
       </View>
     </TouchableWithoutFeedback>
