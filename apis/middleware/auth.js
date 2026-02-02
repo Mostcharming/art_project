@@ -78,4 +78,7 @@ module.exports = {
     verifyToken,
     verifyViewerToken,
     verifyPublisherToken,
+    // Aliases for convenience
+    authenticateViewer: verifyViewerToken,
+    authenticatePublisher: verifyPublisherToken,
 };

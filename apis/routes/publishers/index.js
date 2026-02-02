@@ -1,12 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const authRoutes = require('./auth');
 
-/**
- * Placeholder for Publisher routes
- * Coming soon
- */
-router.get('/', (req, res) => {
-    res.json({ message: 'Publisher routes coming soon' });
-});
+// Mount auth routes
+router.use('/', authRoutes);
 
 module.exports = router;
