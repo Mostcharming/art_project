@@ -59,7 +59,7 @@ export default function Splash3() {
       gap: 10,
     },
     skipButton: {
-      flex: 1,
+      flex: 0.8,
       borderWidth: 1,
       borderColor: "#555555",
       borderRadius: 12,
@@ -116,7 +116,7 @@ export default function Splash3() {
         </Pressable>
         <Pressable
           style={styles.arrowButton}
-          onPress={() => router.push("/auth/signup/page1")}
+          onPress={() => router.push("/auth/signup/email-password")}
         >
           <Text style={{ fontSize: 16, fontWeight: "bold", color: "#FFFFFF" }}>
             Sign Up

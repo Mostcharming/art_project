@@ -53,6 +53,10 @@ export default function RootLayout() {
         <Stack.Screen name="splash/splash1" options={{ headerShown: false }} />
         <Stack.Screen name="splash/splash2" options={{ headerShown: false }} />
         <Stack.Screen name="splash/splash3" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="auth/signup/email-password"
+          options={{ headerShown: false }}
+        />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>
