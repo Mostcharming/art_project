@@ -55,12 +55,10 @@ export const LoadingAnimation = () => {
 
 const styles = StyleSheet.create({
   container: {
-    position: "absolute",
-    bottom: 30,
-    left: 0,
-    right: 0,
+    flex: 1,
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-end",
+    paddingBottom: 30,
   },
   circleContainer: {
     width: 50,

@@ -99,9 +99,7 @@ export default function HomeScreen() {
           </View>
         </View>
       )}
-      <View style={{ marginTop: -40 }}>
-        <LoadingAnimation />
-      </View>
+      <LoadingAnimation />
     </View>
   );
 }
