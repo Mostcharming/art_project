@@ -1,7 +1,8 @@
 import { LoadingAnimation } from "@/components/LoadingAnimation";
+import { useFocusEffect } from "@react-navigation/native";
 import { useAssets } from "expo-asset";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SvgUri } from "react-native-svg";
@@ -24,13 +25,15 @@ export default function HomeScreen() {
     }
   }, [assets]);
 
-  // useEffect(() => {
-  //   const timer = setTimeout(() => {
-  //     router.push("/splash/splash1");
-  //   }, 4000);
+  useFocusEffect(
+    useCallback(() => {
+      const timer = setTimeout(() => {
+        router.push("/splash/splash1");
+      }, 4000);
 
-  //   return () => clearTimeout(timer);
-  // }, [router]);
+      return () => clearTimeout(timer);
+    }, [])
+  );
 
   return (
     <View
