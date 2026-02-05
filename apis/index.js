@@ -1,50 +1,74 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const rateLimit = require('express-rate-limit');
 const db = require('./models');
 
-// Import routes
 const viewersRoutes = require('./routes/viewers');
 const publishersRoutes = require('./routes/publishers');
 
-// Import middleware
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+    : [];
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 500,
+    message: 'Too many requests from this IP, please try again later.',
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => {
+        return req.path === '/api/health';
+    }
+});
+
+const corsOptions = {
+    origin: function (origin, callback) {
+        if (!origin) return callback(null, true);
+
+        if (ALLOWED_ORIGINS.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
+app.use(limiter);
 app.use(express.json());
 
-// Routes
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'API is running' });
 });
 
-// API Routes
 app.use('/api/viewers', viewersRoutes);
 app.use('/api/publishers', publishersRoutes);
 
-// 404 handler
 app.use((req, res) => {
     res.status(404).json({ error: 'Route not found' });
 });
 
-// Error handling middleware (must be last)
 app.use(errorHandler);
 
-// Initialize database and start server
 db.sequelize.authenticate()
     .then(() => {
         console.log('Database connection established successfully.');
-        // Sync database (creates tables if they don't exist)
         return db.sequelize.sync();
     })
     .then(() => {
         console.log('Database synchronized.');
-        app.listen(PORT, () => {
+        app.listen(PORT, '0.0.0.0', () => {
             console.log(`Server is running on port ${PORT}`);
+            console.log(`Accessible at http://0.0.0.0:${PORT}`);
         });
     })
     .catch((err) => {

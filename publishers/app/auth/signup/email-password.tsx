@@ -247,16 +247,16 @@ export default function SignUpPage1() {
 
         <Pressable
           style={
-            isFormValid ? styles.createButton : styles.createButtonDisabled
+            isLoading || !isFormValid ? styles.createButtonDisabled : styles.createButton
           }
           disabled={!isFormValid || isLoading}
           onPress={handleCreateAccount}
         >
           <Text
             style={
-              isFormValid
-                ? styles.createButtonText
-                : styles.createButtonTextDisabled
+              isLoading || !isFormValid
+                ? styles.createButtonTextDisabled
+                : styles.createButtonText
             }
           >
             {isLoading ? "Creating Account..." : "Create Account"}

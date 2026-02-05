@@ -41,7 +41,7 @@ export const useApiMutate = () => {
     try {
       const baseUrl = getBaseUrl();
       const url = `${baseUrl}${subUrl}`;
-
+      console.log(url);
       const requestHeaders: Record<string, string> = {
         ...headers,
       };

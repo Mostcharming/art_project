@@ -1,22 +1,18 @@
 {
   "expo": {
-    "name": "publishers",
-    "slug": "publishers",
+    "name": "carsl",
+    "slug": "carsl",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "publishers",
+    "scheme": "carsl",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "platforms": [
-      "ios",
-      "android",
-      "web"
-    ],
+    "platforms": ["ios", "android", "web"],
     "ios": {
       "supportsTablet": true,
       "icon": "./assets/images/icon.png",
-      "bundleIdentifier": "com.publishers.app"
+      "bundleIdentifier": "com.carsl.app"
     },
     "android": {
       "icon": "./assets/images/icon.png",
@@ -26,7 +22,7 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "package": "com.publishers.app",
+      "package": "com.carsl.app",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
