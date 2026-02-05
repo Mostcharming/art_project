@@ -48,9 +48,9 @@
         "expo-font",
         {
           "fonts": [
-            "./assets/fonts/BankGothic Bold.ttf",
-            "./assets/fonts/BankGothic Md BT.ttf",
-            "./assets/fonts/Bank Gothic Light Regular.otf"
+            "./assets/fonts/BankGothicBold.ttf",
+            "./assets/fonts/BankGothicMdBT.ttf",
+            "./assets/fonts/BankGothicLightRegular.otf"
           ]
         }
       ]

@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .heading {
+    @apply text-3xl font-bold text-text-primary font-bank-gothic-bold leading-10;
+  }
+
+  .subheading {
+    @apply text-base text-text-secondary font-bank-gothic-medium leading-6;
+  }
+
+  .label {
+    @apply text-sm text-text-primary font-bank-gothic-medium mb-2;
+  }
+
+  .input {
+    @apply bg-dark-secondary rounded-lg px-4 py-3 text-base text-text-primary font-bank-gothic-medium;
+  }
+
+  .button-primary {
+    @apply min-h-[60px] rounded-xl bg-primary justify-center items-center;
+  }
+
+  .button-primary-text {
+    @apply text-base font-bold text-text-primary font-bank-gothic-medium;
+  }
+
+  .button-primary-disabled {
+    @apply min-h-[60px] rounded-xl bg-error-dark justify-center items-center;
+  }
+
+  .button-primary-text-disabled {
+    @apply text-base font-bold text-error-light font-bank-gothic-medium;
+  }
+
+  .button-secondary {
+    @apply border border-dark-tertiary rounded-full px-6 py-3;
+  }
+
+  .button-secondary-text {
+    @apply text-base font-bold text-primary font-bank-gothic-medium;
+  }
+}

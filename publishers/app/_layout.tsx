@@ -9,6 +9,7 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import "react-native-reanimated";
+import "../globals.css";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
@@ -24,9 +25,9 @@ export default function RootLayout() {
     async function loadFonts() {
       try {
         await Font.loadAsync({
-          BankGothicBold: require("@/assets/fonts/BankGothic Bold.ttf"),
-          BankGothicMd: require("@/assets/fonts/BankGothic Md BT.ttf"),
-          BankGothicLight: require("@/assets/fonts/Bank Gothic Light Regular.otf"),
+          BankGothicBold: require("@/assets/fonts/BankGothicBold.ttf"),
+          BankGothicMd: require("@/assets/fonts/BankGothicMdBT.ttf"),
+          BankGothicLight: require("@/assets/fonts/BankGothicLightRegular.otf"),
         });
       } catch (error) {
         console.error("Error loading fonts:", error);

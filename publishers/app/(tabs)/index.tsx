@@ -2,12 +2,14 @@ import { LoadingAnimation } from "@/components/LoadingAnimation";
 import { useAssets } from "expo-asset";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { Text, useWindowDimensions, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SvgUri } from "react-native-svg";
 
 export default function HomeScreen() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const [assets] = useAssets([
     require("@/assets/images/background.svg"),
     require("@/assets/images/carsl.svg"),
@@ -22,83 +24,84 @@ export default function HomeScreen() {
     }
   }, [assets]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      router.push("/splash/splash1");
-    }, 4000);
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     router.push("/splash/splash1");
+  //   }, 4000);
 
-    return () => clearTimeout(timer);
-  }, [router]);
+  //   return () => clearTimeout(timer);
+  // }, [router]);
 
   return (
-    <View style={styles.container}>
-      {svgUri ? (
+    <View
+      style={{
+        flex: 1,
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom,
+        paddingLeft: insets.left,
+        paddingRight: insets.right,
+        backgroundColor: "#000000",
+      }}
+    >
+      {svgUri && (
         <SvgUri
-          width="100%"
-          height="100%"
+          width={width * 1.1}
+          height={height * 1.2}
           uri={svgUri}
-          style={styles.background}
-        />
-      ) : (
-        <View
           style={{
-            flex: 1,
-            backgroundColor: "red",
-            justifyContent: "center",
-            alignItems: "center",
+            position: "absolute",
+            top: "40%",
+            left: "40%",
+            marginTop: -(height * 0.475),
+            marginLeft: -(width * 0.475),
           }}
-        >
+        />
+      )}
+      {!svgUri && (
+        <View className="flex-1 bg-red-500 justify-center items-center">
           <Text>SVG not loaded. URI: {svgUri}</Text>
         </View>
       )}
       {carslUri && (
         <View
-          style={[
-            styles.centerContent,
-            { top: height * 0.5, left: width * 0.5 },
-          ]}
+          style={{
+            position: "absolute",
+            top: insets.top,
+            left: insets.left,
+            right: insets.right,
+            bottom: insets.bottom,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
         >
-          <SvgUri
-            width={Math.min(width * 0.3, 130)}
-            height={Math.min(width * 0.3, 130)}
-            uri={carslUri}
-          />
-          <Text
-            style={[
-              styles.museumTitle,
-              { fontSize: Math.max(20, width * 0.08) },
-            ]}
-          >
-            THE MUSEUM OF MODERN ART
-          </Text>
+          <View style={{ alignItems: "center" }}>
+            <SvgUri
+              width={Math.min(width * 0.3, 130)}
+              height={Math.min(width * 0.3, 130)}
+              uri={carslUri}
+            />
+            {/* <Text
+              style={{
+                fontSize: Math.max(24, width * 0.08),
+                marginTop: 10,
+                fontWeight: "bold",
+                letterSpacing: 1,
+                color: "#FFFFFF",
+                fontFamily:
+                  Platform.OS === "android"
+                    ? "BankGothic Bold"
+                    : "BankGothicBold",
+                textAlign: "center",
+              }}
+            >
+              THE MUSEUM OF MODERN ART
+            </Text> */}
+          </View>
         </View>
       )}
-      <LoadingAnimation />
+      <View style={{ marginTop: -40 }}>
+        <LoadingAnimation />
+      </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    width: "100%",
-    height: "100%",
-  },
-  background: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-  },
-  centerContent: {
-    position: "absolute",
-    transform: [{ translateX: -200 }, { translateY: -120 }],
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  museumTitle: {
-    fontFamily: "BankGothicBold",
-    color: "white",
-    textAlign: "center",
-    marginTop: -45,
-  },
-});
