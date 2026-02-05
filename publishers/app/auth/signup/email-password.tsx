@@ -1,4 +1,5 @@
 import { useApiMutate } from "@/hooks/useApiMutate";
+import { useUserStore } from "@/store/userStore";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -16,6 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 export default function SignUpPage1() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const updateUser = useUserStore((state) => state.updateUser);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -45,10 +47,20 @@ export default function SignUpPage1() {
 
     if (response.error) {
       console.error("Signup error:", response);
-      setError("Error signing up, try again later");
+      if (response.error === "Email already registered") {
+        setError("Email already registered, please login");
+      } else {
+        setError("Error signing up, try again later");
+      }
     } else {
-      console.log("Signup successful:", response.data);
-      router.push("/auth/signup/token");
+      updateUser({
+        email,
+        isEmailVerified: false,
+        accountSetupComplete: false,
+      });
+      router.push({
+        pathname: "/auth/signup/token",
+      });
     }
   };
 
@@ -56,7 +68,7 @@ export default function SignUpPage1() {
     container: {
       flex: 1,
       backgroundColor: "#000000",
-      paddingTop: insets.top + 160,
+      paddingTop: insets.top + 80,
       paddingHorizontal: 20,
     },
     textSection: {
@@ -247,7 +259,9 @@ export default function SignUpPage1() {
 
         <Pressable
           style={
-            isLoading || !isFormValid ? styles.createButtonDisabled : styles.createButton
+            isLoading || !isFormValid
+              ? styles.createButtonDisabled
+              : styles.createButton
           }
           disabled={!isFormValid || isLoading}
           onPress={handleCreateAccount}

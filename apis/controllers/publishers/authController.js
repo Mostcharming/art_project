@@ -13,11 +13,13 @@ exports.signup = async (req, res, next) => {
             return res.status(400).json({ error: 'Email and password are required' });
         }
 
+        const normalizedEmail = email.toLowerCase();
+
         if (password.length < 6) {
             return res.status(400).json({ error: 'Password must be at least 6 characters' });
         }
 
-        const existingPublisher = await Publisher.findOne({ where: { email } });
+        const existingPublisher = await Publisher.findOne({ where: { email: normalizedEmail } });
         if (existingPublisher) {
             return res.status(409).json({ error: 'Email already registered' });
         }
@@ -26,7 +28,7 @@ exports.signup = async (req, res, next) => {
         const verificationCode = generateVerificationCode();
 
         const publisher = await Publisher.create({
-            email,
+            email: normalizedEmail,
             password: hashedPassword,
             verificationToken: verificationCode,
             verificationTokenExpires: new Date(Date.now() + 15 * 60 * 1000),
@@ -35,7 +37,7 @@ exports.signup = async (req, res, next) => {
         });
 
         try {
-            await emailMiddleware.sendVerificationEmail(email, verificationCode, email.split('@')[0]);
+            await emailMiddleware.sendVerificationEmail(normalizedEmail, verificationCode, normalizedEmail.split('@')[0]);
         } catch (emailError) {
             console.warn('Email sending failed, but account created:', emailError);
         }

@@ -120,7 +120,7 @@ export default function Splash2() {
       <View style={styles.buttonContainer}>
         <Pressable
           style={styles.skipButton}
-          onPress={() => router.push("/auth/signup/page1")}
+          onPress={() => router.push("/auth/signup/email-password")}
         >
           <Text style={styles.skipButtonText}>Skip {">>"}</Text>
         </Pressable>
