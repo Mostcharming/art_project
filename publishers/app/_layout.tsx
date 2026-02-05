@@ -25,7 +25,8 @@ export default function RootLayout() {
       try {
         await Font.loadAsync({
           BankGothicBold: require("@/assets/fonts/BankGothicBold.ttf"),
-          BankGothicMd: require("@/assets/fonts/BankGothicMdBT.ttf"),
+          BankGothicMediumBT: require("@/assets/fonts/BankGothicMediumBT.ttf"),
+          BankGothicMdBT: require("@/assets/fonts/BankGothicMdBT.ttf"),
           BankGothicLight: require("@/assets/fonts/BankGothicLightRegular.otf"),
         });
       } catch (error) {
