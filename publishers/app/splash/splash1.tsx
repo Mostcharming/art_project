@@ -2,12 +2,11 @@ import { usePreloadImages } from "@/hooks/usePreloadImages";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, Text, View, useWindowDimensions } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { SvgUri } from "react-native-svg";
 
 export default function Splash1() {
   const router = useRouter();
-  const { height } = useWindowDimensions();
   const { imageUris } = usePreloadImages([
     require("@/assets/images/carsl.svg"),
     require("@/assets/images/splash/splashone.svg"),
@@ -32,37 +31,39 @@ export default function Splash1() {
     <View className="flex-1 bg-black px-5">
       <View className="pt-16 mb-6">
         <Text
-          className="text-3xl font-bold text-white leading-8 mb-2"
+          className="text-3xl text-white leading-8 mb-0"
           style={{ fontFamily: "BankGothicBold" }}
         >
-          GET DISCOVERED
+          get discovered
         </Text>
         <View className="flex-row items-center gap-2">
           <Text
-            className="text-3xl font-bold text-white leading-8"
+            className="text-3xl text-white leading-8"
             style={{ fontFamily: "BankGothicBold" }}
           >
-            WITH
+            with
           </Text>
           {carslUri && <SvgUri uri={carslUri} width={100} height={35} />}
         </View>
       </View>
 
       <View className="flex-row items-start mb-6 gap-3">
-        <View className="gap-3">
+        <View className="">
           {splashOneUri && (
-            <SvgUri uri={splashOneUri} width={220} height={220} />
+            <SvgUri uri={splashOneUri} width={180} height={250} />
           )}
           {splashTwoUri && (
-            <SvgUri uri={splashTwoUri} width={220} height={220} />
+            <SvgUri uri={splashTwoUri} width={180} height={250} />
           )}
         </View>
         {splashThreeUri && (
-          <SvgUri uri={splashThreeUri} width={170} height={460} />
+          <View className="mt-32 ml-2">
+            <SvgUri uri={splashThreeUri} width={180} height={250} />
+          </View>
         )}
       </View>
 
-      <Text className="text-base text-white leading-6">
+      <Text className="text-lg text-white leading-5">
         For artists, galleries, and collectors, this is your world of art
         reimagined. A place to showcase, discover, and connect through
         creativity that inspires growth.
