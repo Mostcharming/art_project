@@ -7,7 +7,6 @@ import {
   Alert,
   Keyboard,
   Pressable,
-  StyleSheet,
   Text,
   TextInput,
   TouchableWithoutFeedback,
@@ -128,153 +127,44 @@ export default function SignUpToken() {
     return `${maskedLocal}@${domain}`;
   };
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: "#000000",
-      paddingTop: insets.top,
-      paddingHorizontal: 20,
-    },
-    headerContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingVertical: 16,
-    },
-    backButton: {
-      padding: 8,
-    },
-    contentContainer: {
-      flex: 1,
-      justifyContent: "flex-start",
-      alignItems: "center",
-      paddingTop: 10,
-    },
-    heading: {
-      fontSize: 30,
-      fontWeight: "bold",
-      color: "#FFFFFF",
-      fontFamily: "BankGothicBold",
-      lineHeight: 40,
-      marginBottom: 0,
-      alignSelf: "flex-start",
-    },
-    subheading: {
-      fontSize: 16,
-      color: "#CCCCCC",
-      fontFamily: "BankGothicMediumBT",
-      lineHeight: 24,
-      textAlign: "left",
-      marginBottom: 10,
-      alignSelf: "flex-start",
-    },
-    tokenContainer: {
-      flexDirection: "row",
-      justifyContent: "center",
-      gap: 12,
-      marginBottom: 20,
-      marginTop: 20,
-    },
-    tokenInput: {
-      width: 70,
-      height: 80,
-      borderRadius: 8,
-      backgroundColor: "#333333",
-      borderWidth: 2,
-      borderColor: "#666666",
-      fontSize: 60,
-      fontWeight: "500",
-      color: "#FFFFFF",
-      textAlign: "center",
-    },
-    verifyButton: {
-      marginTop: 10,
-      minHeight: 60,
-      borderRadius: 12,
-      backgroundColor: "#D8522E",
-      justifyContent: "center",
-      alignItems: "center",
-      alignSelf: "stretch",
-    },
-    verifyButtonDisabled: {
-      marginTop: 10,
-      minHeight: 60,
-      borderRadius: 12,
-      backgroundColor: "#8B3D1F",
-      justifyContent: "center",
-      alignItems: "center",
-      alignSelf: "stretch",
-    },
-    verifyButtonText: {
-      fontSize: 16,
-      fontWeight: "bold",
-      color: "#FFFFFF",
-      fontFamily: "BankGothicMediumBT",
-    },
-    verifyButtonTextDisabled: {
-      fontSize: 16,
-      fontWeight: "bold",
-      color: "#A67C52",
-      fontFamily: "BankGothicMediumBT",
-    },
-    errorMessage: {
-      fontSize: 12,
-      color: "#FF4444",
-      fontFamily: "BankGothicMediumBT",
-      marginTop: 8,
-      lineHeight: 18,
-    },
-    resendContainer: {
-      alignItems: "center",
-      marginTop: 20,
-    },
-    resendText: {
-      fontSize: 14,
-      color: "#999999",
-      fontFamily: "BankGothicMediumBT",
-      marginBottom: 0,
-    },
-    resendTimer: {
-      fontSize: 14,
-      color: "#FF4444",
-      fontFamily: "BankGothicMediumBT",
-      fontWeight: "bold",
-    },
-    resendLink: {
-      fontSize: 14,
-      color: "#FFFFFF",
-      fontFamily: "BankGothicMediumBT",
-      textDecorationLine: "underline",
-    },
-    resendLinkDisabled: {
-      fontSize: 14,
-      color: "#666666",
-      fontFamily: "BankGothicMediumBT",
-    },
-  });
+  const isTokenComplete = token.every((d) => d !== "");
+  const isVerifyDisabled = !isTokenComplete || isLoading;
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={styles.container}>
-        <View style={styles.headerContainer}>
-          <Pressable style={styles.backButton} onPress={() => router.back()}>
+      <View className="flex-1 bg-black px-5" style={{ paddingTop: insets.top }}>
+        <View className="flex-row items-center py-4">
+          <Pressable className="p-2" onPress={() => router.back()}>
             <MaterialIcons name="arrow-back" size={24} color="#FFFFFF" />
           </Pressable>
         </View>
-        <View style={styles.contentContainer}>
-          <Text style={styles.heading}>Verify Your Email</Text>
-          <Text style={styles.subheading}>
+
+        <View className="flex-1 items-center pt-3">
+          <Text
+            className="text-3xl text-white leading-10 mb-0 self-start"
+            style={{ fontFamily: "BankGothicBold" }}
+          >
+            Verify Your Email
+          </Text>
+          <Text className="text-base text-gray-300 leading-6 text-left mb-3 self-start">
             We just sent a 6 digit code to{" "}
-            <Text style={{ fontWeight: "bold" }}>{maskEmail(email || "")}</Text>
+            <Text className="font-bold">{maskEmail(email || "")}</Text>
           </Text>
 
-          <View style={styles.tokenContainer}>
+          <View className="flex-row justify-center gap-3 mb-5 mt-5">
             {token.map((digit, index) => (
               <TextInput
                 key={index}
                 ref={(el) => {
                   inputRefs.current[index] = el;
                 }}
-                style={styles.tokenInput}
+                className="rounded-lg bg-neutral-700 border-2 border-neutral-500 text-white text-center"
+                style={{
+                  width: 70,
+                  height: 80,
+                  fontSize: 60,
+                  fontWeight: "500",
+                }}
                 maxLength={1}
                 keyboardType="numeric"
                 value={digit}
@@ -287,35 +177,34 @@ export default function SignUpToken() {
           </View>
 
           <Pressable
-            style={
-              token.every((d) => d !== "") && !isLoading
-                ? styles.verifyButton
-                : styles.verifyButtonDisabled
-            }
-            disabled={!token.every((d) => d !== "") || isLoading}
+            className={`mt-3 self-stretch rounded-xl justify-center items-center ${
+              isVerifyDisabled ? "bg-orange-900" : "bg-orange-600"
+            }`}
+            style={{ minHeight: 60 }}
+            disabled={isVerifyDisabled}
             onPress={handleVerify}
           >
             <Text
-              style={
-                token.every((d) => d !== "") && !isLoading
-                  ? styles.verifyButtonText
-                  : styles.verifyButtonTextDisabled
-              }
+              className={`text-base font-bold ${
+                isVerifyDisabled ? "text-amber-700" : "text-white"
+              }`}
             >
               {isLoading ? "Verifying..." : "Verify Email"}
             </Text>
           </Pressable>
 
-          {error && <Text style={styles.errorMessage}>{error}</Text>}
+          {error && (
+            <Text className="text-xs text-red-500 mt-2 leading-5">{error}</Text>
+          )}
 
-          <View style={styles.resendContainer}>
-            <Text style={styles.resendText}>
+          <View className="items-center mt-5">
+            <Text className="text-sm text-gray-400 mb-0">
               {isResendActive ? (
                 ""
               ) : (
                 <>
                   Resend code in{" "}
-                  <Text style={styles.resendTimer}>
+                  <Text className="text-sm text-red-500 font-bold">
                     00:{timeLeft.toString().padStart(2, "0")}
                   </Text>
                 </>
@@ -326,11 +215,11 @@ export default function SignUpToken() {
               disabled={!isResendActive || isLoading}
             >
               <Text
-                style={
+                className={`text-sm ${
                   isResendActive && !isLoading
-                    ? styles.resendLink
-                    : styles.resendLinkDisabled
-                }
+                    ? "text-white underline"
+                    : "text-neutral-500"
+                }`}
               >
                 {isLoading ? "Sending..." : isResendActive ? "Resend Code" : ""}
               </Text>

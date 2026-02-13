@@ -7,7 +7,7 @@ import { SvgUri } from "react-native-svg";
 
 export default function Splash1() {
   const router = useRouter();
-  const { imageUris } = usePreloadImages([
+  const { imageUris, isLoading } = usePreloadImages([
     require("@/assets/images/carsl.svg"),
     require("@/assets/images/splash/splashone.svg"),
     require("@/assets/images/splash/splashtwo.svg"),
@@ -28,8 +28,8 @@ export default function Splash1() {
   }, [imageUris]);
 
   return (
-    <View className="flex-1 bg-black px-5">
-      <View className="pt-16 mb-6">
+    <View className="flex-1 bg-black pt-16">
+      <View className="items-start mx-5">
         <Text
           className="text-3xl text-white leading-8 mb-0"
           style={{ fontFamily: "BankGothicBold" }}
@@ -43,35 +43,39 @@ export default function Splash1() {
           >
             with
           </Text>
-          {carslUri && <SvgUri uri={carslUri} width={100} height={35} />}
+          {carslUri && <SvgUri uri={carslUri} width={120} height={35} />}
         </View>
       </View>
 
-      <View className="flex-row items-start mb-6 gap-3">
-        <View className="">
-          {splashOneUri && (
-            <SvgUri uri={splashOneUri} width={180} height={250} />
-          )}
-          {splashTwoUri && (
-            <SvgUri uri={splashTwoUri} width={180} height={250} />
-          )}
-        </View>
-        {splashThreeUri && (
-          <View className="mt-32 ml-2">
-            <SvgUri uri={splashThreeUri} width={180} height={250} />
-          </View>
+      <View className="flex-1 flex-row justify-center items-start w-full px-3 gap-3 -mt-4">
+        {splashOneUri && splashTwoUri && splashThreeUri ? (
+          <>
+            <View className="flex-1">
+              <SvgUri uri={splashOneUri} width="100%" height="50%" />
+              <SvgUri uri={splashTwoUri} width="100%" height="50%" />
+            </View>
+            <View className="flex-1 mt-32">
+              <SvgUri uri={splashThreeUri} width="100%" height="50%" />
+            </View>
+          </>
+        ) : (
+          <View
+            className={`flex-1 h-full rounded opacity-60 ${
+              isLoading ? "bg-gray-800" : "bg-gray-950"
+            }`}
+          />
         )}
       </View>
 
-      <Text className="text-lg text-white leading-5">
+      <Text className="text-base text-white leading-7 mx-3 pr-5 mb-4">
         For artists, galleries, and collectors, this is your world of art
         reimagined. A place to showcase, discover, and connect through
         creativity that inspires growth.
       </Text>
 
-      <View className="flex-row justify-between items-center mt-auto mb-12 mx-2">
+      <View className="flex-row justify-between items-center mt-auto mb-12 mx-5">
         <Pressable
-          className="border border-gray-600 rounded-full px-6 py-3"
+          className="border border-gray-700 rounded-lg px-6 py-3"
           onPress={() => router.push("/auth/signup/email-password")}
         >
           <Text className="text-base font-bold text-orange-600">
@@ -79,7 +83,7 @@ export default function Splash1() {
           </Text>
         </Pressable>
         <Pressable
-          className="w-12 h-12 rounded-full bg-orange-600 justify-center items-center"
+          className="w-12 h-12 rounded-lg bg-orange-600 justify-center items-center"
           onPress={() => router.push("/splash/splash2")}
         >
           <MaterialIcons name="arrow-forward" size={24} color="#FFFFFF" />

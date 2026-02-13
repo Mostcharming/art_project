@@ -6,7 +6,6 @@ import { useState } from "react";
 import {
   Keyboard,
   Pressable,
-  StyleSheet,
   Text,
   TextInput,
   TouchableWithoutFeedback,
@@ -64,160 +63,35 @@ export default function SignUpPage1() {
     }
   };
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: "#000000",
-      paddingTop: insets.top + 80,
-      paddingHorizontal: 20,
-    },
-    textSection: {
-      marginBottom: 30,
-    },
-    heading: {
-      fontSize: 30,
-      fontWeight: "bold",
-      color: "#FFFFFF",
-      fontFamily: "BankGothicBold",
-      lineHeight: 40,
-      marginBottom: 0,
-    },
-    subheading: {
-      fontSize: 16,
-      color: "#CCCCCC",
-      fontFamily: "BankGothicMediumBT",
-      lineHeight: 24,
-    },
-    inputContainer: {
-      marginBottom: 20,
-    },
-    label: {
-      fontSize: 14,
-      color: "#FFFFFF",
-      fontFamily: "BankGothicMediumBT",
-      marginBottom: 8,
-    },
-    input: {
-      borderWidth: 0,
-      borderRadius: 8,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      fontSize: 16,
-      color: "#FFFFFF",
-      fontFamily: "BankGothicMediumBT",
-      backgroundColor: "#333333",
-    },
-    createButton: {
-      marginTop: 40,
-      minHeight: 60,
-      borderRadius: 12,
-      backgroundColor: "#D8522E",
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    createButtonText: {
-      fontSize: 16,
-      fontWeight: "bold",
-      color: "#FFFFFF",
-      fontFamily: "BankGothicMediumBT",
-    },
-    createButtonTextDisabled: {
-      fontSize: 16,
-      fontWeight: "bold",
-      color: "#A67C52",
-      fontFamily: "BankGothicMediumBT",
-    },
-    inputWrapper: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: "#333333",
-      borderRadius: 8,
-      paddingHorizontal: 16,
-    },
-    inputWrapperError: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: "#333333",
-      borderRadius: 8,
-      paddingHorizontal: 16,
-      borderWidth: 2,
-      borderColor: "#FF4444",
-    },
-    inputField: {
-      flex: 1,
-      paddingVertical: 12,
-      fontSize: 16,
-      color: "#FFFFFF",
-      fontFamily: "BankGothicMediumBT",
-    },
-    iconButton: {
-      padding: 8,
-    },
-    passwordInstructions: {
-      fontSize: 12,
-      color: "#999999",
-      fontFamily: "BankGothicMediumBT",
-      marginTop: 8,
-      lineHeight: 18,
-    },
-    errorMessage: {
-      fontSize: 12,
-      color: "#FF4444",
-      fontFamily: "BankGothicMediumBT",
-      marginTop: 8,
-      lineHeight: 18,
-    },
-    createButtonDisabled: {
-      marginTop: 40,
-      minHeight: 60,
-      borderRadius: 12,
-      backgroundColor: "#8B3D1F",
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    termsContainer: {
-      marginTop: 20,
-      alignItems: "center",
-    },
-    termsText: {
-      paddingHorizontal: 20,
-      fontSize: 13,
-      color: "#999999",
-      fontFamily: "BankGothicMediumBT",
-      lineHeight: 16,
-      textAlign: "center",
-    },
-    termsLink: {
-      textDecorationLine: "underline",
-      color: "#FFFFFF",
-    },
-    loginLinkContainer: {
-      marginTop: 200,
-      alignItems: "center",
-    },
-    loginLinkText: {
-      fontSize: 14,
-      color: "#FFFFFF",
-      fontFamily: "BankGothicMediumBT",
-      textDecorationLine: "underline",
-    },
-  });
+  const isDisabled = isLoading || !isFormValid;
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={styles.container}>
-        <View style={styles.textSection}>
-          <Text style={styles.heading}>Let&apos;s get you started</Text>
-          <Text style={styles.subheading}>
+      <View
+        className="flex-1 bg-black px-5"
+        style={{ paddingTop: insets.top + 80 }}
+      >
+        <View className="mb-8">
+          <Text
+            className="text-3xl text-white leading-10 mb-0"
+            style={{ fontFamily: "BankGothicBold" }}
+          >
+            Let&apos;s get you started
+          </Text>
+          <Text className="text-base text-gray-300 leading-6">
             Create an account in quick, easy steps
           </Text>
         </View>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Email</Text>
-          <View style={error ? styles.inputWrapperError : styles.inputWrapper}>
+        <View className="mb-5">
+          <Text className="text-sm text-white mb-2">Email</Text>
+          <View
+            className={`flex-row items-center rounded-lg px-4 bg-neutral-700 ${
+              error ? "border-2 border-red-500" : ""
+            }`}
+          >
             <TextInput
-              style={styles.inputField}
+              className="flex-1 py-4 text-base text-white"
               placeholder="Example@gmail.com"
               placeholderTextColor="#666666"
               value={email}
@@ -228,11 +102,15 @@ export default function SignUpPage1() {
           </View>
         </View>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Create Password</Text>
-          <View style={error ? styles.inputWrapperError : styles.inputWrapper}>
+        <View className="mb-5">
+          <Text className="text-sm text-white mb-2">Create Password</Text>
+          <View
+            className={`flex-row items-center rounded-lg px-4 bg-neutral-700 ${
+              error ? "border-2 border-red-500" : ""
+            }`}
+          >
             <TextInput
-              style={styles.inputField}
+              className="flex-1 py-4 text-base text-white"
               placeholder="Enter your password"
               placeholderTextColor="#666666"
               value={password}
@@ -240,7 +118,7 @@ export default function SignUpPage1() {
               secureTextEntry={!showPassword}
             />
             <Pressable
-              style={styles.iconButton}
+              className="p-2"
               onPress={() => setShowPassword(!showPassword)}
             >
               <MaterialIcons
@@ -251,43 +129,54 @@ export default function SignUpPage1() {
             </Pressable>
           </View>
           <Text
-            style={error ? styles.errorMessage : styles.passwordInstructions}
+            className={`text-xs mt-2 leading-5 ${
+              error ? "text-red-500" : "text-gray-400"
+            }`}
           >
             {error ? error : "At least 8 letters, 1 special character *%#@!"}
           </Text>
         </View>
 
         <Pressable
-          style={
-            isLoading || !isFormValid
-              ? styles.createButtonDisabled
-              : styles.createButton
-          }
-          disabled={!isFormValid || isLoading}
+          className={`mt-10 rounded-xl justify-center items-center ${
+            isDisabled ? "bg-orange-900" : "bg-orange-600"
+          }`}
+          style={{ minHeight: 60 }}
+          disabled={isDisabled}
           onPress={handleCreateAccount}
         >
           <Text
-            style={
-              isLoading || !isFormValid
-                ? styles.createButtonTextDisabled
-                : styles.createButtonText
-            }
+            className={`text-base font-bold ${
+              isDisabled ? "text-amber-700" : "text-white"
+            }`}
           >
             {isLoading ? "Creating Account..." : "Create Account"}
           </Text>
         </Pressable>
 
-        <View style={styles.termsContainer}>
-          <Text style={styles.termsText}>
-            By clicking &quot;Create Account&quot;, you agree to our{" "}
-            <Text style={styles.termsLink}>Terms of Service</Text> and{" "}
-            <Text style={styles.termsLink}>Privacy Policy</Text>
+        <View className="mt-5 items-center">
+          <Text
+            className="text-gray-400 text-center px-5 leading-5"
+            style={{ fontSize: 13 }}
+          >
+            By clicking &quot;Create Account&quot;, you agree to our
           </Text>
+          <View className="flex-row items-center justify-center mt-1">
+            <Text className="text-white underline" style={{ fontSize: 13 }}>
+              Terms of Service
+            </Text>
+            <Text className="text-gray-400 mx-1" style={{ fontSize: 13 }}>
+              and
+            </Text>
+            <Text className="text-white underline" style={{ fontSize: 13 }}>
+              Privacy Policy
+            </Text>
+          </View>
         </View>
 
-        <View style={styles.loginLinkContainer}>
+        <View className="mt-auto mb-12 items-center">
           <Pressable onPress={() => router.push("/auth/login")}>
-            <Text style={styles.loginLinkText}>
+            <Text className="text-sm text-white underline">
               Already have an account? Log in
             </Text>
           </Pressable>

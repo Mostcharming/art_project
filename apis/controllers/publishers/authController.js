@@ -223,8 +223,14 @@ exports.login = async (req, res, next) => {
             return res.status(400).json({ error: 'Email and password are required' });
         }
 
+
         const publisher = await Publisher.findOne({ where: { email } });
         if (!publisher) {
+            return res.status(401).json({ error: 'Invalid email or password' });
+        }
+
+        const isPasswordValid = await comparePassword(password, publisher.password);
+        if (!isPasswordValid) {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
@@ -232,10 +238,7 @@ exports.login = async (req, res, next) => {
             return res.status(403).json({ error: 'Please verify your email before logging in' });
         }
 
-        const isPasswordValid = await comparePassword(password, publisher.password);
-        if (!isPasswordValid) {
-            return res.status(401).json({ error: 'Invalid email or password' });
-        }
+
 
         const token = generateToken({
             id: publisher.id,

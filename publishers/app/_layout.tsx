@@ -62,6 +62,10 @@ export default function RootLayout() {
           name="auth/signup/token"
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name="auth/login/index"
+          options={{ headerShown: false }}
+        />
       </Stack>
       <StatusBar
         style="light"
