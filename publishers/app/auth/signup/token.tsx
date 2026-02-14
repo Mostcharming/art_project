@@ -19,7 +19,8 @@ export default function SignUpToken() {
   const router = useRouter();
   const email = useUserStore((state) => state.user?.email);
   const updateUser = useUserStore((state) => state.updateUser);
-  const [token, setToken] = useState(["", "", "", ""]);
+  const setAuthToken = useUserStore((state) => state.setToken);
+  const [otp, setOtp] = useState(["", "", "", ""]);
   const [timeLeft, setTimeLeft] = useState(59);
   const [isResendActive, setIsResendActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,9 +46,9 @@ export default function SignUpToken() {
 
   const handleTokenChange = (index: number, value: string) => {
     if (/^\d?$/.test(value)) {
-      const newToken = [...token];
-      newToken[index] = value;
-      setToken(newToken);
+      const newOtp = [...otp];
+      newOtp[index] = value;
+      setOtp(newOtp);
 
       // Auto-focus to next input when a digit is entered
       if (value !== "" && index < 3) {
@@ -58,13 +59,13 @@ export default function SignUpToken() {
 
   const handleKeyPress = (index: number, e: any) => {
     // Move to previous input on backspace if current input is empty
-    if (e.nativeEvent.key === "Backspace" && token[index] === "" && index > 0) {
+    if (e.nativeEvent.key === "Backspace" && otp[index] === "" && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
   };
 
   const handleVerify = async () => {
-    const fullToken = token.join("");
+    const fullToken = otp.join("");
     if (!fullToken || fullToken.length !== 4) return;
 
     setError(null);
@@ -86,11 +87,18 @@ export default function SignUpToken() {
         "Invalid verification code. Please try again."
       );
     } else {
-      // Update user and navigate to account setup
+      // Save auth token from API response
+      if (response.data?.authToken) {
+        setAuthToken(response.data.authToken);
+      }
+
+      // Update user with verified status and any returned publisher data
       updateUser({
+        ...response.data?.publisher,
         isEmailVerified: true,
       });
-      router.push({
+
+      router.replace({
         pathname: "/auth/signup/account-setup",
       });
     }
@@ -127,7 +135,7 @@ export default function SignUpToken() {
     return `${maskedLocal}@${domain}`;
   };
 
-  const isTokenComplete = token.every((d) => d !== "");
+  const isTokenComplete = otp.every((d) => d !== "");
   const isVerifyDisabled = !isTokenComplete || isLoading;
 
   return (
@@ -147,12 +155,12 @@ export default function SignUpToken() {
             Verify Your Email
           </Text>
           <Text className="text-base text-gray-300 leading-6 text-left mb-3 self-start">
-            We just sent a 6 digit code to{" "}
+            We just sent a 4 digit code to{" "}
             <Text className="font-bold">{maskEmail(email || "")}</Text>
           </Text>
 
           <View className="flex-row justify-center gap-3 mb-5 mt-5">
-            {token.map((digit, index) => (
+            {otp.map((digit, index) => (
               <TextInput
                 key={index}
                 ref={(el) => {
@@ -162,8 +170,12 @@ export default function SignUpToken() {
                 style={{
                   width: 70,
                   height: 80,
-                  fontSize: 60,
+                  fontSize: 36,
                   fontWeight: "500",
+                  lineHeight: 44,
+                  textAlignVertical: "center",
+                  includeFontPadding: false,
+                  paddingVertical: 0,
                 }}
                 maxLength={1}
                 keyboardType="numeric"

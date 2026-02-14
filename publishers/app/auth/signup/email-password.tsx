@@ -135,6 +135,39 @@ export default function SignUpPage1() {
           >
             {error ? error : "At least 8 letters, 1 special character *%#@!"}
           </Text>
+          {/* Validation indicators */}
+          {password.length > 0 && (
+            <View className="mt-2">
+              <View className="flex-row items-center mb-1">
+                <MaterialIcons
+                  name={hasMinLength ? "check-circle" : "cancel"}
+                  size={14}
+                  color={hasMinLength ? "#22c55e" : "#ef4444"}
+                />
+                <Text
+                  className={`text-xs ml-1 ${
+                    hasMinLength ? "text-green-500" : "text-red-500"
+                  }`}
+                >
+                  At least 8 characters
+                </Text>
+              </View>
+              <View className="flex-row items-center">
+                <MaterialIcons
+                  name={hasSpecialChar ? "check-circle" : "cancel"}
+                  size={14}
+                  color={hasSpecialChar ? "#22c55e" : "#ef4444"}
+                />
+                <Text
+                  className={`text-xs ml-1 ${
+                    hasSpecialChar ? "text-green-500" : "text-red-500"
+                  }`}
+                >
+                  At least 1 special character (*%#@!)
+                </Text>
+              </View>
+            </View>
+          )}
         </View>
 
         <Pressable

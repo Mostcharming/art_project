@@ -13,12 +13,11 @@ const emailMiddleware = {
         }
     },
 
-    sendPasswordResetEmail: async (email, resetToken, name = 'User') => {
+    sendPasswordResetEmail: async (email, resetCode, name = 'User') => {
         try {
-            const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
             await sendEmail(email, 'passwordReset', {
                 name,
-                resetLink,
+                resetCode,
             });
         } catch (error) {
             console.error('Failed to send password reset email:', error);

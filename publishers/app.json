@@ -8,17 +8,14 @@
     "scheme": "carsl",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "platforms": [
-      "ios",
-      "android",
-      "web"
-    ],
+    "platforms": ["ios", "android", "web"],
     "ios": {
       "supportsTablet": true,
       "icon": "./assets/images/icon.png",
       "bundleIdentifier": "com.carsl.app",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSFaceIDUsageDescription": "We use Face ID to let you log in quickly and securely."
       }
     },
     "android": {
@@ -59,6 +56,12 @@
             "./assets/fonts/BankGothicMdBT.ttf",
             "./assets/fonts/BankGothicLightRegular.otf"
           ]
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID for authentication."
         }
       ]
     ],

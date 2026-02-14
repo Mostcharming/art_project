@@ -13,6 +13,8 @@ router.post('/auth/login', authController.login);
 
 router.post('/auth/request-password-reset', authController.requestPasswordReset);
 
+router.post('/auth/verify-reset-token', authController.verifyResetToken);
+
 router.post('/auth/reset-password', authController.resetPassword);
 
 router.post('/auth/complete-profile-setup', authenticatePublisher, authController.completeProfileSetup);

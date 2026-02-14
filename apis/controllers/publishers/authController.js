@@ -89,11 +89,11 @@ exports.verifyEmail = async (req, res, next) => {
             type: 'publisher',
         });
 
-        try {
-            await emailMiddleware.sendWelcomeEmail(email, email.split('@')[0]);
-        } catch (emailError) {
-            console.warn('Welcome email sending failed:', emailError);
-        }
+        // try {
+        //     await emailMiddleware.sendWelcomeEmail(email, email.split('@')[0]);
+        // } catch (emailError) {
+        //     console.warn('Welcome email sending failed:', emailError);
+        // }
 
         res.json({
             message: 'Email verified successfully. Complete your profile to finish setup.',
@@ -273,24 +273,24 @@ exports.requestPasswordReset = async (req, res, next) => {
 
         const publisher = await Publisher.findOne({ where: { email } });
         if (!publisher) {
-            return res.json({ message: 'If this email exists, a reset link has been sent' });
+            return res.json({ message: 'If this email exists, a reset code has been sent' });
         }
 
-        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetCode = generateVerificationCode();
 
         await publisher.update({
-            resetPasswordToken: resetToken,
-            resetPasswordTokenExpires: new Date(Date.now() + 1 * 60 * 60 * 1000),
+            resetPasswordToken: resetCode,
+            resetPasswordTokenExpires: new Date(Date.now() + 15 * 60 * 1000),
         });
 
         try {
-            await emailMiddleware.sendPasswordResetEmail(email, resetToken, email.split('@')[0]);
+            await emailMiddleware.sendPasswordResetEmail(email, resetCode, email.split('@')[0]);
         } catch (emailError) {
             console.warn('Password reset email failed:', emailError);
         }
 
         res.json({
-            message: 'Password reset link has been sent to your email',
+            message: 'A 4-digit reset code has been sent to your email',
         });
     } catch (error) {
         console.error('Request password reset error:', error);
@@ -298,12 +298,51 @@ exports.requestPasswordReset = async (req, res, next) => {
     }
 };
 
+exports.verifyResetToken = async (req, res, next) => {
+    try {
+        const { email, code } = req.body;
+
+        if (!email || !code) {
+            return res.status(400).json({ error: 'Email and reset code are required' });
+        }
+
+        const publisher = await Publisher.findOne({
+            where: {
+                email,
+                resetPasswordToken: code,
+                resetPasswordTokenExpires: {
+                    [require('sequelize').Op.gt]: new Date(),
+                },
+            },
+        });
+
+        if (!publisher) {
+            return res.status(400).json({ error: 'Invalid or expired reset code' });
+        }
+
+        const resetSessionToken = crypto.randomBytes(32).toString('hex');
+
+        await publisher.update({
+            resetPasswordToken: resetSessionToken,
+            resetPasswordTokenExpires: new Date(Date.now() + 10 * 60 * 1000),
+        });
+
+        res.json({
+            message: 'Reset code verified successfully',
+            resetSessionToken,
+        });
+    } catch (error) {
+        console.error('Verify reset token error:', error);
+        next(error);
+    }
+};
+
 exports.resetPassword = async (req, res, next) => {
     try {
-        const { token, newPassword } = req.body;
+        const { resetSessionToken, newPassword } = req.body;
 
-        if (!token || !newPassword) {
-            return res.status(400).json({ error: 'Reset token and new password are required' });
+        if (!resetSessionToken || !newPassword) {
+            return res.status(400).json({ error: 'Reset session token and new password are required' });
         }
 
         if (newPassword.length < 6) {
@@ -312,7 +351,7 @@ exports.resetPassword = async (req, res, next) => {
 
         const publisher = await Publisher.findOne({
             where: {
-                resetPasswordToken: token,
+                resetPasswordToken: resetSessionToken,
                 resetPasswordTokenExpires: {
                     [require('sequelize').Op.gt]: new Date(),
                 },
@@ -320,7 +359,7 @@ exports.resetPassword = async (req, res, next) => {
         });
 
         if (!publisher) {
-            return res.status(400).json({ error: 'Invalid or expired reset token' });
+            return res.status(400).json({ error: 'Invalid or expired reset session. Please restart the password reset process.' });
         }
 
         const hashedPassword = await hashPassword(newPassword);
