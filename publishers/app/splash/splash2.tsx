@@ -1,22 +1,10 @@
-import { usePreloadImages } from "@/hooks/usePreloadImages";
+import Splash2Svg from "@/assets/images/splash/splash2.svg";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
-import { SvgUri } from "react-native-svg";
 
 export default function Splash2() {
   const router = useRouter();
-  const { imageUris, isLoading } = usePreloadImages([
-    require("@/assets/images/splash/splash2.svg"),
-  ]);
-  const [splash2Uri, setSplash2Uri] = useState<string>("");
-
-  useEffect(() => {
-    if (imageUris && imageUris.length > 0) {
-      setSplash2Uri(imageUris[0]);
-    }
-  }, [imageUris]);
 
   return (
     <View className="flex-1 bg-black pt-16">
@@ -30,15 +18,7 @@ export default function Splash2() {
       </View>
 
       <View className="flex-1 justify-center items-center w-full">
-        {splash2Uri ? (
-          <SvgUri uri={splash2Uri} width="100%" height="100%" />
-        ) : (
-          <View
-            className={`w-96 h-96 rounded opacity-60 ${
-              isLoading ? "bg-gray-800" : "bg-gray-950"
-            }`}
-          />
-        )}
+        <Splash2Svg width="100%" height="100%" />
       </View>
 
       <Text className="text-base text-white leading-7 mx-3 pr-5 mb-4">

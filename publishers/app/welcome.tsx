@@ -1,23 +1,11 @@
-import { usePreloadImages } from "@/hooks/usePreloadImages";
+import WelcomeSvg from "@/assets/images/welcome.svg";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { SvgUri } from "react-native-svg";
 
 export default function Welcome() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { imageUris } = usePreloadImages([
-    require("@/assets/images/welcome.svg"),
-  ]);
-  const [welcomeUri, setWelcomeUri] = useState<string>("");
-
-  useEffect(() => {
-    if (imageUris && imageUris.length > 0) {
-      setWelcomeUri(imageUris[0]);
-    }
-  }, [imageUris]);
 
   return (
     <View className="flex-1 bg-black px-5" style={{ paddingTop: insets.top }}>
@@ -41,11 +29,7 @@ export default function Welcome() {
         className="justify-center items-center w-full"
         style={{ height: 500 }}
       >
-        {welcomeUri ? (
-          <SvgUri uri={welcomeUri} width="100%" height="100%" />
-        ) : (
-          <View className="w-72 h-72 rounded-2xl bg-neutral-900 opacity-60" />
-        )}
+        <WelcomeSvg width="100%" height="100%" />
       </View>
 
       {/* Let's Gooo button */}

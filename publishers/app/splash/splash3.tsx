@@ -1,21 +1,9 @@
-import { usePreloadImages } from "@/hooks/usePreloadImages";
+import Splash3Svg from "@/assets/images/splash/splash3.svg";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
-import { SvgUri } from "react-native-svg";
 
 export default function Splash3() {
   const router = useRouter();
-  const { imageUris, isLoading } = usePreloadImages([
-    require("@/assets/images/splash/splash3.svg"),
-  ]);
-  const [splash3Uri, setSplash3Uri] = useState<string>("");
-
-  useEffect(() => {
-    if (imageUris && imageUris.length > 0) {
-      setSplash3Uri(imageUris[0]);
-    }
-  }, [imageUris]);
 
   return (
     <View className="flex-1 bg-black pt-16">
@@ -29,15 +17,7 @@ export default function Splash3() {
       </View>
 
       <View className="flex-1 justify-center items-center w-full">
-        {splash3Uri ? (
-          <SvgUri uri={splash3Uri} width="100%" height="100%" />
-        ) : (
-          <View
-            className={`w-96 h-96 rounded opacity-60 ${
-              isLoading ? "bg-gray-800" : "bg-gray-950"
-            }`}
-          />
-        )}
+        <Splash3Svg width="100%" height="100%" />
       </View>
 
       <Text className="text-sm text-white leading-7 mx-5 pr-5 mb-4">
