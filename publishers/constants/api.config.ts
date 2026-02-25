@@ -7,7 +7,7 @@ export const API_CONFIG = {
     timeout: 30000,
   },
   production: {
-    baseUrl: "https://api.yourdomain.com/api/publishers",
+    baseUrl: "https://68.183.44.140/api/publishers",
     timeout: 30000,
   },
 };

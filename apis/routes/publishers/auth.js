@@ -21,4 +21,6 @@ router.post('/auth/complete-profile-setup', authenticatePublisher, authControlle
 
 router.get('/auth/profile', authenticatePublisher, authController.getProfile);
 
+router.patch('/update-profile', authenticatePublisher, authController.updateProfile);
+
 module.exports = router;

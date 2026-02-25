@@ -18,8 +18,7 @@ export const unstable_settings = {
   anchor: "(tabs)",
 };
 
-// List of route segments that require authentication
-const PROTECTED_SEGMENTS = ["dashboard"];
+const NAVBAR_SEGMENTS = ["dashboard", "profile", "settings", "tags"];
 
 function useProtectedRoute() {
   const segments = useSegments();
@@ -28,15 +27,13 @@ function useProtectedRoute() {
   const hasHydrated = useUserStore.persist.hasHydrated;
 
   useEffect(() => {
-    // Wait for the persisted store to rehydrate from AsyncStorage
     if (!hasHydrated()) return;
 
-    const inProtectedRoute = PROTECTED_SEGMENTS.some((seg) =>
+    const inProtectedRoute = NAVBAR_SEGMENTS.some((seg) =>
       segments.includes(seg as never)
     );
 
     if (!isAuthenticated() && inProtectedRoute) {
-      // User is not signed in but trying to access a protected route
       router.replace("/splash/splash1");
     }
   }, [segments, isAuthenticated, hasHydrated, router]);
@@ -47,7 +44,6 @@ export default function RootLayout() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const pathname = usePathname();
 
-  // Protect routes that require authentication
   useProtectedRoute();
 
   useEffect(() => {
@@ -69,8 +65,7 @@ export default function RootLayout() {
     loadFonts();
   }, []);
 
-  // Determine if current route is protected
-  const showBottomNavbar = PROTECTED_SEGMENTS.some((seg) =>
+  const showBottomNavbar = NAVBAR_SEGMENTS.some((seg) =>
     pathname.includes(seg)
   );
 
@@ -117,6 +112,9 @@ export default function RootLayout() {
           />
           <Stack.Screen name="welcome" options={{ headerShown: false }} />
           <Stack.Screen name="dashboard" options={{ headerShown: false }} />
+          <Stack.Screen name="profile" options={{ headerShown: false }} />
+          <Stack.Screen name="settings" options={{ headerShown: false }} />
+          <Stack.Screen name="tags" options={{ headerShown: false }} />
           <Stack.Screen
             name="auth/forgotpassword/page1"
             options={{ headerShown: false }}

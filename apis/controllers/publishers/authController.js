@@ -376,3 +376,47 @@ exports.resetPassword = async (req, res, next) => {
         next(error);
     }
 };
+
+// Update publisher profile (name, personaType, country, bio, password)
+exports.updateProfile = async (req, res, next) => {
+    try {
+        const publisherId = req.user.id;
+        const { name, personaType, country, bio, password } = req.body;
+
+        const publisher = await Publisher.findByPk(publisherId);
+        if (!publisher) {
+            return res.status(404).json({ error: 'Publisher not found' });
+        }
+
+        const updateData = {
+            name: name || publisher.name,
+            personaType: personaType || publisher.personaType,
+            country: country || publisher.country,
+            bio: bio !== undefined ? bio : publisher.bio,
+        };
+
+        if (password) {
+            if (password.length < 6) {
+                return res.status(400).json({ error: 'Password must be at least 6 characters' });
+            }
+            updateData.password = await hashPassword(password);
+        }
+
+        await publisher.update(updateData);
+
+        res.json({
+            message: 'Profile updated successfully',
+            publisher: {
+                id: publisher.id,
+                email: publisher.email,
+                name: publisher.name,
+                personaType: publisher.personaType,
+                country: publisher.country,
+                bio: publisher.bio,
+            },
+        });
+    } catch (error) {
+        console.error('Update profile error:', error);
+        next(error);
+    }
+};

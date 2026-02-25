@@ -189,8 +189,45 @@ export default function LoginPage() {
               />
             </Pressable>
           </View>
-          {error && (
-            <Text className="text-xs text-red-500 mt-2 leading-5">{error}</Text>
+          <Text
+            className={`text-xs mt-2 leading-5 ${
+              error ? "text-red-500" : "text-gray-400"
+            }`}
+          >
+            {error ? error : "At least 8 letters, 1 special character *%#@!"}
+          </Text>
+          {/* Validation indicators */}
+          {password.length > 0 && (
+            <View className="mt-2">
+              <View className="flex-row items-center mb-1">
+                <MaterialIcons
+                  name={password.length >= 8 ? "check-circle" : "cancel"}
+                  size={14}
+                  color={password.length >= 8 ? "#22c55e" : "#ef4444"}
+                />
+                <Text
+                  className={`text-xs ml-1 ${
+                    password.length >= 8 ? "text-green-500" : "text-red-500"
+                  }`}
+                >
+                  At least 8 characters
+                </Text>
+              </View>
+              <View className="flex-row items-center">
+                <MaterialIcons
+                  name={/[*%#@!]/.test(password) ? "check-circle" : "cancel"}
+                  size={14}
+                  color={/[*%#@!]/.test(password) ? "#22c55e" : "#ef4444"}
+                />
+                <Text
+                  className={`text-xs ml-1 ${
+                    /[*%#@!]/.test(password) ? "text-green-500" : "text-red-500"
+                  }`}
+                >
+                  At least 1 special character (*%#@!)
+                </Text>
+              </View>
+            </View>
           )}
         </View>
 

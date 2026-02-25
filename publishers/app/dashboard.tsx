@@ -1,4 +1,3 @@
-import BottomNavbar from "@/components/BottomNavbar";
 import { useUserStore } from "@/store/userStore";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
@@ -69,7 +68,7 @@ export default function Dashboard() {
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 60 }} // increased to avoid overlap
+        contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
       >
         {/* Header */}
         <View className="flex-row items-center justify-between px-5 pt-4 pb-6">
@@ -233,7 +232,6 @@ export default function Dashboard() {
           </Pressable>
         </View>
       </ScrollView>
-      <BottomNavbar />
     </View>
   );
 }
