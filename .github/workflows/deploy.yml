@@ -7,13 +7,10 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env:
-      PROJECT_PATH: /root/carsl/art_project
-      ADMIN_PATH: /root/carsl/art_project/admin
-      APIS_PATH: /root/carsl/art_project/apis
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Update repository on server
         uses: appleboy/ssh-action@v0.1.10
@@ -26,27 +23,37 @@ jobs:
             git reset --hard HEAD
             git pull origin main
 
-      - name: Setup backend
+      - name: Setup backend (APIs)
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
-            cd /root/carsl/art_project/apis
-            npm install --production
-            npm run db:migrate || echo "No migrations needed"
+            # Load NVM for node/npm
+            export NVM_DIR="/root/.nvm"
+            source "$NVM_DIR/nvm.sh"
+            nvm use v20.20.0
 
-      - name: Build frontend
+            cd /root/carsl/art_project/apis
+            /root/.nvm/versions/node/v20.20.0/bin/npm install --production
+            /root/.nvm/versions/node/v20.20.0/bin/npm run db:migrate || echo "No migrations needed"
+
+      - name: Build frontend (Admin)
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
+            # Load NVM for node/npm
+            export NVM_DIR="/root/.nvm"
+            source "$NVM_DIR/nvm.sh"
+            nvm use v20.20.0
+
             cd /root/carsl/art_project/admin
-            npm install
-            npm run build
+            /root/.nvm/versions/node/v20.20.0/bin/npm install
+            /root/.nvm/versions/node/v20.20.0/bin/npm run build
 
       - name: Restart services
         uses: appleboy/ssh-action@v0.1.10
@@ -55,6 +62,12 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
+            # Load NVM for node/npm/pm2
+            export NVM_DIR="/root/.nvm"
+            source "$NVM_DIR/nvm.sh"
+            nvm use v20.20.0
+
             cd /root/carsl/art_project/apis
-            pm2 reload ecosystem.config.js || pm2 start ecosystem.config.js
+            /root/.nvm/versions/node/v20.20.0/bin/pm2 reload ecosystem.config.js || /root/.nvm/versions/node/v20.20.0/bin/pm2 start ecosystem.config.js
             sudo nginx -s reload
+            echo "Deployment finished on $(date)"
