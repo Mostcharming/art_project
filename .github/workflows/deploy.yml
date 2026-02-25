@@ -22,7 +22,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
-            cd $PROJECT_PATH
+            cd /root/carsl/art_project
             git reset --hard HEAD
             git pull origin main
 
@@ -33,7 +33,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
-            cd $APIS_PATH
+            cd /root/carsl/art_project/apis
             npm install --production
             npm run db:migrate || echo "No migrations needed"
 
@@ -55,6 +55,6 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
-            cd $APIS_PATH
+            cd /root/carsl/art_project/apis
             pm2 reload ecosystem.config.js || pm2 start ecosystem.config.js
             sudo nginx -s reload
