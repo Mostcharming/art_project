@@ -8,61 +8,61 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      ADMIN_PATH: /root/carsl/art_project/admin
-      APIS_PATH: /root/carsl/art_project/apis
       PROJECT_PATH: /root/carsl/art_project
+      ADMIN_PATH: ${{ env.PROJECT_PATH }}/admin
+      APIS_PATH: ${{ env.PROJECT_PATH }}/apis
+
     steps:
-      # Step 1: Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Build Admin locally
-      - name: Build Admin
-        working-directory: admin
-        run: |
-          npm install
-          npm run build
-
-      # Step 3: Copy Admin build to server
-      - name: Copy Admin build to server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          password: ${{ secrets.SERVER_PASSWORD }}
-          source: "admin/dist/*"
-          target: ${{ env.ADMIN_PATH }}
-
-      # Step 4: Copy APIs files to server
-      - name: Copy APIs files to server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          password: ${{ secrets.SERVER_PASSWORD }}
-          source: "apis/*"
-          target: ${{ env.APIS_PATH }}
-
-      # Step 5: SSH into server & build + restart backend/frontend
-      - name: Build backend/frontend and restart PM2
+      - name: Update repository on server
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
-            echo "Deploy started at $(date)"
+            echo "Updating repo at $PROJECT_PATH"
+            cd $PROJECT_PATH
+            git reset --hard HEAD
+            git pull origin main
 
-            # Backend
+      - name: Setup backend
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            echo "Installing backend dependencies"
             cd $APIS_PATH
             npm install --production
-            npm run db:migrate
-            pm2 reload ecosystem.config.js || pm2 start ecosystem.config.js
+            echo "Running database migrations"
+            npm run db:migrate || echo "No migrations needed"
 
-            # Frontend
+      - name: Build frontend
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            echo "Building frontend"
             cd $ADMIN_PATH
-            echo "Admin build already uploaded. If needed, install dependencies."
-            # Reload Nginx to serve new admin build
-            sudo nginx -s reload
+            npm install
+            npm run build
 
-            echo "Deploy finished at $(date)"
+      - name: Restart services
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            echo "Restarting PM2 backend"
+            cd $APIS_PATH
+            pm2 reload ecosystem.config.js || pm2 start ecosystem.config.js
+            echo "Reloading NGINX"
+            sudo nginx -s reload
+            echo "Deployment finished at $(date)"
