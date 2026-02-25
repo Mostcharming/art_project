@@ -4,12 +4,13 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import * as Font from "expo-font";
-import { Stack, useRouter, useSegments } from "expo-router";
+import { Stack, usePathname, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import "../globals.css";
 
+import BottomNavbar from "@/components/BottomNavbar";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useUserStore } from "@/store/userStore";
 
@@ -44,6 +45,7 @@ function useProtectedRoute() {
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [fontsLoaded, setFontsLoaded] = useState(false);
+  const pathname = usePathname();
 
   // Protect routes that require authentication
   useProtectedRoute();
@@ -67,6 +69,11 @@ export default function RootLayout() {
     loadFonts();
   }, []);
 
+  // Determine if current route is protected
+  const showBottomNavbar = PROTECTED_SEGMENTS.some((seg) =>
+    pathname.includes(seg)
+  );
+
   if (!fontsLoaded) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -77,47 +84,59 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="splash/splash1" options={{ headerShown: false }} />
-        <Stack.Screen name="splash/splash2" options={{ headerShown: false }} />
-        <Stack.Screen name="splash/splash3" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="auth/signup/email-password"
-          options={{ headerShown: false }}
+      <View style={{ flex: 1 }}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="splash/splash1"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="splash/splash2"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="splash/splash3"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="auth/signup/email-password"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="auth/signup/token"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="auth/login/index"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="auth/signup/account-setup"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen name="welcome" options={{ headerShown: false }} />
+          <Stack.Screen name="dashboard" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="auth/forgotpassword/page1"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="auth/forgotpassword/page2"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="auth/forgotpassword/page3"
+            options={{ headerShown: false }}
+          />
+        </Stack>
+        {showBottomNavbar && <BottomNavbar />}
+        <StatusBar
+          style="light"
+          translucent={true}
+          backgroundColor="transparent"
         />
-        <Stack.Screen
-          name="auth/signup/token"
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="auth/login/index"
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="auth/signup/account-setup"
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen name="welcome" options={{ headerShown: false }} />
-        <Stack.Screen name="dashboard" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="auth/forgotpassword/page1"
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="auth/forgotpassword/page2"
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="auth/forgotpassword/page3"
-          options={{ headerShown: false }}
-        />
-      </Stack>
-      <StatusBar
-        style="light"
-        translucent={true}
-        backgroundColor="transparent"
-      />
+      </View>
     </ThemeProvider>
   );
 }
