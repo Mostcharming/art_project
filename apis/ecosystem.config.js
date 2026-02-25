@@ -4,7 +4,7 @@ module.exports = {
             name: 'apis',
             script: 'npm',
             args: 'start',
-            cwd: '/var/www/apis',
+            cwd: '/root/carsl/art_project/apis',
             env: {
                 NODE_ENV: 'production'
             },
