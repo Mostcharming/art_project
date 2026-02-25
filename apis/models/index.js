@@ -14,15 +14,35 @@ let sequelize;
 if (config.use_env_variable) {
   sequelize = new Sequelize(process.env[config.use_env_variable], config);
 } else {
+  let dbName, dbUser, dbPassword, dbHost, dbPort;
+  if (env === 'production') {
+    dbName = process.env.DB_NAME_PROD;
+    dbUser = process.env.DB_USER_PROD;
+    dbPassword = process.env.DB_PASSWORD_PROD;
+    dbHost = process.env.DB_HOST_PROD;
+    dbPort = process.env.DB_PORT_PROD;
+  } else if (env === 'test') {
+    dbName = process.env.DB_NAME_TEST;
+    dbUser = process.env.DB_USER;
+    dbPassword = process.env.DB_PASSWORD;
+    dbHost = process.env.DB_HOST;
+    dbPort = process.env.DB_PORT;
+  } else {
+    dbName = process.env.DB_NAME;
+    dbUser = process.env.DB_USER;
+    dbPassword = process.env.DB_PASSWORD;
+    dbHost = process.env.DB_HOST;
+    dbPort = process.env.DB_PORT;
+  }
   sequelize = new Sequelize(
-    process.env.DB_NAME,
-    process.env.DB_USER,
-    process.env.DB_PASSWORD,
+    dbName,
+    dbUser,
+    dbPassword,
     {
-      host: process.env.DB_HOST,
-      port: process.env.DB_PORT,
+      host: dbHost,
+      port: dbPort,
       dialect: 'postgres',
-      logging: false,
+      logging: false
     }
   );
 }
