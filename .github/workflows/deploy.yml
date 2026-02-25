@@ -9,12 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PROJECT_PATH: /root/carsl/art_project
-      ADMIN_PATH: ${{ env.PROJECT_PATH }}/admin
-      APIS_PATH: ${{ env.PROJECT_PATH }}/apis
+      ADMIN_PATH: /root/carsl/art_project/admin
+      APIS_PATH: /root/carsl/art_project/apis
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Update repository on server
         uses: appleboy/ssh-action@v0.1.10
@@ -23,7 +22,6 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
-            echo "Updating repo at $PROJECT_PATH"
             cd $PROJECT_PATH
             git reset --hard HEAD
             git pull origin main
@@ -35,10 +33,8 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
-            echo "Installing backend dependencies"
             cd $APIS_PATH
             npm install --production
-            echo "Running database migrations"
             npm run db:migrate || echo "No migrations needed"
 
       - name: Build frontend
@@ -48,7 +44,6 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
-            echo "Building frontend"
             cd $ADMIN_PATH
             npm install
             npm run build
@@ -60,9 +55,6 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
-            echo "Restarting PM2 backend"
             cd $APIS_PATH
             pm2 reload ecosystem.config.js || pm2 start ecosystem.config.js
-            echo "Reloading NGINX"
             sudo nginx -s reload
-            echo "Deployment finished at $(date)"
