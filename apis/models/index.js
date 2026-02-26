@@ -47,6 +47,20 @@ if (config.use_env_variable) {
   );
 }
 
+const modelDefiners = [
+  require("./favorite"),
+  require("./publisher"),
+  require("./style"),
+  require("./viewer"),
+  require("./viewerstyle"),
+  require("./publishersetting")
+];
+
+modelDefiners.forEach(modelDefiner => {
+  const model = modelDefiner(sequelize, Sequelize.DataTypes);
+  db[model.name] = model;
+});
+
 fs
   .readdirSync(__dirname)
   .filter(file => {
