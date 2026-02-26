@@ -8,6 +8,7 @@ import { Stack, usePathname, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
+import Toast from "react-native-toast-message";
 import "../globals.css";
 
 import BottomNavbar from "@/components/BottomNavbar";
@@ -134,6 +135,7 @@ export default function RootLayout() {
           translucent={true}
           backgroundColor="transparent"
         />
+        <Toast />
       </View>
     </ThemeProvider>
   );

@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
+const morgan = require('morgan');
 const db = require('./models');
 
 const viewersRoutes = require('./routes/viewers');
@@ -44,6 +45,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(limiter);
+app.use(morgan('combined'));
 app.use(express.json());
 
 app.get('/api/health', (req, res) => {

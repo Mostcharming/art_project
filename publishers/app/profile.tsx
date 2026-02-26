@@ -1,3 +1,4 @@
+import { useApiMutate } from "@/hooks/useApiMutate";
 import { useUserStore } from "@/store/userStore";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -56,6 +57,8 @@ export default function Profile() {
   const [error, setError] = useState<string | null>(null);
   const bioRef = useRef<TextInput>(null);
 
+  const { mutate, isLoading } = useApiMutate();
+
   const isFormValid =
     persona.trim() !== "" &&
     name.trim() !== "" &&
@@ -67,24 +70,20 @@ export default function Profile() {
     if (!isFormValid) return;
     setError(null);
 
-    const response = await fetch("/auth/profile", {
+    const response = await mutate("/update-profile", {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+      dataType: "json",
+      payload: {
         name,
         personaType: persona,
         country,
         bio,
         password,
-      }),
+      },
     });
 
-    const result = await response.json();
-
-    if (!response.ok || result.error) {
-      setError(result.error || "Failed to update profile. Please try again.");
+    if (response.error) {
+      setError(response.error || "Failed to update profile. Please try again.");
       return;
     }
 
@@ -94,7 +93,8 @@ export default function Profile() {
       country,
       bio,
     });
-    // Optionally handle password update logic here
+    // Show alert for success (replacing Toast)
+    alert("Profile updated! Your profile changes have been saved.");
   };
 
   return (
@@ -174,6 +174,44 @@ export default function Profile() {
                 />
               </Pressable>
             </View>
+            <Text className="text-xs mt-2 leading-5 text-gray-400">
+              At least 8 letters, 1 special character *%#@!
+            </Text>
+            {/* Validation indicators */}
+            {password.length > 0 && (
+              <View className="mt-2">
+                <View className="flex-row items-center mb-1">
+                  <MaterialIcons
+                    name={password.length >= 8 ? "check-circle" : "cancel"}
+                    size={14}
+                    color={password.length >= 8 ? "#22c55e" : "#ef4444"}
+                  />
+                  <Text
+                    className={`text-xs ml-1 ${
+                      password.length >= 8 ? "text-green-500" : "text-red-500"
+                    }`}
+                  >
+                    At least 8 characters
+                  </Text>
+                </View>
+                <View className="flex-row items-center">
+                  <MaterialIcons
+                    name={/[*%#@!]/.test(password) ? "check-circle" : "cancel"}
+                    size={14}
+                    color={/[*%#@!]/.test(password) ? "#22c55e" : "#ef4444"}
+                  />
+                  <Text
+                    className={`text-xs ml-1 ${
+                      /[*%#@!]/.test(password)
+                        ? "text-green-500"
+                        : "text-red-500"
+                    }`}
+                  >
+                    At least 1 special character (*%#@!)
+                  </Text>
+                </View>
+              </View>
+            )}
           </View>
 
           {/* Select Persona */}
