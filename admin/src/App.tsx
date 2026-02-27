@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard";
 import ForgotPassword from "./pages/ForgotPassword";
 import Login from "./pages/Login";
 import Members from "./pages/Members";
+import ProtectedRoute from "./pages/ProtectedRoute";
 import ResetPassword from "./pages/ResetPassword";
 import TokenPage from "./pages/TokenPage";
 import Users from "./pages/Users";
@@ -30,12 +31,29 @@ interface AppProps {
 }
 
 function App({ routes }: AppProps) {
+  // Define which routes require authentication
+  const protectedRoutes = ["Dashboard", "Content", "Users", "Members"];
   return (
     <BrowserRouter>
       <Routes>
         {routes.map((r) => {
           const Element = routeComponents[r.element];
-          return <Route key={r.path} path={r.path} element={<Element />} />;
+          const isProtected = protectedRoutes.includes(r.element);
+          return (
+            <Route
+              key={r.path}
+              path={r.path}
+              element={
+                isProtected ? (
+                  <ProtectedRoute>
+                    <Element />
+                  </ProtectedRoute>
+                ) : (
+                  <Element />
+                )
+              }
+            />
+          );
         })}
       </Routes>
     </BrowserRouter>
