@@ -1,3 +1,5 @@
+import { useApiMutate } from "@/hooks/useApiMutate";
+import { usePublisherSettingsStore } from "@/store/publisherSettingsStore";
 import { useUserStore } from "@/store/userStore";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
@@ -19,19 +21,46 @@ export default function Settings() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const clearUser = useUserStore((state) => state.clearUser);
-  const [pushEnabled, setPushEnabled] = useState(false);
+  const { mutate } = useApiMutate();
+  const { settings, setSettings, updateSettings } = usePublisherSettingsStore();
+
+  const [pushEnabled, setPushEnabled] = useState(settings.pushNotifications);
+  const [frameTiming, setFrameTiming] = useState(settings.carouselFrameTiming);
   const [showFrameModal, setShowFrameModal] = useState(false);
   const frameTimingOptions = [
-    { label: "10 seconds", value: 0.1667 },
-    { label: "30 seconds", value: 0.5 },
-    { label: "1 minute", value: 1 },
-    { label: "2 minutes", value: 2 },
-    { label: "3 minutes", value: 3 },
-    { label: "4 minutes", value: 4 },
-    { label: "5 minutes", value: 5 },
+    { label: "10 seconds", value: 10 },
+    { label: "30 seconds", value: 30 },
+    { label: "1 minute", value: 60 },
+    { label: "2 minutes", value: 120 },
+    { label: "3 minutes", value: 180 },
+    { label: "4 minutes", value: 240 },
+    { label: "5 minutes", value: 300 },
   ];
-  const [frameTiming, setFrameTiming] = useState(frameTimingOptions[2].value); // default 1 minute
   const [showFrameDropdown, setShowFrameDropdown] = useState(false);
+
+  React.useEffect(() => {
+    const fetchSettings = async () => {
+      const res = await mutate("/settings", { method: "GET" });
+      console.log("Settings update response:", res);
+
+      if (res.data) {
+        setSettings({
+          carouselFrameTiming: res.data.carouselFrameTiming ?? 1,
+          pushNotifications: res.data.pushNotifications ?? true,
+        });
+        setPushEnabled(res.data.pushNotifications ?? true);
+        setFrameTiming(res.data.carouselFrameTiming ?? 1);
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  React.useEffect(() => {
+    updateSettings({
+      pushNotifications: pushEnabled,
+      carouselFrameTiming: frameTiming,
+    });
+  }, [pushEnabled, frameTiming, updateSettings]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -47,6 +76,23 @@ export default function Settings() {
     }, [])
   );
 
+  const handleSave = async () => {
+    const res = await mutate("/settings", {
+      method: "PATCH",
+      payload: {
+        carouselFrameTiming: frameTiming,
+        pushNotifications: pushEnabled,
+      },
+    });
+    if (res.data) {
+      setSettings({
+        carouselFrameTiming: res.data.carouselFrameTiming ?? 1,
+        pushNotifications: res.data.pushNotifications ?? true,
+      });
+    }
+    setShowFrameModal(false);
+  };
+
   return (
     <View className="flex-1 bg-black" style={{ paddingTop: insets.top }}>
       <ScrollView
@@ -54,7 +100,6 @@ export default function Settings() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
       >
-        {/* Header */}
         <View className="px-5 pt-8 pb-6">
           <Text
             className="text-3xl text-white leading-10 mb-0"
@@ -67,7 +112,6 @@ export default function Settings() {
           </Text>
         </View>
 
-        {/* Stacked Setting Boxes */}
         <View className="mx-5 gap-4">
           <Pressable
             className="bg-neutral-900 rounded-xl p-5 border border-neutral-700 flex-row items-center justify-between"
@@ -82,7 +126,6 @@ export default function Settings() {
             <Text className="text-white text-base font-bold">Membership</Text>
             <ChevronRight color="#fff" size={22} />
           </View>
-          {/* Push Notifications Card */}
           <View className="bg-neutral-900 rounded-xl p-5 border border-neutral-700 flex-row items-center justify-between">
             <View>
               <Text className="text-white text-base font-bold">
@@ -111,7 +154,6 @@ export default function Settings() {
           </View>
         </View>
       </ScrollView>
-      {/* Frame Timing Modal */}
       <Modal
         visible={showFrameModal}
         transparent
@@ -158,7 +200,7 @@ export default function Settings() {
             <Pressable
               className="rounded-xl justify-center items-center bg-orange-600"
               style={{ minHeight: 54 }}
-              onPress={() => setShowFrameModal(false)}
+              onPress={handleSave}
             >
               <Text className="text-base font-bold text-white">
                 Save Changes
@@ -166,7 +208,6 @@ export default function Settings() {
             </Pressable>
           </View>
         </View>
-        {/* Dropdown Modal */}
         <Modal
           visible={showFrameDropdown}
           transparent

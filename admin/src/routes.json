@@ -1,0 +1,10 @@
+[
+  { "path": "/", "element": "Login" },
+  { "path": "/forgot-password", "element": "ForgotPassword" },
+  { "path": "/reset-password", "element": "ResetPassword" },
+  { "path": "/token", "element": "TokenPage" },
+  { "path": "/dashboard", "element": "Dashboard" },
+  { "path": "/content", "element": "Content" },
+  { "path": "/users", "element": "Users" },
+  { "path": "/members", "element": "Members" }
+]

@@ -279,18 +279,18 @@ export default function Profile() {
 
           <Pressable
             className={`mt-4 mb-10 rounded-xl justify-center items-center ${
-              isDisabled ? "bg-orange-900" : "bg-orange-600"
+              isDisabled || isLoading ? "bg-orange-900" : "bg-orange-600"
             }`}
             style={{ minHeight: 60 }}
-            disabled={isDisabled}
+            disabled={isDisabled || isLoading}
             onPress={handleSave}
           >
             <Text
               className={`text-base font-bold ${
-                isDisabled ? "text-amber-700" : "text-white"
+                isDisabled || isLoading ? "text-amber-700" : "text-white"
               }`}
             >
-              Save Changes
+              {isLoading ? "Saving..." : "Save Changes"}
             </Text>
           </Pressable>
         </ScrollView>

@@ -17,16 +17,20 @@ const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
     : [];
 
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 500,
-    message: 'Too many requests from this IP, please try again later.',
-    standardHeaders: true,
-    legacyHeaders: false,
-    skip: (req) => {
-        return req.path === '/api/health';
-    }
-});
+let limiter;
+if (process.env.NODE_ENV === 'production') {
+    limiter = rateLimit({
+        windowMs: 15 * 60 * 1000,
+        max: 500,
+        message: 'Too many requests from this IP, please try again later.',
+        standardHeaders: true,
+        legacyHeaders: false,
+        skip: (req) => {
+            return req.path === '/api/health';
+        }
+    });
+    app.use(limiter);
+}
 
 const corsOptions = {
     origin: function (origin, callback) {
@@ -44,7 +48,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.use(limiter);
 app.use(morgan('combined'));
 app.use(express.json());
 
