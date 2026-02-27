@@ -3,13 +3,11 @@ import loginImage from "../assets/login/Section.svg";
 export default function Login() {
   return (
     <div className="flex min-h-screen bg-gray-100">
-      {/* Left: Login Form */}
       <div className="flex flex-col justify-center items-center w-full md:w-1/2 p-8">
         <h1 className="text-3xl font-bold mb-4">Login Page</h1>
         <p className="text-gray-600 mb-8">
           Welcome! Please log in to continue.
         </p>
-        {/* Add your login form fields here */}
         <form className="w-full max-w-sm">
           <input
             type="email"
@@ -29,8 +27,7 @@ export default function Login() {
           </button>
         </form>
       </div>
-      {/* Right: Image (hidden on mobile) */}
-      <div className="hidden md:flex w-1/2 items-center justify-center bg-blue-50">
+      <div className="flex w-1/2 items-center justify-center bg-blue-50 sm:hidden">
         <img
           src={loginImage}
           alt="Login Visual"
