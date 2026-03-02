@@ -2,6 +2,8 @@ const db = require('../../models');
 const Admin = db.Admin;
 const { hashPassword, comparePassword } = require('../../utils/passwordHash');
 const { generateToken } = require('../../utils/tokenGenerator');
+const { generateVerificationCode } = require('../../utils/verificationCode');
+const { sendEmail } = require('../../utils/emailService');
 
 /**
  * Register a new admin (superadmin only)
@@ -60,9 +62,9 @@ exports.registerAdmin = async (req, res) => {
 };
 
 /**
- * Login admin
+ * Step 1: Request login token (email + password verification)
  */
-exports.loginAdmin = async (req, res) => {
+exports.requestLoginToken = async (req, res) => {
     try {
         const { email, password } = req.body;
 
@@ -100,11 +102,102 @@ exports.loginAdmin = async (req, res) => {
             });
         }
 
-        // Update last login
-        await admin.update({ lastLoginAt: new Date() });
+        // Generate 4-digit login token
+        const loginToken = generateVerificationCode();
+        const loginTokenExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
-        // Generate token
-        const token = generateToken({ id: admin.id, email: admin.email, role: admin.role });
+        // Save login token to admin record
+        await admin.update({
+            loginToken,
+            loginTokenExpires
+        });
+
+        // Send email with login token
+        try {
+            await sendEmail(admin.email, 'adminLoginToken', {
+                name: admin.firstName || admin.email,
+                loginToken
+            });
+        } catch (emailError) {
+            console.error('Error sending login token email:', emailError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error sending login token email'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Login token sent to your email',
+            data: {
+                email: admin.email,
+                message: 'Please check your email for the login code'
+            }
+        });
+    } catch (error) {
+        console.error('Error requesting login token:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error requesting login token',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Step 2: Verify login token and authenticate admin
+ */
+exports.verifyLoginToken = async (req, res) => {
+    try {
+        const { email, loginToken } = req.body;
+
+        // Validate required fields
+        if (!email || !loginToken) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email and login token are required'
+            });
+        }
+
+        // Find admin with valid login token
+        const admin = await Admin.findOne({
+            where: {
+                email,
+                loginToken,
+                loginTokenExpires: {
+                    [db.Sequelize.Op.gt]: new Date() // Token must not be expired
+                }
+            }
+        });
+
+        if (!admin) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid or expired login token'
+            });
+        }
+
+        // Check if admin is active
+        if (!admin.isActive) {
+            return res.status(403).json({
+                success: false,
+                message: 'Admin account is inactive'
+            });
+        }
+
+        // Clear login token and update last login
+        await admin.update({
+            loginToken: null,
+            loginTokenExpires: null,
+            lastLoginAt: new Date()
+        });
+
+        // Generate authentication token
+        const token = generateToken({
+            id: admin.id,
+            email: admin.email,
+            role: admin.role
+        });
 
         res.json({
             success: true,
@@ -120,6 +213,23 @@ exports.loginAdmin = async (req, res) => {
                 }
             }
         });
+    } catch (error) {
+        console.error('Error verifying login token:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error verifying login token',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Legacy: Direct login (kept for backward compatibility, can be deprecated)
+ */
+exports.loginAdmin = async (req, res) => {
+    try {
+        // Redirect to two-step authentication
+        return exports.requestLoginToken(req, res);
     } catch (error) {
         res.status(500).json({
             success: false,

@@ -57,6 +57,16 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.DATE,
             allowNull: true,
             comment: 'Timestamp of last login'
+        },
+        loginToken: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            comment: '4-digit login token sent to email'
+        },
+        loginTokenExpires: {
+            type: DataTypes.DATE,
+            allowNull: true,
+            comment: 'Expiration time for login token'
         }
     }, {
         sequelize,
