@@ -25,12 +25,12 @@ export default function SignInForm() {
         {/* Header */}
         <div className="mb-8 text-center">
           <h1
-            className="mb-2 text-3xl font-bold text-gray-900 dark:text-white"
+            className="mb-2 text-3xl font-bold text-white"
             style={{ fontFamily: "BankGothicBold" }}
           >
             Welcome back
           </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-gray-400">
             Welcome back! Please enter your details.
           </p>
         </div>
@@ -41,7 +41,7 @@ export default function SignInForm() {
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              className="block text-sm font-medium text-gray-300 mb-2"
             >
               Email
             </label>
@@ -50,7 +50,7 @@ export default function SignInForm() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+              className="w-full px-4 py-3 rounded-lg border border-gray-700 bg-gray-800 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
               placeholder="Enter your email"
               required
             />
@@ -60,7 +60,7 @@ export default function SignInForm() {
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              className="block text-sm font-medium text-gray-300 mb-2"
             >
               Password
             </label>
@@ -70,14 +70,14 @@ export default function SignInForm() {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                className="w-full px-4 py-3 rounded-lg border border-gray-700 bg-gray-800 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                 placeholder="Enter your password"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200"
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -91,11 +91,9 @@ export default function SignInForm() {
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 rounded cursor-pointer accent-[#D8522E]"
+                className="w-4 h-4 rounded border-gray-600 cursor-pointer"
               />
-              <span className="text-gray-700 dark:text-gray-300">
-                Remember for 30 days
-              </span>
+              <span className="text-gray-300">Remember for 30 days</span>
             </label>
             <Link
               to="/forgot-password"
@@ -108,7 +106,7 @@ export default function SignInForm() {
           <button
             type="submit"
             disabled={!email || !password}
-            className="w-full py-3 mt-6 font-medium text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 mt-6 font-medium text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               backgroundColor: email && password ? "#D8522E" : "#D8522E",
               opacity: email && password ? 1 : 0.5,
