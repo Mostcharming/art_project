@@ -48,6 +48,7 @@ if (config.use_env_variable) {
 }
 
 const modelDefiners = [
+  require("./admin"),
   require("./favorite"),
   require("./publisher"),
   require("./style"),
