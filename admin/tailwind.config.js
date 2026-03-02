@@ -5,7 +5,13 @@ module.exports = {
         "./src/**/*.{js,ts,jsx,tsx}",
     ],
     theme: {
-        extend: {},
+        extend: {
+            fontFamily: {
+                "bank-gothic-bold": ["BankGothicBold"],
+                "bank-gothic-medium": ["BankGothicMediumBT"],
+                "bank-gothic-light": ["BankGothicLightRegular"],
+            },
+        },
     },
     plugins: [],
 };

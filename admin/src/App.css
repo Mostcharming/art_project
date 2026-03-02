@@ -1,1 +1,19 @@
 @import "tailwindcss";
+
+@font-face {
+  font-family: "BankGothicBold";
+  src: url("../src/assets/fonts/BankGothicBold.ttf") format("truetype");
+  font-weight: bold;
+}
+
+@font-face {
+  font-family: "BankGothicMediumBT";
+  src: url("../src/assets/fonts/BankGothicMediumBT.ttf") format("truetype");
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: "BankGothicLightRegular";
+  src: url("../src/assets/fonts/BankGothicLightRegular.otf") format("opentype");
+  font-weight: normal;
+}
