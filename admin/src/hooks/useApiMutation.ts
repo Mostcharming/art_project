@@ -32,7 +32,7 @@ export function useApiMutation<T = any>(
     endpoint,
     method = "POST",
     isFormData = false,
-    baseURL = import.meta.env.VITE_API_URL || "http://localhost:3000",
+    baseURL = import.meta.env.VITE_API_URL,
     headers: customHeaders = {},
   } = options;
 
