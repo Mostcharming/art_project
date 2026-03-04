@@ -31,7 +31,6 @@ interface AppProps {
 }
 
 function App({ routes }: AppProps) {
-  // Define which routes require authentication
   const protectedRoutes = ["Dashboard", "Content", "Users", "Members"];
   return (
     <BrowserRouter>

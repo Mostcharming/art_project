@@ -1,17 +1,42 @@
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router-dom";
 import carslLogo from "../assets/carsl.svg";
+import { useApiMutation } from "../hooks/useApiMutation";
+import { useUserStore } from "../store";
 
 export default function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const { setAdminEmail, setRememberEmail } = useUserStore();
+  const { mutate: requestLoginToken, isLoading } = useApiMutation({
+    endpoint: "/admins/auth/request-login-token",
+    method: "POST",
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle sign in logic here
+    setError("");
+
+    requestLoginToken(
+      { email, password },
+      {
+        onSuccess: () => {
+          setAdminEmail(email);
+          if (rememberMe) {
+            setRememberEmail(email);
+          }
+          navigate("/token");
+        },
+        onError: (error) => {
+          setError(error.message || "Login failed. Please try again.");
+        },
+      }
+    );
   };
 
   return (
@@ -37,6 +62,12 @@ export default function SignInForm() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
+          {error && (
+            <div className="p-3 bg-red-500 bg-opacity-10 border border-red-500 text-red-400 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
           {/* Email Input */}
           <div>
             <label
@@ -106,14 +137,15 @@ export default function SignInForm() {
 
           <button
             type="submit"
-            disabled={!email || !password}
+            disabled={!email || !password || isLoading}
             className="w-full py-3 mt-6 font-medium text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
-              backgroundColor: email && password ? "#D8522E" : "#D8522E",
-              opacity: email && password ? 1 : 0.5,
+              backgroundColor:
+                email && password && !isLoading ? "#D8522E" : "#D8522E",
+              opacity: email && password && !isLoading ? 1 : 0.5,
             }}
             onMouseEnter={(e) => {
-              if (email && password) {
+              if (email && password && !isLoading) {
                 (e.currentTarget as HTMLButtonElement).style.backgroundColor =
                   "#c13d21";
               }
@@ -123,7 +155,7 @@ export default function SignInForm() {
                 "#D8522E";
             }}
           >
-            Sign In
+            {isLoading ? "Signing in..." : "Sign In"}
           </button>
         </form>
       </div>

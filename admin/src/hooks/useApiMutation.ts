@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMutation, type UseMutationResult } from "@tanstack/react-query";
 import axios, { AxiosError, type AxiosRequestConfig } from "axios";
+import { useUserStore } from "../store";
 
 interface ApiMutationOptions {
   endpoint: string;
@@ -36,15 +37,19 @@ export function useApiMutation<T = any>(
     headers: customHeaders = {},
   } = options;
 
+  const user = useUserStore((s) => s.user);
+
   const mutation = useMutation<ApiResponse<T>, ApiMutationError, any>({
     mutationFn: async (payload: any) => {
       try {
+        const token = user?.token;
         const axiosConfig: AxiosRequestConfig = {
           baseURL,
           method,
           url: endpoint,
           headers: {
             ...customHeaders,
+            ...(token && { Authorization: `Bearer ${token}` }),
           },
         };
 

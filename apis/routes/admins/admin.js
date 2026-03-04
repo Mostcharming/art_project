@@ -11,7 +11,7 @@ const adminController = require('../../controllers/admins/adminController');
  * @access  Private (superadmin only)
  */
 router.post('/auth/register',
-    // auth,
+    verifyToken,
     adminController.registerAdmin);
 
 /**

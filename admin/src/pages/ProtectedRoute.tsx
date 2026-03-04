@@ -8,6 +8,10 @@ export default function ProtectedRoute({
   children: JSX.Element;
 }) {
   const user = useUserStore((s) => s.user);
-  if (!user) return <Navigate to="/" replace />;
+
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+
   return children;
 }
