@@ -405,6 +405,14 @@ exports.forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
 
+        // Validate required fields
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email is required'
+            });
+        }
+
         const admin = await Admin.findOne({ where: { email } });
         if (!admin) {
             return res.status(404).json({
@@ -413,25 +421,88 @@ exports.forgotPassword = async (req, res) => {
             });
         }
 
-        // Generate reset token
-        const resetToken = generateToken({ id: admin.id }, '1h');
-        const resetTokenExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+        // Generate 4-digit reset code
+        const resetCode = generateVerificationCode();
+        const resetCodeExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
         await admin.update({
-            resetPasswordToken: resetToken,
-            resetPasswordTokenExpires
+            resetPasswordToken: resetCode,
+            resetPasswordTokenExpires: resetCodeExpires
         });
 
-        // TODO: Send email with reset token
+        // Send email with reset code
+        try {
+            await sendEmail(
+                admin.email,
+                'passwordReset',
+                {
+                    name: admin.firstName || 'Admin',
+                    resetCode: resetCode
+                }
+            );
+        } catch (emailError) {
+            console.error('Error sending password reset email:', emailError);
+            // Still return success to avoid exposing email service issues
+            return res.json({
+                success: true,
+                message: 'Password reset email sent',
+                _note: 'Email sending failed, but code was generated'
+            });
+        }
 
         res.json({
             success: true,
-            message: 'Password reset email sent'
+            message: 'Password reset code sent to your email'
         });
     } catch (error) {
+        console.error('Error requesting password reset:', error);
         res.status(500).json({
             success: false,
             message: 'Error requesting password reset',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Verify reset code
+ */
+exports.verifyResetCode = async (req, res) => {
+    try {
+        const { email, token } = req.body;
+
+        if (!email || !token) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email and reset code are required'
+            });
+        }
+
+        // Find admin with valid reset code
+        const admin = await Admin.findOne({
+            where: {
+                email,
+                resetPasswordToken: token,
+                resetPasswordTokenExpires: { [db.Sequelize.Op.gt]: new Date() }
+            }
+        });
+
+        if (!admin) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid or expired reset code'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Reset code verified successfully'
+        });
+    } catch (error) {
+        console.error('Error verifying reset code:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error verifying reset code',
             error: error.message
         });
     }
@@ -447,10 +518,19 @@ exports.resetPassword = async (req, res) => {
         if (!token || !password) {
             return res.status(400).json({
                 success: false,
-                message: 'Token and new password are required'
+                message: 'Reset code and new password are required'
             });
         }
 
+        // Validate password strength
+        if (password.length < 8) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password must be at least 8 characters long'
+            });
+        }
+
+        // Find admin with valid reset token/code
         const admin = await Admin.findOne({
             where: {
                 resetPasswordToken: token,
@@ -461,7 +541,7 @@ exports.resetPassword = async (req, res) => {
         if (!admin) {
             return res.status(400).json({
                 success: false,
-                message: 'Invalid or expired reset token'
+                message: 'Invalid or expired reset code'
             });
         }
 
@@ -479,6 +559,7 @@ exports.resetPassword = async (req, res) => {
             message: 'Password reset successfully'
         });
     } catch (error) {
+        console.error('Error resetting password:', error);
         res.status(500).json({
             success: false,
             message: 'Error resetting password',

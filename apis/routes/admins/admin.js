@@ -57,6 +57,13 @@ router.post('/auth/logout', verifyToken, adminController.logoutAdmin);
 router.post('/auth/forgot-password', adminController.forgotPassword);
 
 /**
+ * @route   POST /api/admin/auth/verify-reset-code
+ * @desc    Verify reset code
+ * @access  Public
+ */
+router.post('/auth/verify-reset-code', adminController.verifyResetCode);
+
+/**
  * @route   POST /api/admin/auth/reset-password
  * @desc    Reset password with token
  * @access  Public

@@ -5,28 +5,32 @@ import { useApiMutation } from "../../hooks/useApiMutation";
 import AuthLayout from "../../layouts/AuthPageLayout";
 import { useUserStore } from "../../store";
 
-export default function TokenPage() {
+export default function ForgotPasswordTokenPage() {
   const [tokenBoxes, setTokenBoxes] = useState(["", "", "", ""]);
   const [error, setError] = useState("");
   const [countdown, setCountdown] = useState(59);
   const navigate = useNavigate();
-  const { adminEmail, setUser, clearSession } = useUserStore();
+  const {
+    forgotPasswordEmail,
+    setForgotPasswordToken,
+    clearForgotPasswordSession,
+  } = useUserStore();
 
-  const { mutate: verifyLoginToken, isPending: isVerifying } = useApiMutation({
-    endpoint: "/admins/auth/verify-login-token",
+  const { mutate: verifyResetToken, isPending: isVerifying } = useApiMutation({
+    endpoint: "/admins/auth/verify-reset-token",
     method: "POST",
   });
 
-  const { mutate: resendToken, isPending: isResending } = useApiMutation({
-    endpoint: "/admins/auth/resend-login-token",
+  const { mutate: resendResetToken, isPending: isResending } = useApiMutation({
+    endpoint: "/admins/auth/resend-reset-token",
     method: "POST",
   });
 
   useEffect(() => {
-    if (!adminEmail) {
-      navigate("/");
+    if (!forgotPasswordEmail) {
+      navigate("/forgot-password");
     }
-  }, [adminEmail, navigate]);
+  }, [forgotPasswordEmail, navigate]);
 
   useEffect(() => {
     if (countdown > 0) {
@@ -44,7 +48,7 @@ export default function TokenPage() {
     setTokenBoxes(newTokenBoxes);
 
     if (newValue && index < 3) {
-      const nextInput = document.getElementById(`token-${index + 1}`);
+      const nextInput = document.getElementById(`reset-token-${index + 1}`);
       nextInput?.focus();
     }
   };
@@ -54,7 +58,7 @@ export default function TokenPage() {
     e: React.KeyboardEvent<HTMLInputElement>
   ) => {
     if (e.key === "Backspace" && !tokenBoxes[index] && index > 0) {
-      const prevInput = document.getElementById(`token-${index - 1}`);
+      const prevInput = document.getElementById(`reset-token-${index - 1}`);
       prevInput?.focus();
     }
   };
@@ -65,9 +69,9 @@ export default function TokenPage() {
     e.preventDefault();
     setError("");
 
-    if (!adminEmail) {
-      setError("Session expired. Please login again.");
-      navigate("/");
+    if (!forgotPasswordEmail) {
+      setError("Session expired. Please start again.");
+      navigate("/forgot-password");
       return;
     }
 
@@ -76,22 +80,13 @@ export default function TokenPage() {
       return;
     }
 
-    verifyLoginToken(
-      { email: adminEmail, loginToken: token },
+    verifyResetToken(
+      { email: forgotPasswordEmail, resetToken: token },
       {
         onSuccess: (response) => {
-          console.log("Token verification response:", response);
           if (response.data?.token) {
-            const userData = {
-              token: response.data.token,
-              email: response.data.email || adminEmail,
-              firstname: response.data.firstname || "",
-              lastname: response.data.lastname || "",
-              role: response.data.role || "admin",
-            };
-            setUser(userData);
-            // clearSession();
-            navigate("/dashboard");
+            setForgotPasswordToken(response.data.token);
+            navigate("/forgot-password/reset");
           }
         },
         onError: (error) => {
@@ -104,14 +99,14 @@ export default function TokenPage() {
   const handleResendCode = () => {
     setError("");
 
-    if (!adminEmail) {
-      setError("Session expired. Please login again.");
-      navigate("/");
+    if (!forgotPasswordEmail) {
+      setError("Session expired. Please start again.");
+      navigate("/forgot-password");
       return;
     }
 
-    resendToken(
-      { email: adminEmail },
+    resendResetToken(
+      { email: forgotPasswordEmail },
       {
         onSuccess: () => {
           setError("");
@@ -126,8 +121,8 @@ export default function TokenPage() {
   };
 
   const handleGoBack = () => {
-    clearSession();
-    navigate("/");
+    clearForgotPasswordSession();
+    navigate("/forgot-password");
   };
 
   const getMaskedEmail = (email: string) => {
@@ -159,10 +154,13 @@ export default function TokenPage() {
               className="mb-2 text-3xl font-bold text-white"
               style={{ fontFamily: "BankGothicBold" }}
             >
-              Check Your email
+              Check Your Email
             </h1>
             <p className="text-sm text-gray-400">
-              We have sent a 4 digit code to {getMaskedEmail(adminEmail || "")}
+              We've sent a 4-digit code to{" "}
+              <span className="font-medium text-white">
+                {getMaskedEmail(forgotPasswordEmail || "")}
+              </span>
             </p>
           </div>
 
@@ -175,54 +173,48 @@ export default function TokenPage() {
             )}
 
             {/* Token Boxes */}
-            <div>
-              <div className="flex gap-4 justify-center">
-                {tokenBoxes.map((value, index) => (
-                  <input
-                    key={index}
-                    id={`token-${index}`}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={value}
-                    onChange={(e) => handleTokenInput(index, e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(index, e)}
-                    className="w-20 h-20 px-4 py-3 rounded-lg border-2 bg-gray-800 text-center text-5xl font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all"
-                    style={{
-                      borderColor: value ? "#D8522E" : "#6B7280",
-                      color: value ? "white" : "#9CA3AF",
-                    }}
-                    placeholder={value ? "" : "0"}
-                    required
-                  />
-                ))}
-              </div>
-              <div className="flex justify-end mt-4">
-                {canResend ? (
-                  <button
-                    type="button"
-                    onClick={handleResendCode}
-                    disabled={isResending}
-                    className="text-sm text-gray-400 hover:text-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isResending ? "Resending..." : "Resend code"}
-                  </button>
-                ) : (
-                  <p className="text-sm text-gray-400">
-                    Resend code (
-                    <span style={{ color: "#D8522E" }}>{countdown}s</span>)
-                  </p>
-                )}
-              </div>
+            <div className="flex gap-2 justify-center">
+              {tokenBoxes.map((box, index) => (
+                <input
+                  key={index}
+                  id={`reset-token-${index}`}
+                  type="text"
+                  value={box}
+                  onChange={(e) => handleTokenInput(index, e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(index, e)}
+                  maxLength={1}
+                  className="w-14 h-14 text-2xl font-bold text-center border border-gray-700 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  placeholder="0"
+                />
+              ))}
             </div>
 
-            {/* Confirm Button */}
+            {/* Resend Code */}
+            <div className="text-center text-sm">
+              {canResend ? (
+                <button
+                  type="button"
+                  onClick={handleResendCode}
+                  disabled={isResending}
+                  className="text-brand-500 hover:text-brand-400 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isResending ? "Resending..." : "Resend Code"}
+                </button>
+              ) : (
+                <p className="text-gray-400">
+                  Didn't receive the code?{" "}
+                  <span className="text-brand-500">Resend in {countdown}s</span>
+                </p>
+              )}
+            </div>
+
             <button
               type="submit"
               disabled={token.length !== 4 || isVerifying}
-              className="w-full py-3 mt-2 font-medium text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 mt-6 font-medium text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
-                backgroundColor: "#D8522E",
+                backgroundColor:
+                  token.length === 4 && !isVerifying ? "#D8522E" : "#D8522E",
                 opacity: token.length === 4 && !isVerifying ? 1 : 0.5,
               }}
               onMouseEnter={(e) => {
@@ -236,20 +228,19 @@ export default function TokenPage() {
                   "#D8522E";
               }}
             >
-              {isVerifying ? "Confirming..." : "Confirm"}
+              {isVerifying ? "Verifying..." : "Verify Code"}
             </button>
-
-            {/* Back to Login Link */}
-            <div className="flex justify-end mt-4">
-              <button
-                type="button"
-                onClick={handleGoBack}
-                className="text-white hover:text-gray-100 text-sm underline"
-              >
-                Back to Login
-              </button>
-            </div>
           </form>
+
+          {/* Back Button */}
+          <div className="mt-6 text-center">
+            <button
+              onClick={handleGoBack}
+              className="text-sm text-gray-400 hover:text-white transition-colors"
+            >
+              Back to Email
+            </button>
+          </div>
         </div>
       </div>
     </AuthLayout>

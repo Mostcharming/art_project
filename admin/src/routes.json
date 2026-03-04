@@ -1,7 +1,11 @@
 [
   { "path": "/", "element": "Login" },
   { "path": "/forgot-password", "element": "ForgotPassword" },
-  { "path": "/reset-password", "element": "ResetPassword" },
+  {
+    "path": "/forgot-password/verify-token",
+    "element": "ForgotPasswordTokenPage"
+  },
+  { "path": "/forgot-password/reset", "element": "ResetPassword" },
   { "path": "/token", "element": "TokenPage" },
   { "path": "/dashboard", "element": "Dashboard" },
   { "path": "/content", "element": "Content" },

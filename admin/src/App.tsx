@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import "./App.css";
 import ErrorBoundary from "./components/ErrorBoundary";
 import ForgotPassword from "./pages/auth/ForgotPassword";
+import ForgotPasswordTokenPage from "./pages/auth/ForgotPasswordTokenPage";
 import Login from "./pages/auth/Login";
 import TokenPage from "./pages/auth/TokenPage";
 import Content from "./pages/Content";
@@ -14,6 +15,7 @@ import Users from "./pages/Users";
 const routeComponents: Record<string, React.FC> = {
   Login,
   ForgotPassword,
+  ForgotPasswordTokenPage,
   ResetPassword,
   TokenPage,
   Dashboard,
