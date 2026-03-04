@@ -1,10 +1,6 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-/**
- * Verify JWT token middleware
- * Checks if token is valid and adds viewer/publisher to req.user
- */
 const verifyToken = (req, res, next) => {
     try {
         const token = req.headers.authorization?.split(' ')[1];
@@ -22,10 +18,6 @@ const verifyToken = (req, res, next) => {
     }
 };
 
-/**
- * Verify viewer token middleware
- * Ensures the token belongs to a viewer
- */
 const verifyViewerToken = (req, res, next) => {
     try {
         const token = req.headers.authorization?.split(' ')[1];
@@ -48,10 +40,6 @@ const verifyViewerToken = (req, res, next) => {
     }
 };
 
-/**
- * Verify publisher token middleware
- * Ensures the token belongs to a publisher
- */
 const verifyPublisherToken = (req, res, next) => {
     try {
         const token = req.headers.authorization?.split(' ')[1];

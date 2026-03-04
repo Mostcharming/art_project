@@ -7,6 +7,7 @@ const db = require('./models');
 
 const viewersRoutes = require('./routes/viewers');
 const publishersRoutes = require('./routes/publishers');
+const adminRoutes = require('./routes/admins');
 
 const errorHandler = require('./middleware/errorHandler');
 
@@ -59,8 +60,9 @@ app.get('/api/', (req, res) => {
     res.json({ status: 'OK', message: 'You have hit the Carsl API home route' });
 });
 
-app.use('/api/viewers', viewersRoutes);
 app.use('/api/publishers', publishersRoutes);
+app.use('/api/viewers', viewersRoutes);
+app.use('/api/admins', adminRoutes);
 
 app.use((req, res) => {
     res.status(404).json({ error: 'Route not found' });
