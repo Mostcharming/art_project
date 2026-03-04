@@ -10,7 +10,9 @@ const adminController = require('../../controllers/admins/adminController');
  * @desc    Register a new admin
  * @access  Private (superadmin only)
  */
-router.post('/auth/register', auth, adminController.registerAdmin);
+router.post('/auth/register',
+    // auth,
+    adminController.registerAdmin);
 
 /**
  * @route   POST /api/admin/auth/request-login-token
