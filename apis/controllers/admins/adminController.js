@@ -465,6 +465,72 @@ exports.forgotPassword = async (req, res) => {
 };
 
 /**
+ * Resend forgot password code (email only, no password verification)
+ */
+exports.resendForgotPasswordCode = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        // Validate required fields
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email is required'
+            });
+        }
+
+        const admin = await Admin.findOne({ where: { email } });
+        if (!admin) {
+            return res.status(404).json({
+                success: false,
+                message: 'Admin with this email not found'
+            });
+        }
+
+        // Generate new 4-digit reset code
+        const resetCode = generateVerificationCode();
+        const resetCodeExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+        await admin.update({
+            resetPasswordToken: resetCode,
+            resetPasswordTokenExpires: resetCodeExpires
+        });
+
+        // Send email with reset code
+        try {
+            await sendEmail(
+                admin.email,
+                'passwordReset',
+                {
+                    name: admin.firstName || 'Admin',
+                    resetCode: resetCode
+                }
+            );
+        } catch (emailError) {
+            console.error('Error sending password reset email:', emailError);
+            // Still return success to avoid exposing email service issues
+            return res.json({
+                success: true,
+                message: 'Password reset email sent',
+                _note: 'Email sending failed, but code was generated'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Password reset code resent to your email'
+        });
+    } catch (error) {
+        console.error('Error resending password reset code:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error resending password reset code',
+            error: error.message
+        });
+    }
+};
+
+/**
  * Verify reset code
  */
 exports.verifyResetCode = async (req, res) => {

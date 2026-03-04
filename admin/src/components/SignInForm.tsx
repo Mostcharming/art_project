@@ -1,5 +1,5 @@
 import { Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import carslLogo from "../assets/carsl.svg";
 import { useApiMutation } from "../hooks/useApiMutation";
@@ -12,11 +12,16 @@ export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const { setAdminEmail, setRememberEmail } = useUserStore();
+  const { setAdminEmail, setRememberEmail, clearForgotPasswordSession } =
+    useUserStore();
   const { mutate: requestLoginToken, isLoading } = useApiMutation({
     endpoint: "/admins/auth/request-login-token",
     method: "POST",
   });
+
+  useEffect(() => {
+    clearForgotPasswordSession();
+  }, [clearForgotPasswordSession]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

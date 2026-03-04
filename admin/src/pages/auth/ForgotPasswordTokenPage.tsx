@@ -17,12 +17,12 @@ export default function ForgotPasswordTokenPage() {
   } = useUserStore();
 
   const { mutate: verifyResetToken, isPending: isVerifying } = useApiMutation({
-    endpoint: "/admins/auth/verify-reset-token",
+    endpoint: "/admins/auth/verify-reset-code",
     method: "POST",
   });
 
   const { mutate: resendResetToken, isPending: isResending } = useApiMutation({
-    endpoint: "/admins/auth/resend-reset-token",
+    endpoint: "/admins/auth/resend-forgot-password-code",
     method: "POST",
   });
 
@@ -81,13 +81,13 @@ export default function ForgotPasswordTokenPage() {
     }
 
     verifyResetToken(
-      { email: forgotPasswordEmail, resetToken: token },
+      { email: forgotPasswordEmail, token: token },
       {
-        onSuccess: (response) => {
-          if (response.data?.token) {
-            setForgotPasswordToken(response.data.token);
-            navigate("/forgot-password/reset");
-          }
+        onSuccess: () => {
+          //   if (response.data?.token) {
+          setForgotPasswordToken(token);
+          navigate("/forgot-password/reset");
+          //   }
         },
         onError: (error) => {
           setError(error.message || "Invalid token. Please try again.");
@@ -196,7 +196,7 @@ export default function ForgotPasswordTokenPage() {
                   type="button"
                   onClick={handleResendCode}
                   disabled={isResending}
-                  className="text-brand-500 hover:text-brand-400 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="text-white hover:text-brand-400 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isResending ? "Resending..." : "Resend Code"}
                 </button>

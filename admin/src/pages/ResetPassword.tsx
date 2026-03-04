@@ -78,13 +78,12 @@ export default function ResetPassword() {
     resetPassword(
       {
         email: forgotPasswordEmail,
-        resetToken: forgotPasswordToken,
-        newPassword: password,
+        token: forgotPasswordToken,
+        password: password,
       },
       {
         onSuccess: () => {
-          clearForgotPasswordSession();
-          navigate("/", { replace: true });
+          // clearForgotPasswordSession();
           const successDiv = document.createElement("div");
           successDiv.innerHTML = "Password reset successfully! Please log in.";
           successDiv.className =
@@ -93,6 +92,7 @@ export default function ResetPassword() {
           setTimeout(() => {
             successDiv.remove();
           }, 3000);
+          navigate("/", { replace: true });
         },
         onError: (error) => {
           setError(
