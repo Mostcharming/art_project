@@ -22,6 +22,13 @@ router.post('/auth/register',
 router.post('/auth/request-login-token', adminController.requestLoginToken);
 
 /**
+ * @route   POST /api/admin/auth/resend-login-token
+ * @desc    Resend login token (email only)
+ * @access  Public
+ */
+router.post('/auth/resend-login-token', adminController.resendLoginToken);
+
+/**
  * @route   POST /api/admin/auth/verify-login-token
  * @desc    Verify login token and authenticate (Step 2: email + token)
  * @access  Public

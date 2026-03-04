@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import "./App.css";
+import ErrorBoundary from "./components/ErrorBoundary";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import Login from "./pages/auth/Login";
 import TokenPage from "./pages/auth/TokenPage";
@@ -34,27 +35,29 @@ function App({ routes }: AppProps) {
   const protectedRoutes = ["Dashboard", "Content", "Users", "Members"];
   return (
     <BrowserRouter>
-      <Routes>
-        {routes.map((r) => {
-          const Element = routeComponents[r.element];
-          const isProtected = protectedRoutes.includes(r.element);
-          return (
-            <Route
-              key={r.path}
-              path={r.path}
-              element={
-                isProtected ? (
-                  <ProtectedRoute>
+      <ErrorBoundary>
+        <Routes>
+          {routes.map((r) => {
+            const Element = routeComponents[r.element];
+            const isProtected = protectedRoutes.includes(r.element);
+            return (
+              <Route
+                key={r.path}
+                path={r.path}
+                element={
+                  isProtected ? (
+                    <ProtectedRoute>
+                      <Element />
+                    </ProtectedRoute>
+                  ) : (
                     <Element />
-                  </ProtectedRoute>
-                ) : (
-                  <Element />
-                )
-              }
-            />
-          );
-        })}
-      </Routes>
+                  )
+                }
+              />
+            );
+          })}
+        </Routes>
+      </ErrorBoundary>
     </BrowserRouter>
   );
 }

@@ -145,6 +145,80 @@ exports.requestLoginToken = async (req, res) => {
 };
 
 /**
+ * Resend login token (email only, no password verification)
+ */
+exports.resendLoginToken = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        // Validate required fields
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email is required'
+            });
+        }
+
+        // Find admin
+        const admin = await Admin.findOne({ where: { email } });
+        if (!admin) {
+            return res.status(404).json({
+                success: false,
+                message: 'Admin with this email not found'
+            });
+        }
+
+        // Check if admin is active
+        if (!admin.isActive) {
+            return res.status(403).json({
+                success: false,
+                message: 'Admin account is inactive'
+            });
+        }
+
+        // Generate new 4-digit login token
+        const loginToken = generateVerificationCode();
+        const loginTokenExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+        // Save new login token to admin record
+        await admin.update({
+            loginToken,
+            loginTokenExpires
+        });
+
+        // Send email with login token
+        try {
+            await sendEmail(admin.email, 'adminLoginToken', {
+                name: admin.firstName || admin.email,
+                loginToken
+            });
+        } catch (emailError) {
+            console.error('Error sending resend login token email:', emailError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error sending login token email'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Login token resent to your email',
+            data: {
+                email: admin.email,
+                message: 'Please check your email for the login code'
+            }
+        });
+    } catch (error) {
+        console.error('Error resending login token:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error resending login token',
+            error: error.message
+        });
+    }
+};
+
+/**
  * Step 2: Verify login token and authenticate admin
  */
 exports.verifyLoginToken = async (req, res) => {
@@ -204,6 +278,10 @@ exports.verifyLoginToken = async (req, res) => {
             message: 'Login successful',
             data: {
                 token,
+                email: admin.email,
+                firstname: admin.firstName,
+                lastname: admin.lastName,
+                role: admin.role,
                 admin: {
                     id: admin.id,
                     email: admin.email,

@@ -11,10 +11,22 @@ export default function TokenPage() {
   const [countdown, setCountdown] = useState(59);
   const navigate = useNavigate();
   const { adminEmail, setUser, clearSession } = useUserStore();
-  const { mutate: verifyLoginToken, isLoading } = useApiMutation({
+
+  const { mutate: verifyLoginToken, isPending: isVerifying } = useApiMutation({
     endpoint: "/admins/auth/verify-login-token",
     method: "POST",
   });
+
+  const { mutate: resendToken, isPending: isResending } = useApiMutation({
+    endpoint: "/admins/auth/resend-login-token",
+    method: "POST",
+  });
+
+  useEffect(() => {
+    if (!adminEmail) {
+      navigate("/");
+    }
+  }, [adminEmail, navigate]);
 
   useEffect(() => {
     if (countdown > 0) {
@@ -68,6 +80,7 @@ export default function TokenPage() {
       { email: adminEmail, loginToken: token },
       {
         onSuccess: (response) => {
+          console.log("Token verification response:", response);
           if (response.data?.token) {
             const userData = {
               token: response.data.token,
@@ -77,12 +90,36 @@ export default function TokenPage() {
               role: response.data.role || "admin",
             };
             setUser(userData);
+            clearSession();
+            navigate("/dashboard");
           }
-          clearSession();
-          navigate("/dashboard");
         },
         onError: (error) => {
           setError(error.message || "Invalid token. Please try again.");
+        },
+      }
+    );
+  };
+
+  const handleResendCode = () => {
+    setError("");
+
+    if (!adminEmail) {
+      setError("Session expired. Please login again.");
+      navigate("/");
+      return;
+    }
+
+    resendToken(
+      { email: adminEmail },
+      {
+        onSuccess: () => {
+          setError("");
+          setCountdown(59);
+          setTokenBoxes(["", "", "", ""]);
+        },
+        onError: (error) => {
+          setError(error.message || "Failed to resend code. Please try again.");
         },
       }
     );
@@ -94,13 +131,18 @@ export default function TokenPage() {
   };
 
   const getMaskedEmail = (email: string) => {
+    if (!email || !email.includes("@")) {
+      return "";
+    }
     const [localPart, domain] = email.split("@");
     const visibleChars = Math.max(1, Math.floor(localPart.length / 3));
     const maskedLocal =
       localPart.slice(0, visibleChars) +
-      "*".repeat(localPart.length - visibleChars);
+      "*".repeat(Math.max(0, localPart.length - visibleChars));
     return `${maskedLocal}@${domain}`;
   };
+
+  const canResend = countdown === 0;
 
   return (
     <AuthLayout>
@@ -156,25 +198,35 @@ export default function TokenPage() {
                 ))}
               </div>
               <div className="flex justify-end mt-4">
-                <p className="text-sm text-gray-400">
-                  Resend code (
-                  <span style={{ color: "#D8522E" }}>{countdown}s</span>)
-                </p>
+                {canResend ? (
+                  <button
+                    type="button"
+                    onClick={handleResendCode}
+                    disabled={isResending}
+                    className="text-sm text-gray-400 hover:text-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isResending ? "Resending..." : "Resend code"}
+                  </button>
+                ) : (
+                  <p className="text-sm text-gray-400">
+                    Resend code (
+                    <span style={{ color: "#D8522E" }}>{countdown}s</span>)
+                  </p>
+                )}
               </div>
             </div>
 
             {/* Confirm Button */}
             <button
               type="submit"
-              disabled={token.length !== 4 || isLoading}
+              disabled={token.length !== 4 || isVerifying}
               className="w-full py-3 mt-2 font-medium text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
-                backgroundColor:
-                  token.length === 4 && !isLoading ? "#D8522E" : "#D8522E",
-                opacity: token.length === 4 && !isLoading ? 1 : 0.5,
+                backgroundColor: "#D8522E",
+                opacity: token.length === 4 && !isVerifying ? 1 : 0.5,
               }}
               onMouseEnter={(e) => {
-                if (token.length === 4 && !isLoading) {
+                if (token.length === 4 && !isVerifying) {
                   (e.currentTarget as HTMLButtonElement).style.backgroundColor =
                     "#c13d21";
                 }
@@ -184,7 +236,7 @@ export default function TokenPage() {
                   "#D8522E";
               }}
             >
-              {isLoading ? "Confirming..." : "Confirm"}
+              {isVerifying ? "Confirming..." : "Confirm"}
             </button>
 
             {/* Back to Login Link */}

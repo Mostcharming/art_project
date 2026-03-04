@@ -1,5 +1,4 @@
 import type { JSX } from "react";
-import { Navigate } from "react-router-dom";
 import { useUserStore } from "../store";
 
 export default function ProtectedRoute({
@@ -8,10 +7,11 @@ export default function ProtectedRoute({
   children: JSX.Element;
 }) {
   const user = useUserStore((s) => s.user);
+  console.log("ProtectedRoute user:", user);
 
-  if (!user) {
-    return <Navigate to="/" replace />;
-  }
+  // if (!user) {
+  //   return <Navigate to="/" replace />;
+  // }
 
   return children;
 }
