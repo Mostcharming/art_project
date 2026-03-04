@@ -92,6 +92,7 @@ export default function SignInForm() {
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
                 className="w-4 h-4 rounded border-gray-600 cursor-pointer"
+                style={{ accentColor: "#D8522E" }}
               />
               <span className="text-gray-300">Remember for 30 days</span>
             </label>
