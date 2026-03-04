@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import carslLogo from "../../assets/carsl.svg";
 import { useApiMutation } from "../../hooks/useApiMutation";
@@ -8,12 +8,22 @@ import { useUserStore } from "../../store";
 export default function TokenPage() {
   const [tokenBoxes, setTokenBoxes] = useState(["", "", "", ""]);
   const [error, setError] = useState("");
+  const [countdown, setCountdown] = useState(59);
   const navigate = useNavigate();
   const { adminEmail, setUser, clearSession } = useUserStore();
   const { mutate: verifyLoginToken, isLoading } = useApiMutation({
     endpoint: "/admins/auth/verify-login-token",
     method: "POST",
   });
+
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [countdown]);
 
   const handleTokenInput = (index: number, value: string) => {
     const newValue = value.replace(/[^0-9]/g, "").slice(0, 1);
@@ -124,7 +134,7 @@ export default function TokenPage() {
 
             {/* Token Boxes */}
             <div>
-              <div className="flex gap-3 justify-center">
+              <div className="flex gap-4 justify-center">
                 {tokenBoxes.map((value, index) => (
                   <input
                     key={index}
@@ -135,11 +145,21 @@ export default function TokenPage() {
                     value={value}
                     onChange={(e) => handleTokenInput(index, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(index, e)}
-                    className="w-14 h-14 px-4 py-3 rounded-lg border border-gray-700 bg-gray-800 text-white text-center text-lg font-semibold placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-                    placeholder="•"
+                    className="w-20 h-20 px-4 py-3 rounded-lg border-2 bg-gray-800 text-center text-5xl font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all"
+                    style={{
+                      borderColor: value ? "#D8522E" : "#6B7280",
+                      color: value ? "white" : "#9CA3AF",
+                    }}
+                    placeholder={value ? "" : "0"}
                     required
                   />
                 ))}
+              </div>
+              <div className="flex justify-end mt-4">
+                <p className="text-sm text-gray-400">
+                  Resend code (
+                  <span style={{ color: "#D8522E" }}>{countdown}s</span>)
+                </p>
               </div>
             </div>
 
@@ -147,7 +167,7 @@ export default function TokenPage() {
             <button
               type="submit"
               disabled={token.length !== 4 || isLoading}
-              className="w-full py-3 mt-6 font-medium text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 mt-2 font-medium text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
                 backgroundColor:
                   token.length === 4 && !isLoading ? "#D8522E" : "#D8522E",
