@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { Navigate } from "react-router-dom";
+import AppLayout from "../layouts/AppLayout";
 import { useUserStore } from "../store";
 
 export default function ProtectedRoute({
@@ -9,9 +11,9 @@ export default function ProtectedRoute({
   const user = useUserStore((s) => s.user);
   console.log("ProtectedRoute user:", user);
 
-  // if (!user) {
-  //   return <Navigate to="/" replace />;
-  // }
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
 
-  return children;
+  return <AppLayout>{children}</AppLayout>;
 }
