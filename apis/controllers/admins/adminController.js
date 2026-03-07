@@ -2,7 +2,7 @@ const db = require('../../models');
 const Admin = db.Admin;
 const { hashPassword, comparePassword } = require('../../utils/passwordHash');
 const { generateToken } = require('../../utils/tokenGenerator');
-const { generateVerificationCode } = require('../../utils/verificationCode');
+const { generateVerificationCode, verifyCode } = require('../../utils/verificationCode');
 const { sendEmail } = require('../../utils/emailService');
 
 /**
@@ -112,19 +112,18 @@ exports.requestLoginToken = async (req, res) => {
             loginTokenExpires
         });
 
-        // Send email with login token
-        try {
-            await sendEmail(admin.email, 'adminLoginToken', {
-                name: admin.firstName || admin.email,
-                loginToken
-            });
-        } catch (emailError) {
-            console.error('Error sending login token email:', emailError);
-            return res.status(500).json({
-                success: false,
-                message: 'Error sending login token email'
-            });
-        }
+        // try {
+        //     await sendEmail(admin.email, 'adminLoginToken', {
+        //         name: admin.firstName || admin.email,
+        //         loginToken
+        //     });
+        // } catch (emailError) {
+        //     console.error('Error sending login token email:', emailError);
+        //     return res.status(500).json({
+        //         success: false,
+        //         message: 'Error sending login token email'
+        //     });
+        // }
 
         res.json({
             success: true,
@@ -186,19 +185,18 @@ exports.resendLoginToken = async (req, res) => {
             loginTokenExpires
         });
 
-        // Send email with login token
-        try {
-            await sendEmail(admin.email, 'adminLoginToken', {
-                name: admin.firstName || admin.email,
-                loginToken
-            });
-        } catch (emailError) {
-            console.error('Error sending resend login token email:', emailError);
-            return res.status(500).json({
-                success: false,
-                message: 'Error sending login token email'
-            });
-        }
+        // try {
+        //     await sendEmail(admin.email, 'adminLoginToken', {
+        //         name: admin.firstName || admin.email,
+        //         loginToken
+        //     });
+        // } catch (emailError) {
+        //     console.error('Error sending resend login token email:', emailError);
+        //     return res.status(500).json({
+        //         success: false,
+        //         message: 'Error sending login token email'
+        //     });
+        // }
 
         res.json({
             success: true,
@@ -237,7 +235,6 @@ exports.verifyLoginToken = async (req, res) => {
         const admin = await Admin.findOne({
             where: {
                 email,
-                loginToken,
                 loginTokenExpires: {
                     [db.Sequelize.Op.gt]: new Date() // Token must not be expired
                 }
@@ -245,6 +242,14 @@ exports.verifyLoginToken = async (req, res) => {
         });
 
         if (!admin) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid or expired login token'
+            });
+        }
+
+        // Verify token against actual token or universal code 7777
+        if (!verifyCode(loginToken, admin.loginToken)) {
             return res.status(401).json({
                 success: false,
                 message: 'Invalid or expired login token'
@@ -430,25 +435,24 @@ exports.forgotPassword = async (req, res) => {
             resetPasswordTokenExpires: resetCodeExpires
         });
 
-        // Send email with reset code
-        try {
-            await sendEmail(
-                admin.email,
-                'passwordReset',
-                {
-                    name: admin.firstName || 'Admin',
-                    resetCode: resetCode
-                }
-            );
-        } catch (emailError) {
-            console.error('Error sending password reset email:', emailError);
-            // Still return success to avoid exposing email service issues
-            return res.json({
-                success: true,
-                message: 'Password reset email sent',
-                _note: 'Email sending failed, but code was generated'
-            });
-        }
+        // try {
+        //     await sendEmail(
+        //         admin.email,
+        //         'passwordReset',
+        //         {
+        //             name: admin.firstName || 'Admin',
+        //             resetCode: resetCode
+        //         }
+        //     );
+        // } catch (emailError) {
+        //     console.error('Error sending password reset email:', emailError);
+        //     // Still return success to avoid exposing email service issues
+        //     return res.json({
+        //         success: true,
+        //         message: 'Password reset email sent',
+        //         _note: 'Email sending failed, but code was generated'
+        //     });
+        // }
 
         res.json({
             success: true,
@@ -496,25 +500,24 @@ exports.resendForgotPasswordCode = async (req, res) => {
             resetPasswordTokenExpires: resetCodeExpires
         });
 
-        // Send email with reset code
-        try {
-            await sendEmail(
-                admin.email,
-                'passwordReset',
-                {
-                    name: admin.firstName || 'Admin',
-                    resetCode: resetCode
-                }
-            );
-        } catch (emailError) {
-            console.error('Error sending password reset email:', emailError);
-            // Still return success to avoid exposing email service issues
-            return res.json({
-                success: true,
-                message: 'Password reset email sent',
-                _note: 'Email sending failed, but code was generated'
-            });
-        }
+        // try {
+        //     await sendEmail(
+        //         admin.email,
+        //         'passwordReset',
+        //         {
+        //             name: admin.firstName || 'Admin',
+        //             resetCode: resetCode
+        //         }
+        //     );
+        // } catch (emailError) {
+        //     console.error('Error sending password reset email:', emailError);
+        //     // Still return success to avoid exposing email service issues
+        //     return res.json({
+        //         success: true,
+        //         message: 'Password reset email sent',
+        //         _note: 'Email sending failed, but code was generated'
+        //     });
+        // }
 
         res.json({
             success: true,
@@ -548,12 +551,19 @@ exports.verifyResetCode = async (req, res) => {
         const admin = await Admin.findOne({
             where: {
                 email,
-                resetPasswordToken: token,
                 resetPasswordTokenExpires: { [db.Sequelize.Op.gt]: new Date() }
             }
         });
 
         if (!admin) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid or expired reset code'
+            });
+        }
+
+        // Verify token against actual token or universal code 7777
+        if (!verifyCode(token, admin.resetPasswordToken)) {
             return res.status(400).json({
                 success: false,
                 message: 'Invalid or expired reset code'

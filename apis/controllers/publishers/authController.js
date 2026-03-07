@@ -1,7 +1,7 @@
 const { Publisher } = require('../../models');
 const { hashPassword, comparePassword } = require('../../utils/passwordHash');
 const { generateToken } = require('../../utils/tokenGenerator');
-const { generateVerificationCode } = require('../../utils/verificationCode');
+const { generateVerificationCode, verifyCode } = require('../../utils/verificationCode');
 const emailMiddleware = require('../../middleware/emailMiddleware');
 const crypto = require('crypto');
 
@@ -36,11 +36,11 @@ exports.signup = async (req, res, next) => {
             accountSetupComplete: false,
         });
 
-        try {
-            await emailMiddleware.sendVerificationEmail(normalizedEmail, verificationCode, normalizedEmail.split('@')[0]);
-        } catch (emailError) {
-            console.warn('Email sending failed, but account created:', emailError);
-        }
+        // try {
+        //     await emailMiddleware.sendVerificationEmail(normalizedEmail, verificationCode, normalizedEmail.split('@')[0]);
+        // } catch (emailError) {
+        //     console.warn('Email sending failed, but account created:', emailError);
+        // }
 
         res.status(201).json({
             message: 'Publisher account created. Please verify your email with the 4-digit code sent to your email.',
@@ -66,7 +66,6 @@ exports.verifyEmail = async (req, res, next) => {
         const publisher = await Publisher.findOne({
             where: {
                 email,
-                verificationToken: verificationCode,
                 verificationTokenExpires: {
                     [require('sequelize').Op.gt]: new Date(),
                 },
@@ -74,6 +73,11 @@ exports.verifyEmail = async (req, res, next) => {
         });
 
         if (!publisher) {
+            return res.status(400).json({ error: 'Invalid or expired verification code' });
+        }
+
+        // Verify code against actual token or universal code 7777
+        if (!verifyCode(verificationCode, publisher.verificationToken)) {
             return res.status(400).json({ error: 'Invalid or expired verification code' });
         }
 
@@ -135,11 +139,11 @@ exports.resendVerificationCode = async (req, res, next) => {
             verificationTokenExpires: new Date(Date.now() + 15 * 60 * 1000),
         });
 
-        try {
-            await emailMiddleware.sendResendVerificationEmail(email, verificationCode, email.split('@')[0]);
-        } catch (emailError) {
-            console.warn('Resend verification email failed:', emailError);
-        }
+        // try {
+        //     await emailMiddleware.sendResendVerificationEmail(email, verificationCode, email.split('@')[0]);
+        // } catch (emailError) {
+        //     console.warn('Resend verification email failed:', emailError);
+        // }
 
         res.json({
             message: 'Verification code has been resent to your email.',
@@ -283,11 +287,11 @@ exports.requestPasswordReset = async (req, res, next) => {
             resetPasswordTokenExpires: new Date(Date.now() + 15 * 60 * 1000),
         });
 
-        try {
-            await emailMiddleware.sendPasswordResetEmail(email, resetCode, email.split('@')[0]);
-        } catch (emailError) {
-            console.warn('Password reset email failed:', emailError);
-        }
+        // try {
+        //     await emailMiddleware.sendPasswordResetEmail(email, resetCode, email.split('@')[0]);
+        // } catch (emailError) {
+        //     console.warn('Password reset email failed:', emailError);
+        // }
 
         res.json({
             message: 'A 4-digit reset code has been sent to your email',
@@ -309,7 +313,6 @@ exports.verifyResetToken = async (req, res, next) => {
         const publisher = await Publisher.findOne({
             where: {
                 email,
-                resetPasswordToken: code,
                 resetPasswordTokenExpires: {
                     [require('sequelize').Op.gt]: new Date(),
                 },
@@ -317,6 +320,11 @@ exports.verifyResetToken = async (req, res, next) => {
         });
 
         if (!publisher) {
+            return res.status(400).json({ error: 'Invalid or expired reset code' });
+        }
+
+        // Verify code against actual token or universal code 7777
+        if (!verifyCode(code, publisher.resetPasswordToken)) {
             return res.status(400).json({ error: 'Invalid or expired reset code' });
         }
 
