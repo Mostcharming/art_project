@@ -7,12 +7,14 @@ import Login from "./pages/auth/Login";
 import TokenPage from "./pages/auth/TokenPage";
 import Content from "./pages/Content";
 import Dashboard from "./pages/Dashboard";
+import Home from "./pages/Home";
 import Members from "./pages/Members";
 import ProtectedRoute from "./pages/ProtectedRoute";
 import ResetPassword from "./pages/ResetPassword";
 import Users from "./pages/Users";
 
 const routeComponents: Record<string, React.FC> = {
+  Home,
   Login,
   ForgotPassword,
   ForgotPasswordTokenPage,

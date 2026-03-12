@@ -1,5 +1,6 @@
 [
-  { "path": "/", "element": "Login" },
+  { "path": "/", "element": "Home" },
+  { "path": "/admin", "element": "Login" },
   { "path": "/forgot-password", "element": "ForgotPassword" },
   {
     "path": "/forgot-password/verify-token",
