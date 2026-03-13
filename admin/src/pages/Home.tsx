@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import carslLogo from "../assets/carsl.svg";
 import AuthLayout from "../layouts/AuthPageLayout";
 
@@ -20,9 +19,6 @@ export default function Home() {
             >
               Welcome to CARSL
             </h1>
-            <p className="text-sm text-gray-400">
-              Your premium admin dashboard awaits
-            </p>
           </div>
 
           {/* Features Section */}
@@ -34,25 +30,10 @@ export default function Home() {
                 coming soon!
               </p>
             </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              <div className="p-3 rounded-lg bg-gray-800 border border-gray-700 text-center">
-                <div className="text-xl mb-1">📊</div>
-                <p className="text-xs text-gray-300">Dashboard</p>
-              </div>
-              <div className="p-3 rounded-lg bg-gray-800 border border-gray-700 text-center">
-                <div className="text-xl mb-1">👥</div>
-                <p className="text-xs text-gray-300">Publishers</p>
-              </div>
-              <div className="p-3 rounded-lg bg-gray-800 border border-gray-700 text-center">
-                <div className="text-xl mb-1">📝</div>
-                <p className="text-xs text-gray-300">Content</p>
-              </div>
-            </div>
           </div>
 
           {/* CTA Button */}
-          <Link
+          {/* <Link
             to="/admin"
             className="w-full py-3 mt-6 font-medium text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 block text-center"
             style={{
@@ -68,7 +49,7 @@ export default function Home() {
             }}
           >
             Go to Admin Login
-          </Link>
+          </Link> */}
         </div>
       </div>
     </AuthLayout>
