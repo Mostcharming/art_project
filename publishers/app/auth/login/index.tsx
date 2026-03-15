@@ -53,8 +53,8 @@ export default function LoginPage() {
       return;
     }
 
-    const success = await authenticateWithBiometrics();
-    if (success) {
+    const result = await authenticateWithBiometrics();
+    if (result.success) {
       // Biometric verified — user is who they say they are
       // Navigate based on their account state
       if (user.accountSetupComplete) {
@@ -62,6 +62,10 @@ export default function LoginPage() {
       } else {
         router.replace("/auth/signup/account-setup");
       }
+    } else if (result.message) {
+      // Show error message if one was returned
+      setAlertMessage(result.message);
+      setAlertVisible(true);
     }
   };
 

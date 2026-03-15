@@ -32,15 +32,19 @@ export async function checkBiometricSupport(): Promise<{
   return { isSupported: true, biometricType };
 }
 
-export async function authenticateWithBiometrics(): Promise<boolean> {
+export async function authenticateWithBiometrics(): Promise<{
+  success: boolean;
+  message?: string;
+}> {
   try {
     const { isSupported } = await checkBiometricSupport();
 
     if (!isSupported) {
-      alert(
-        "Biometrics Unavailable - Your device does not support biometric authentication, or it is not set up."
-      );
-      return false;
+      return {
+        success: false,
+        message:
+          "Biometrics Unavailable - Your device does not support biometric authentication, or it is not set up.",
+      };
     }
 
     const result = await LocalAuthentication.authenticateAsync({
@@ -51,26 +55,29 @@ export async function authenticateWithBiometrics(): Promise<boolean> {
     });
 
     if (result.success) {
-      return true;
+      return { success: true };
     }
 
     if (result.error === "user_cancel" || result.error === "system_cancel") {
       // User cancelled — do nothing
-      return false;
+      return { success: false };
     }
 
     if (result.error === "user_fallback") {
       // User chose to use password instead
-      return false;
+      return { success: false };
     }
 
-    alert(
-      "Authentication Failed - Biometric authentication failed. Please try again or use your password."
-    );
-    return false;
+    return {
+      success: false,
+      message:
+        "Authentication Failed - Biometric authentication failed. Please try again or use your password.",
+    };
   } catch (error) {
     console.error("Biometric auth error:", error);
-    alert("Error - Something went wrong with biometric authentication.");
-    return false;
+    return {
+      success: false,
+      message: "Error - Something went wrong with biometric authentication.",
+    };
   }
 }

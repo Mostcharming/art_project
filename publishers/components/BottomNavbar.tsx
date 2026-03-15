@@ -50,7 +50,8 @@ export default function BottomNavbar() {
           borderColor: "#18181b",
         }}
       >
-        <View
+        <Pressable
+          onPress={() => router.push("/create-carousel")}
           style={{
             position: "absolute",
             width: 32,
@@ -77,7 +78,7 @@ export default function BottomNavbar() {
               borderRadius: 2,
             }}
           />
-        </View>
+        </Pressable>
       </View>
       {NAV_ITEMS.map((item) => {
         const isActive = currentRoute === item.route;

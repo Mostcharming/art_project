@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { MaterialIcons } from "@expo/vector-icons";
 import { LucideIcon } from "lucide-react-native";
 import React, { useEffect, useState } from "react";

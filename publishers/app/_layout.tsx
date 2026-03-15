@@ -117,6 +117,14 @@ export default function RootLayout() {
           <Stack.Screen name="settings" options={{ headerShown: false }} />
           <Stack.Screen name="tags" options={{ headerShown: false }} />
           <Stack.Screen
+            name="create-carousel"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="upload-artwork"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
             name="auth/forgotpassword/page1"
             options={{ headerShown: false }}
           />

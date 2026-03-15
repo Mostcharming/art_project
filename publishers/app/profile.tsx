@@ -53,7 +53,6 @@ export default function Profile() {
   const [bio, setBio] = useState(user?.bio || "");
   const [showPersonaDropdown, setShowPersonaDropdown] = useState(false);
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const bioRef = useRef<TextInput>(null);
@@ -68,8 +67,11 @@ export default function Profile() {
   const isDisabled = !isFormValid;
 
   const handleSave = async () => {
-    if (!isFormValid) return;
-    setError(null);
+    if (!isFormValid) {
+      setAlertMessage("Please fill in all required fields");
+      setAlertVisible(true);
+      return;
+    }
 
     const response = await mutate("/update-profile", {
       method: "PATCH",
@@ -84,7 +86,10 @@ export default function Profile() {
     });
 
     if (response.error) {
-      setError(response.error || "Failed to update profile. Please try again.");
+      setAlertMessage(
+        response.error || "Failed to update profile. Please try again."
+      );
+      setAlertVisible(true);
       return;
     }
 
@@ -274,10 +279,6 @@ export default function Profile() {
               />
             </View>
           </View>
-
-          {error && (
-            <Text className="text-xs text-red-500 mb-3 leading-5">{error}</Text>
-          )}
 
           <Pressable
             className={`mt-4 mb-10 rounded-xl justify-center items-center ${
