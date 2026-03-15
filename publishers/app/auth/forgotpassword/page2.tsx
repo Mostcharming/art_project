@@ -1,9 +1,9 @@
+import { Alert } from "@/components/ui/Alert";
 import { useApiMutate } from "@/hooks/useApiMutate";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
-  Alert,
   Keyboard,
   Pressable,
   Text,
@@ -21,6 +21,8 @@ export default function ForgotPasswordPage2() {
   const [timeLeft, setTimeLeft] = useState(59);
   const [isResendActive, setIsResendActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
   const inputRefs = useRef<(TextInput | null)[]>([null, null, null, null]);
   const { mutate, isLoading } = useApiMutate();
 
@@ -77,10 +79,8 @@ export default function ForgotPasswordPage2() {
     if (response.error) {
       console.error("Reset token verification error:", response);
       setError("Invalid reset code. Please try again.");
-      Alert.alert(
-        "Verification Failed",
-        "Invalid reset code. Please try again."
-      );
+      setAlertMessage("Invalid reset code. Please try again.");
+      setAlertVisible(true);
     } else {
       const resetSessionToken = response.data?.resetSessionToken;
 
@@ -102,12 +102,14 @@ export default function ForgotPasswordPage2() {
 
     if (response.error) {
       console.error("Resend error:", response);
-      Alert.alert("Error", "Failed to resend reset code. Please try again.");
+      setAlertMessage("Failed to resend reset code. Please try again.");
+      setAlertVisible(true);
     } else {
       setOtp(["", "", "", ""]);
       setTimeLeft(59);
       setIsResendActive(false);
-      Alert.alert("Success", "A new reset code has been sent to your email.");
+      setAlertMessage("A new reset code has been sent to your email.");
+      setAlertVisible(true);
     }
   };
 
@@ -226,6 +228,12 @@ export default function ForgotPasswordPage2() {
             </Pressable>
           </View>
         </View>
+
+        <Alert
+          message={alertMessage}
+          visible={alertVisible}
+          onClose={() => setAlertVisible(false)}
+        />
       </View>
     </TouchableWithoutFeedback>
   );

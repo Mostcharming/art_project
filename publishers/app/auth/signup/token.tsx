@@ -1,10 +1,10 @@
+import { Alert } from "@/components/ui/Alert";
 import { useApiMutate } from "@/hooks/useApiMutate";
 import { useUserStore } from "@/store/userStore";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
-  Alert,
   Keyboard,
   Pressable,
   Text,
@@ -24,6 +24,8 @@ export default function SignUpToken() {
   const [timeLeft, setTimeLeft] = useState(59);
   const [isResendActive, setIsResendActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
   const inputRefs = useRef<(TextInput | null)[]>([null, null, null, null]);
   const { mutate, isLoading } = useApiMutate();
 
@@ -82,10 +84,8 @@ export default function SignUpToken() {
     if (response.error) {
       console.error("Verification error:", response);
       setError("Invalid verification code. Please try again.");
-      Alert.alert(
-        "Verification Failed",
-        "Invalid verification code. Please try again."
-      );
+      setAlertMessage("Invalid verification code. Please try again.");
+      setAlertVisible(true);
     } else {
       // Save auth token from API response
       if (response.data?.authToken) {
@@ -117,14 +117,13 @@ export default function SignUpToken() {
 
     if (response.error) {
       console.error("Resend error:", response);
-      Alert.alert(
-        "Error",
-        "Failed to resend verification code. Please try again."
-      );
+      setAlertMessage("Failed to resend verification code. Please try again.");
+      setAlertVisible(true);
     } else {
       setTimeLeft(59);
       setIsResendActive(false);
-      Alert.alert("Success", "Verification code sent to your email.");
+      setAlertMessage("Verification code sent to your email.");
+      setAlertVisible(true);
     }
   };
 
@@ -238,6 +237,12 @@ export default function SignUpToken() {
             </Pressable>
           </View>
         </View>
+
+        <Alert
+          message={alertMessage}
+          visible={alertVisible}
+          onClose={() => setAlertVisible(false)}
+        />
       </View>
     </TouchableWithoutFeedback>
   );

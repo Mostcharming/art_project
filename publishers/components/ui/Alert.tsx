@@ -1,0 +1,141 @@
+import { MaterialIcons } from "@expo/vector-icons";
+import { LucideIcon } from "lucide-react-native";
+import React, { useEffect, useState } from "react";
+import {
+  Animated,
+  Dimensions,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+
+interface AlertProps {
+  message: string;
+  visible: boolean;
+  onClose: () => void;
+  duration?: number; // Auto-dismiss duration in ms (default: 5000)
+  icon?: LucideIcon; // Lucide icon component
+  iconColor?: string; // Icon color (default: #000000)
+}
+
+export const Alert: React.FC<AlertProps> = ({
+  message,
+  visible,
+  onClose,
+  duration = 5000,
+  icon: IconComponent,
+  iconColor = "#000000",
+}) => {
+  const [slideAnim] = useState(new Animated.Value(0));
+
+  useEffect(() => {
+    if (visible) {
+      // Slide up animation
+      Animated.timing(slideAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+
+      // Auto-dismiss timer
+      const timer = setTimeout(() => {
+        handleClose();
+      }, duration);
+
+      return () => clearTimeout(timer);
+    } else {
+      // Slide down animation
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [visible]);
+
+  const handleClose = () => {
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      onClose();
+    });
+  };
+
+  const translateY = slideAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [Dimensions.get("window").height, 0],
+  });
+
+  if (!visible) return null;
+
+  return (
+    <Animated.View
+      style={[
+        styles.container,
+        {
+          transform: [{ translateY }],
+        },
+      ]}
+    >
+      <View style={styles.alertBox}>
+        {IconComponent && (
+          <View style={styles.iconContainer}>
+            <IconComponent size={24} color={iconColor} />
+          </View>
+        )}
+        <Text style={styles.message} numberOfLines={2}>
+          {message}
+        </Text>
+        <Pressable onPress={handleClose} style={styles.closeButton}>
+          <MaterialIcons name="close" size={24} color="#000000" />
+        </Pressable>
+      </View>
+    </Animated.View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+  },
+  alertBox: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    shadowColor: "#000000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  iconContainer: {
+    marginRight: 12,
+  },
+  message: {
+    flex: 1,
+    fontSize: 14,
+    color: "#000000",
+    fontWeight: "500",
+    marginRight: 12,
+  },
+  closeButton: {
+    padding: 8,
+    marginRight: -8,
+  },
+});

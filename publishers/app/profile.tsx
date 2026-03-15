@@ -1,7 +1,7 @@
+import { Alert } from "@/components/ui/Alert";
 import { useApiMutate } from "@/hooks/useApiMutate";
 import { useUserStore } from "@/store/userStore";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import {
   Keyboard,
@@ -41,7 +41,6 @@ const COUNTRIES = [
 
 export default function Profile() {
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const user = useUserStore((state) => state.user);
   const updateUser = useUserStore((state) => state.updateUser);
 
@@ -55,6 +54,8 @@ export default function Profile() {
   const [showPersonaDropdown, setShowPersonaDropdown] = useState(false);
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
   const bioRef = useRef<TextInput>(null);
 
   const { mutate, isLoading } = useApiMutate();
@@ -93,8 +94,9 @@ export default function Profile() {
       country,
       bio,
     });
-    // Show alert for success (replacing Toast)
-    alert("Profile updated! Your profile changes have been saved.");
+    // Show alert for success
+    setAlertMessage("Profile updated! Your profile changes have been saved.");
+    setAlertVisible(true);
   };
 
   return (
@@ -377,6 +379,12 @@ export default function Profile() {
             </View>
           </Pressable>
         </Modal>
+
+        <Alert
+          message={alertMessage}
+          visible={alertVisible}
+          onClose={() => setAlertVisible(false)}
+        />
       </View>
     </TouchableWithoutFeedback>
   );

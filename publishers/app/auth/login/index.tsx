@@ -1,4 +1,5 @@
 import { FaceIdIcon } from "@/components/icons/FaceIdIcon";
+import { Alert } from "@/components/ui/Alert";
 import { useApiMutate } from "@/hooks/useApiMutate";
 import {
   authenticateWithBiometrics,
@@ -9,7 +10,6 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  Alert,
   Keyboard,
   Pressable,
   Text,
@@ -28,6 +28,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
   const { mutate, isLoading } = useApiMutate();
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const user = useUserStore((state) => state.user);
@@ -38,16 +40,16 @@ export default function LoginPage() {
     checkBiometricSupport().then(({ isSupported }) => {
       setBiometricAvailable(isSupported);
     });
-  }, []);
+  }, [biometricAvailable]);
 
   const handleBiometricLogin = async () => {
     // Biometric login only works if the user has previously logged in
     // (we have stored credentials/token)
     if (!user?.email || !token) {
-      Alert.alert(
-        "Login Required",
+      setAlertMessage(
         "Please log in with your email and password first. You can use biometrics for future logins."
       );
+      setAlertVisible(true);
       return;
     }
 
@@ -275,6 +277,12 @@ export default function LoginPage() {
             </Text>
           </Pressable>
         </View>
+
+        <Alert
+          message={alertMessage}
+          visible={alertVisible}
+          onClose={() => setAlertVisible(false)}
+        />
       </View>
     </TouchableWithoutFeedback>
   );

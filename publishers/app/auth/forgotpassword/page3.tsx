@@ -1,9 +1,9 @@
+import { Alert } from "@/components/ui/Alert";
 import { useApiMutate } from "@/hooks/useApiMutate";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  Alert,
   Keyboard,
   Pressable,
   Text,
@@ -24,6 +24,8 @@ export default function ForgotPasswordPage3() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
   const { mutate, isLoading } = useApiMutate();
 
   const hasMinLength = password.length >= 8;
@@ -53,18 +55,15 @@ export default function ForgotPasswordPage3() {
     if (response.error) {
       console.error("Reset password error:", response);
       setError("Failed to reset password. Please try again.");
-      Alert.alert("Error", "Failed to reset password. Please try again.");
+      setAlertMessage("Failed to reset password. Please try again.");
+      setAlertVisible(true);
     } else {
-      Alert.alert(
-        "Password Reset",
-        "Your password has been reset successfully. Please log in with your new password.",
-        [
-          {
-            text: "Go to Login",
-            onPress: () => router.replace("/auth/login"),
-          },
-        ]
+      setAlertMessage(
+        "Your password has been reset successfully. Please log in with your new password."
       );
+      setAlertVisible(true);
+      // Navigate to login after showing alert
+      setTimeout(() => router.replace("/auth/login"), 2000);
     }
   };
 
@@ -214,6 +213,12 @@ export default function ForgotPasswordPage3() {
             {isLoading ? "Creating..." : "Create Password"}
           </Text>
         </Pressable>
+
+        <Alert
+          message={alertMessage}
+          visible={alertVisible}
+          onClose={() => setAlertVisible(false)}
+        />
       </View>
     </TouchableWithoutFeedback>
   );

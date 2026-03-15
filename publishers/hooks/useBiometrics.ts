@@ -1,5 +1,4 @@
 import * as LocalAuthentication from "expo-local-authentication";
-import { Alert } from "react-native";
 
 export async function checkBiometricSupport(): Promise<{
   isSupported: boolean;
@@ -38,9 +37,8 @@ export async function authenticateWithBiometrics(): Promise<boolean> {
     const { isSupported } = await checkBiometricSupport();
 
     if (!isSupported) {
-      Alert.alert(
-        "Biometrics Unavailable",
-        "Your device does not support biometric authentication, or it is not set up."
+      alert(
+        "Biometrics Unavailable - Your device does not support biometric authentication, or it is not set up."
       );
       return false;
     }
@@ -66,14 +64,13 @@ export async function authenticateWithBiometrics(): Promise<boolean> {
       return false;
     }
 
-    Alert.alert(
-      "Authentication Failed",
-      "Biometric authentication failed. Please try again or use your password."
+    alert(
+      "Authentication Failed - Biometric authentication failed. Please try again or use your password."
     );
     return false;
   } catch (error) {
     console.error("Biometric auth error:", error);
-    Alert.alert("Error", "Something went wrong with biometric authentication.");
+    alert("Error - Something went wrong with biometric authentication.");
     return false;
   }
 }
