@@ -20,6 +20,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'viewerId',
         as: 'favorites'
       });
+      Viewer.hasMany(models.Subscriber, {
+        foreignKey: 'viewerId',
+        as: 'subscriptions'
+      });
     }
   }
   Viewer.init({

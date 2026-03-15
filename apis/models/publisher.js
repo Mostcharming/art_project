@@ -10,7 +10,14 @@ module.exports = (sequelize, DataTypes) => {
          * The `models/index` file will call this method automatically.
          */
         static associate(models) {
-            // define association here if needed
+            Publisher.hasMany(models.Carousel, {
+                foreignKey: 'publisherId',
+                as: 'carousels'
+            });
+            Publisher.hasMany(models.Subscriber, {
+                foreignKey: 'publisherId',
+                as: 'subscribers'
+            });
         }
     }
     Publisher.init({

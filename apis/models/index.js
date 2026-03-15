@@ -54,7 +54,10 @@ const modelDefiners = [
   require("./style"),
   require("./viewer"),
   require("./viewerstyle"),
-  require("./publishersetting")
+  require("./publishersetting"),
+  require("./carousel"),
+  require("./artwork"),
+  require("./subscriber")
 ];
 
 modelDefiners.forEach(modelDefiner => {
