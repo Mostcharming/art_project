@@ -123,10 +123,6 @@ export default function Settings() {
             <ChevronRight color="#fff" size={22} />
           </Pressable>
           <View className="bg-neutral-900 rounded-xl p-5 border border-neutral-700 flex-row items-center justify-between">
-            <Text className="text-white text-base font-bold">Membership</Text>
-            <ChevronRight color="#fff" size={22} />
-          </View>
-          <View className="bg-neutral-900 rounded-xl p-5 border border-neutral-700 flex-row items-center justify-between">
             <View>
               <Text className="text-white text-base font-bold">
                 Push Notifications

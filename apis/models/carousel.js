@@ -79,6 +79,16 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             defaultValue: 0,
             comment: 'Number of views for the carousel'
+        },
+        numberOfFavorites: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0,
+            comment: 'Number of times this carousel has been favorited'
+        },
+        numberOfShares: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0,
+            comment: 'Number of times this carousel has been shared'
         }
     }, {
         sequelize,
