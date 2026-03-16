@@ -1,10 +1,11 @@
+import { Alert } from "@/components/ui/Alert";
 import { useApiMutate } from "@/hooks/useApiMutate";
 import { usePublisherSettingsStore } from "@/store/publisherSettingsStore";
 import { useUserStore } from "@/store/userStore";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import { ChevronRight } from "lucide-react-native";
+import { CheckCircle, ChevronRight } from "lucide-react-native";
 import React, { useState } from "react";
 import {
   BackHandler,
@@ -27,6 +28,7 @@ export default function Settings() {
   const [pushEnabled, setPushEnabled] = useState(settings.pushNotifications);
   const [frameTiming, setFrameTiming] = useState(settings.carouselFrameTiming);
   const [showFrameModal, setShowFrameModal] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
   const frameTimingOptions = [
     { label: "10 seconds", value: 10 },
     { label: "30 seconds", value: 30 },
@@ -41,7 +43,6 @@ export default function Settings() {
   React.useEffect(() => {
     const fetchSettings = async () => {
       const res = await mutate("/settings", { method: "GET" });
-      console.log("Settings update response:", res);
 
       if (res.data) {
         setSettings({
@@ -89,6 +90,7 @@ export default function Settings() {
         carouselFrameTiming: res.data.carouselFrameTiming ?? 1,
         pushNotifications: res.data.pushNotifications ?? true,
       });
+      setShowAlert(true);
     }
     setShowFrameModal(false);
   };
@@ -240,6 +242,14 @@ export default function Settings() {
           </Pressable>
         </Modal>
       </Modal>
+      <Alert
+        message="Settings updated successfully!"
+        visible={showAlert}
+        onClose={() => setShowAlert(false)}
+        duration={5000}
+        icon={CheckCircle}
+        iconColor="#ea580c"
+      />
     </View>
   );
 }

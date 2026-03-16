@@ -19,7 +19,14 @@ export const unstable_settings = {
   anchor: "(tabs)",
 };
 
-const NAVBAR_SEGMENTS = ["dashboard", "profile", "settings", "tags"];
+const NAVBAR_SEGMENTS = [
+  "dashboard",
+  "profile",
+  "settings",
+  "tags",
+  "create-carousel",
+  "upload-artwork",
+];
 
 function useProtectedRoute() {
   const segments = useSegments();
@@ -137,7 +144,7 @@ export default function RootLayout() {
             options={{ headerShown: false }}
           />
         </Stack>
-        {showBottomNavbar && <BottomNavbar />}
+        {showBottomNavbar && <BottomNavbar />}{" "}
         <StatusBar
           style="light"
           translucent={true}

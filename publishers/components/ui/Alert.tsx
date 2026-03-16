@@ -2,14 +2,8 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { LucideIcon } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
-import {
-  Animated,
-  Dimensions,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface AlertProps {
   message: string;
@@ -29,6 +23,7 @@ export const Alert: React.FC<AlertProps> = ({
   iconColor = "#000000",
 }) => {
   const [slideAnim] = useState(new Animated.Value(0));
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (visible) {
@@ -36,7 +31,7 @@ export const Alert: React.FC<AlertProps> = ({
       Animated.timing(slideAnim, {
         toValue: 1,
         duration: 300,
-        useNativeDriver: true,
+        useNativeDriver: false,
       }).start();
 
       // Auto-dismiss timer
@@ -50,7 +45,7 @@ export const Alert: React.FC<AlertProps> = ({
       Animated.timing(slideAnim, {
         toValue: 0,
         duration: 300,
-        useNativeDriver: true,
+        useNativeDriver: false,
       }).start();
     }
   }, [visible]);
@@ -59,7 +54,7 @@ export const Alert: React.FC<AlertProps> = ({
     Animated.timing(slideAnim, {
       toValue: 0,
       duration: 300,
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start(() => {
       onClose();
     });
@@ -67,10 +62,13 @@ export const Alert: React.FC<AlertProps> = ({
 
   const translateY = slideAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [Dimensions.get("window").height, 0],
+    outputRange: [200, 0],
   });
 
-  if (!visible) return null;
+  const opacity = slideAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
+  });
 
   return (
     <Animated.View
@@ -78,8 +76,11 @@ export const Alert: React.FC<AlertProps> = ({
         styles.container,
         {
           transform: [{ translateY }],
+          opacity,
+          bottom: insets.bottom + 80,
         },
       ]}
+      pointerEvents="box-none"
     >
       <View style={styles.alertBox}>
         {IconComponent && (
@@ -101,12 +102,10 @@ export const Alert: React.FC<AlertProps> = ({
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    bottom: 0,
     left: 0,
     right: 0,
     zIndex: 9999,
     paddingHorizontal: 16,
-    paddingBottom: 24,
     pointerEvents: "box-none",
   },
   alertBox: {
