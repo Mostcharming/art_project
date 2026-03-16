@@ -8,6 +8,7 @@ import { Stack, usePathname, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast from "react-native-toast-message";
 import "../globals.css";
 
@@ -86,72 +87,74 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <View style={{ flex: 1 }}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="splash/splash1"
-            options={{ headerShown: false }}
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <View style={{ flex: 1 }}>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="splash/splash1"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="splash/splash2"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="splash/splash3"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="auth/signup/email-password"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="auth/signup/token"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="auth/login/index"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="auth/signup/account-setup"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen name="welcome" options={{ headerShown: false }} />
+            <Stack.Screen name="dashboard" options={{ headerShown: false }} />
+            <Stack.Screen name="profile" options={{ headerShown: false }} />
+            <Stack.Screen name="settings" options={{ headerShown: false }} />
+            <Stack.Screen name="tags" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="create-carousel"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="upload-artwork"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="auth/forgotpassword/page1"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="auth/forgotpassword/page2"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="auth/forgotpassword/page3"
+              options={{ headerShown: false }}
+            />
+          </Stack>
+          {showBottomNavbar && <BottomNavbar />}
+          <StatusBar
+            style="light"
+            translucent={true}
+            backgroundColor="transparent"
           />
-          <Stack.Screen
-            name="splash/splash2"
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="splash/splash3"
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="auth/signup/email-password"
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="auth/signup/token"
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="auth/login/index"
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="auth/signup/account-setup"
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen name="welcome" options={{ headerShown: false }} />
-          <Stack.Screen name="dashboard" options={{ headerShown: false }} />
-          <Stack.Screen name="profile" options={{ headerShown: false }} />
-          <Stack.Screen name="settings" options={{ headerShown: false }} />
-          <Stack.Screen name="tags" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="create-carousel"
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="upload-artwork"
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="auth/forgotpassword/page1"
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="auth/forgotpassword/page2"
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="auth/forgotpassword/page3"
-            options={{ headerShown: false }}
-          />
-        </Stack>
-        {showBottomNavbar && <BottomNavbar />}{" "}
-        <StatusBar
-          style="light"
-          translucent={true}
-          backgroundColor="transparent"
-        />
-        <Toast />
-      </View>
-    </ThemeProvider>
+          <Toast />
+        </View>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }

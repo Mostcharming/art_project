@@ -66,8 +66,16 @@ export default function CreateCarousel() {
       return;
     }
 
-    // Navigate to upload artwork page
-    router.push("/upload-artwork");
+    // Navigate to upload artwork page with carousel details
+    router.push({
+      pathname: "/upload-artwork",
+      params: {
+        carouselName,
+        carouselTag,
+        country,
+        description,
+      },
+    });
   };
 
   return (

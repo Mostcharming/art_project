@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
+const path = require('path');
 const db = require('./models');
 
 const viewersRoutes = require('./routes/viewers');
@@ -51,6 +52,9 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(morgan('combined'));
 app.use(express.json());
+
+// Serve uploaded files as static
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'API is running' });

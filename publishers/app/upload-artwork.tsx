@@ -1,10 +1,12 @@
 import { Alert } from "@/components/ui/Alert";
+import { useCarouselApi } from "@/hooks/useCarouselApi";
+import { useCarouselStore } from "@/store/carouselStore";
 import { ArtworkForm, SelectedImage, UploadedArtwork } from "@/types";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { useRouter } from "expo-router";
-import { CloudUpload, X } from "lucide-react-native";
-import { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { CloudUpload, Play, X } from "lucide-react-native";
+import { useEffect, useState } from "react";
 import {
   Image,
   Keyboard,
@@ -22,6 +24,15 @@ import ArtworkList from "./components/ArtworkList";
 export default function UploadArtwork() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { saveDraft } = useCarouselApi();
+  const carouselStore = useCarouselStore();
+  const params = useLocalSearchParams<{
+    carouselName?: string;
+    carouselTag?: string;
+    country?: string;
+
+    description?: string;
+  }>();
 
   const [frameTiming, setFrameTiming] = useState(10);
   const [showFrameDropdown, setShowFrameDropdown] = useState(false);
@@ -42,6 +53,27 @@ export default function UploadArtwork() {
     []
   );
   const [showAddModal, setShowAddModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [carouselName, setCarouselName] = useState("");
+  const [carouselTag, setCarouselTag] = useState("");
+  const [carouselCountry, setCarouselCountry] = useState("");
+  const [carouselDescription, setCarouselDescription] = useState("");
+
+  // Initialize carousel details from route params
+  useEffect(() => {
+    if (params.carouselName) {
+      setCarouselName(params.carouselName);
+    }
+    if (params.carouselTag) {
+      setCarouselTag(params.carouselTag);
+    }
+    if (params.country) {
+      setCarouselCountry(params.country);
+    }
+    if (params.description) {
+      setCarouselDescription(params.description);
+    }
+  }, [params]);
 
   const frameTimingOptions = [
     { label: "10 seconds", value: 10 },
@@ -206,6 +238,74 @@ export default function UploadArtwork() {
     handleCancel();
   };
 
+  const handleSaveDraft = async () => {
+    if (!carouselName.trim()) {
+      setAlertMessage("Carousel name is required");
+      setShowAlert(true);
+      return;
+    }
+
+    if (!carouselCountry.trim()) {
+      setAlertMessage("Country is required");
+      setShowAlert(true);
+      return;
+    }
+
+    if (uploadedArtworks.length === 0) {
+      setAlertMessage("Please add at least one artwork");
+      setShowAlert(true);
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const response = await saveDraft({
+        name: carouselName,
+        country: carouselCountry,
+        tag: carouselTag || undefined,
+        description: carouselDescription || undefined,
+        frameTimingSeconds: frameTiming,
+        artworks: uploadedArtworks,
+      });
+
+      if (response.error) {
+        setAlertMessage(response.error);
+        setShowAlert(true);
+      } else {
+        // Save to local store as well
+        carouselStore.saveDraftLocally({
+          id: response.data?.carousel?.id?.toString(),
+          name: carouselName,
+          country: carouselCountry,
+          description: carouselDescription,
+          frameTimingSeconds: frameTiming,
+          artworks: uploadedArtworks,
+          status: "draft",
+        });
+
+        setAlertMessage("Carousel saved as draft successfully!");
+        setShowAlert(true);
+
+        // Reset form
+        setCarouselName("");
+        setCarouselCountry("");
+        setCarouselDescription("");
+        setUploadedArtworks([]);
+
+        // Navigate after a brief delay
+        setTimeout(() => {
+          router.push("/");
+        }, 1500);
+      }
+    } catch {
+      setAlertMessage("Failed to save carousel draft");
+      setShowAlert(true);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View className="flex-1 bg-black" style={{ paddingTop: insets.top }}>
@@ -268,17 +368,47 @@ export default function UploadArtwork() {
               />
 
               {/* Create Carousel Button */}
-              <Pressable
-                className="rounded-xl justify-center items-center bg-orange-600"
-                style={{ minHeight: 60 }}
-                onPress={() => {
-                  // Handle create action
-                }}
-              >
-                <Text className="text-base font-bold text-white">
-                  Create Carousel
-                </Text>
-              </Pressable>
+              <View className="flex-row gap-3">
+                <Pressable
+                  style={{
+                    flex: 0.8,
+                    minHeight: 60,
+                    backgroundColor: "transparent",
+                    borderWidth: 2,
+                    borderColor: "#FFFFFF1A",
+                    borderRadius: 12,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    opacity: isSaving ? 0.6 : 1,
+                  }}
+                  disabled={isSaving}
+                  onPress={handleSaveDraft}
+                >
+                  <Text className="text-base font-bold text-orange-600">
+                    {isSaving ? "Saving..." : "Save Draft"}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={{
+                    flex: 1.2,
+                    minHeight: 60,
+                    backgroundColor: "#ea580c",
+                    borderRadius: 12,
+                    flexDirection: "row",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                  onPress={() => {
+                    // Handle preview carousel action
+                  }}
+                >
+                  <Play size={20} color="#ffffff" />
+                  <Text className="text-base  text-white">
+                    Preview carousel
+                  </Text>
+                </Pressable>
+              </View>
             </>
           ) : selectedImage ? (
             <>
@@ -408,18 +538,14 @@ export default function UploadArtwork() {
                     }}
                     onPress={handleCancel}
                   >
-                    <Text className="text-base font-bold text-orange-600">
-                      Cancel
-                    </Text>
+                    <Text className="text-base  text-orange-600">Cancel</Text>
                   </Pressable>
                   <Pressable
                     className="flex-1 rounded-xl justify-center items-center bg-orange-600"
                     style={{ minHeight: 60 }}
                     onPress={handleAddArtwork}
                   >
-                    <Text className="text-base font-bold text-white">
-                      Add Artwork
-                    </Text>
+                    <Text className="text-base  text-white">Add Artwork</Text>
                   </Pressable>
                 </View>
               </View>
@@ -478,17 +604,47 @@ export default function UploadArtwork() {
                 </View>
               </View>
 
-              <Pressable
-                className="rounded-xl justify-center items-center bg-orange-600"
-                style={{ minHeight: 60 }}
-                onPress={() => {
-                  // Handle create action
-                }}
-              >
-                <Text className="text-base font-bold text-white">
-                  Create Carousel
-                </Text>
-              </Pressable>
+              <View className="flex-row gap-3">
+                <Pressable
+                  style={{
+                    flex: 0.8,
+                    minHeight: 60,
+                    backgroundColor: "transparent",
+                    borderWidth: 2,
+                    borderColor: "#FFFFFF1A",
+                    borderRadius: 12,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    opacity: isSaving ? 0.6 : 1,
+                  }}
+                  disabled={isSaving}
+                  onPress={handleSaveDraft}
+                >
+                  <Text className="text-base  text-orange-600">
+                    {isSaving ? "Saving..." : "Save Draft"}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={{
+                    flex: 1.2,
+                    minHeight: 60,
+                    backgroundColor: "#ea580c",
+                    borderRadius: 12,
+                    flexDirection: "row",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                  onPress={() => {
+                    // Handle preview carousel action
+                  }}
+                >
+                  <Play size={20} color="#ffffff" />
+                  <Text className="text-base  text-white">
+                    Preview carousel
+                  </Text>
+                </Pressable>
+              </View>
             </>
           )}
         </ScrollView>
@@ -539,9 +695,9 @@ export default function UploadArtwork() {
           animationType="slide"
           onRequestClose={handleModalCancel}
         >
-          <View className="flex-1 bg-black/80">
+          <View style={{ flex: 1, backgroundColor: "rgba(0, 0, 0, 0.77)" }}>
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-              <View className="flex-1" style={{ paddingTop: insets.top }}>
+              <View style={{ flex: 1, paddingTop: insets.top }}>
                 <ScrollView
                   className="flex-1"
                   keyboardShouldPersistTaps="handled"
@@ -759,7 +915,7 @@ export default function UploadArtwork() {
                                 });
                               }}
                             >
-                              <Text className="text-base font-bold text-orange-600">
+                              <Text className="text-base text-orange-600">
                                 Cancel
                               </Text>
                             </Pressable>
@@ -768,7 +924,7 @@ export default function UploadArtwork() {
                               style={{ minHeight: 60 }}
                               onPress={handleAddArtwork}
                             >
-                              <Text className="text-base font-bold text-white">
+                              <Text className="text-base text-white">
                                 Add Artwork
                               </Text>
                             </Pressable>
@@ -782,6 +938,9 @@ export default function UploadArtwork() {
             </TouchableWithoutFeedback>
           </View>
         </Modal>
+
+        {/* Carousel Details Modal */}
+        {/* Removed - carousel details are now passed from create-carousel page */}
 
         {/* Custom Alert */}
         <Alert

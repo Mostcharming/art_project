@@ -71,6 +71,11 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             defaultValue: 0,
             comment: 'Number of views for the artwork'
+        },
+        imageUrl: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            comment: 'URL or path to the artwork image file'
         }
     }, {
         sequelize,
