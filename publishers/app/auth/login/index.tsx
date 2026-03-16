@@ -36,7 +36,6 @@ export default function LoginPage() {
   const token = useUserStore((state) => state.token);
 
   useEffect(() => {
-    console.log(biometricAvailable);
     checkBiometricSupport().then(({ isSupported }) => {
       setBiometricAvailable(isSupported);
     });

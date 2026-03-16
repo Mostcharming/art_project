@@ -80,7 +80,6 @@ export default function TokenPage() {
       { email: adminEmail, loginToken: token },
       {
         onSuccess: (response) => {
-          console.log("Token verification response:", response);
           if (response.data?.token) {
             const userData = {
               token: response.data.token,
