@@ -59,6 +59,12 @@ export const useApiMutate = () => {
         // timeout: 30000,
         headers: requestHeaders,
       };
+      console.log("API Request Config:", {
+        method,
+        url,
+        headers: requestHeaders,
+        payload,
+      });
 
       // Attach payload for POST/PUT/PATCH
       if (
@@ -75,13 +81,7 @@ export const useApiMutate = () => {
           axiosConfig.data = payload;
         }
       }
-      console.log("API Request:", {
-        url,
-        method,
-        dataType,
-        headers: requestHeaders,
-        axiosConfig,
-      });
+
       const response = await axios(axiosConfig);
 
       setData(response.data);
@@ -95,12 +95,8 @@ export const useApiMutate = () => {
     } catch (err) {
       let errorMessage = "An unknown error occurred";
 
-      console.error("API error:", err);
-
       if (isAxiosError(err)) {
         console.error("Axios error details:", {
-          response: err.response,
-          request: err.request,
           message: err.message,
         });
 

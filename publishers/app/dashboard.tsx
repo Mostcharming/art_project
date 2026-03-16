@@ -1,8 +1,11 @@
+import { CarouselListView } from "@/components/CarouselListView";
+import { CarouselType, useCarouselList } from "@/hooks/useCarouselList";
+import { useDashboardData } from "@/hooks/useDashboardData";
 import { useUserStore } from "@/store/userStore";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import { BackHandler, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -10,7 +13,10 @@ export default function Dashboard() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const user = useUserStore((state) => state.user);
-  const clearUser = useUserStore((state) => state.clearUser);
+  const { dashboardData, isLoading } = useDashboardData();
+  const [activeTab, setActiveTab] = useState<CarouselType>("publishers");
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const { carousels, isLoading: carouselsLoading } = useCarouselList(activeTab);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -26,41 +32,19 @@ export default function Dashboard() {
     }, [])
   );
 
-  const greeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 17) return "Good afternoon";
-    return "Good evening";
-  };
-
-  const quickActions = [
-    {
-      icon: "add-circle-outline" as const,
-      label: "Upload Art",
-      color: "#EA580C",
-    },
-    {
-      icon: "collections" as const,
-      label: "My Gallery",
-      color: "#3B82F6",
-    },
-    {
-      icon: "explore" as const,
-      label: "Discover",
-      color: "#8B5CF6",
-    },
-    {
-      icon: "people-outline" as const,
-      label: "Community",
-      color: "#10B981",
-    },
-  ];
-
   const stats = [
-    { label: "Artworks", value: "0", icon: "palette" as const },
-    { label: "Followers", value: "0", icon: "people" as const },
-    { label: "Views", value: "0", icon: "visibility" as const },
-    { label: "Likes", value: "0", icon: "favorite" as const },
+    {
+      label: "Live Projects",
+      value: isLoading ? "-" : dashboardData?.liveProjects.toString() || "0",
+    },
+    {
+      label: "Subscribers",
+      value: isLoading ? "-" : dashboardData?.subscribers.toString() || "0",
+    },
+    {
+      label: "Watch Time",
+      value: isLoading ? "-" : `${dashboardData?.watchTimeInHours || "0"}hs`,
+    },
   ];
 
   return (
@@ -73,163 +57,158 @@ export default function Dashboard() {
         {/* Header */}
         <View className="flex-row items-center justify-between px-5 pt-4 pb-6">
           <View className="flex-1">
-            <Text className="text-sm text-gray-400">{greeting()}</Text>
-            <Text
-              className="text-2xl text-white mt-1"
-              style={{ fontFamily: "BankGothicBold" }}
-            >
-              {user?.name || "Creator"}
+            <View className="flex-row items-center gap-2">
+              <Text
+                className="text-2xl text-white"
+                style={{ fontFamily: "BankGothicBold" }}
+              >
+                Hey {user?.name || "Creator"} 👋🏾
+              </Text>
+            </View>
+            <Text className="text-lg text-gray-400 mt-1">
+              Welcome back, Picasso
             </Text>
-            {user?.personaType && (
-              <View className="flex-row items-center mt-1">
-                <View className="bg-orange-600/20 rounded-full px-3 py-1">
-                  <Text className="text-xs text-orange-500">
-                    {user.personaType}
-                  </Text>
-                </View>
-              </View>
-            )}
           </View>
           <Pressable
             className="w-11 h-11 rounded-full bg-neutral-800 justify-center items-center"
             onPress={() => {
-              // TODO: Navigate to profile/settings
+              // TODO: Navigate to notifications
             }}
           >
-            <MaterialIcons name="person" size={22} color="#FFFFFF" />
+            <MaterialIcons
+              name="notifications-none"
+              size={22}
+              color="#FFFFFF"
+            />
           </Pressable>
         </View>
 
-        {/* Stats Row */}
-        <View className="flex-row mx-5 mb-6 gap-3">
+        {/* Stats Row - Long Boxes */}
+        <View className="mx-5 mb-8 flex-row gap-3">
           {stats.map((stat) => (
             <View
               key={stat.label}
-              className="flex-1 bg-neutral-900 rounded-xl p-4 items-center"
+              className="flex-1 bg-neutral-900 border-2 border-neutral-700 rounded-xl p-5"
             >
-              <MaterialIcons name={stat.icon} size={20} color="#999999" />
-              <Text className="text-xl text-white font-bold mt-2">
+              <Text
+                style={{ fontFamily: "BankGothicBold" }}
+                className="text-3xl text-white"
+              >
                 {stat.value}
               </Text>
-              <Text className="text-xs text-gray-500 mt-1">{stat.label}</Text>
+              <Text className="text-[14px] text-gray-400 mt-2">
+                {stat.label}
+              </Text>
             </View>
           ))}
         </View>
 
-        {/* Quick Actions */}
-        <View className="mx-5 mb-6">
-          <Text className="text-lg text-white font-bold mb-4">
-            Quick Actions
-          </Text>
-          <View className="flex-row gap-3">
-            {quickActions.map((action) => (
-              <Pressable
-                key={action.label}
-                className="flex-1 bg-neutral-900 rounded-xl p-4 items-center"
-              >
-                <View
-                  className="w-12 h-12 rounded-full justify-center items-center mb-3"
-                  style={{ backgroundColor: `${action.color}20` }}
+        {/* Tabs */}
+        <View className="px-5 mb-6">
+          <View className="flex-row items-center justify-between">
+            {/* Tab buttons */}
+            <View className="flex-row gap-6">
+              {["publishers", "scheduled", "drafts"].map((tab) => (
+                <Pressable
+                  key={tab}
+                  onPress={() => setActiveTab(tab as typeof activeTab)}
+                >
+                  <Text
+                    className={`text-base capitalize ${
+                      activeTab === tab ? "text-orange-500" : "text-gray-400"
+                    }`}
+                  >
+                    {tab}
+                  </Text>
+                  {activeTab === tab && (
+                    <View
+                      className="h-0.5 bg-orange-500 mt-2 rounded-full"
+                      style={{ width: "100%" }}
+                    />
+                  )}
+                </Pressable>
+              ))}
+            </View>
+
+            {/* View Mode Toggle - Only show for publishers and scheduled tabs */}
+            {activeTab !== "drafts" && (
+              <View className="flex-row gap-2">
+                <Pressable
+                  className={`w-10 h-10 rounded-lg justify-center items-center ${
+                    viewMode === "list"
+                      ? "bg-neutral-800 border border-orange-500"
+                      : "bg-transparent"
+                  }`}
+                  onPress={() => setViewMode("list")}
                 >
                   <MaterialIcons
-                    name={action.icon}
-                    size={24}
-                    color={action.color}
+                    name="list"
+                    size={20}
+                    color={viewMode === "list" ? "#EA580C" : "#666666"}
                   />
-                </View>
-                <Text className="text-xs text-gray-300 text-center">
-                  {action.label}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        </View>
-
-        {/* Get Started Card */}
-        <View className="mx-5 mb-6 bg-neutral-900 rounded-2xl p-5">
-          <View className="flex-row items-center mb-3">
-            <MaterialIcons name="auto-awesome" size={20} color="#EA580C" />
-            <Text className="text-base text-white font-bold ml-2">
-              Complete Your Profile
-            </Text>
-          </View>
-          <Text className="text-sm text-gray-400 leading-5 mb-4">
-            Add your first artwork, set up your gallery, and start building your
-            presence. The art world is waiting for you.
-          </Text>
-          <View className="bg-neutral-800 rounded-full h-2 overflow-hidden">
-            <View
-              className="bg-orange-600 h-full rounded-full"
-              style={{ width: "25%" }}
-            />
-          </View>
-          <Text className="text-xs text-gray-500 mt-2">1 of 4 steps done</Text>
-        </View>
-
-        {/* Recent Activity */}
-        <View className="mx-5 mb-6">
-          <Text className="text-lg text-white font-bold mb-4">
-            Recent Activity
-          </Text>
-          <View className="bg-neutral-900 rounded-2xl p-6 items-center">
-            <MaterialIcons name="history" size={40} color="#444444" />
-            <Text className="text-base text-gray-500 mt-3 text-center">
-              No activity yet
-            </Text>
-            <Text className="text-sm text-gray-600 mt-1 text-center">
-              Start uploading artwork to see your activity here
-            </Text>
-          </View>
-        </View>
-
-        {/* Trending Section */}
-        <View className="mx-5 mb-6">
-          <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-lg text-white font-bold">
-              Trending on CARSL
-            </Text>
-            <Pressable>
-              <Text className="text-sm text-orange-500">See all</Text>
-            </Pressable>
-          </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 12 }}
-          >
-            {[1, 2, 3].map((i) => (
-              <View
-                key={i}
-                className="bg-neutral-900 rounded-2xl overflow-hidden"
-                style={{ width: 200 }}
-              >
-                <View className="bg-neutral-800 h-40 justify-center items-center">
-                  <MaterialIcons name="image" size={40} color="#444444" />
-                </View>
-                <View className="p-3">
-                  <Text className="text-sm text-white font-bold">
-                    Artwork Title
-                  </Text>
-                  <Text className="text-xs text-gray-500 mt-1">
-                    by Artist Name
-                  </Text>
-                </View>
+                </Pressable>
+                <Pressable
+                  className={`w-10 h-10 rounded-lg justify-center items-center ${
+                    viewMode === "grid"
+                      ? "bg-neutral-800 border border-orange-500"
+                      : "bg-transparent"
+                  }`}
+                  onPress={() => setViewMode("grid")}
+                >
+                  <MaterialIcons
+                    name="grid-view"
+                    size={20}
+                    color={viewMode === "grid" ? "#EA580C" : "#666666"}
+                  />
+                </Pressable>
               </View>
-            ))}
-          </ScrollView>
+            )}
+          </View>
         </View>
 
-        {/* Logout (temporary for dev) */}
-        <View className="mx-5 mt-4">
-          <Pressable
-            className="border border-neutral-700 rounded-xl py-4 items-center"
-            onPress={() => {
-              clearUser();
-              router.replace("/splash/splash1");
-            }}
-          >
-            <Text className="text-sm text-gray-400">Sign Out</Text>
-          </Pressable>
+        {/* Content Area */}
+        <View className="flex-1 px-0">
+          {carousels.length === 0 && !carouselsLoading ? (
+            <View className="mx-5 mb-6 rounded-2xl p-12 items-center justify-center min-h-96">
+              <MaterialIcons name="palette" size={56} color="#666666" />
+              <Text
+                style={{ fontFamily: "BankGothicBold" }}
+                className="text-[20px] text-white  mt-4 text-center"
+              >
+                {activeTab === "drafts"
+                  ? "No drafts yet"
+                  : activeTab === "scheduled"
+                    ? "No scheduled carousels"
+                    : "No published work yet"}
+              </Text>
+              <Text className="text-sm text-gray-400 mt-2 text-center px-4">
+                {activeTab === "drafts"
+                  ? "Create a new carousel draft to get started."
+                  : activeTab === "scheduled"
+                    ? "Schedule a carousel to appear here."
+                    : "You have not published any of your art yet, go ahead and start creating."}
+              </Text>
+              <Pressable
+                className="bg-orange-600 rounded-xl py-3 px-6 items-center mt-6"
+                onPress={() => router.push("/create-carousel")}
+              >
+                <View className="flex-row items-center gap-2">
+                  <MaterialIcons name="add" size={20} color="#FFFFFF" />
+                  <Text className="text-base text-white ">New Carousel</Text>
+                </View>
+              </Pressable>
+            </View>
+          ) : (
+            <CarouselListView
+              carousels={carousels}
+              isLoading={carouselsLoading}
+              viewMode={viewMode}
+              onSelectCarousel={(carousel) => {
+                // TODO: Navigate to carousel details
+                console.log("Selected carousel:", carousel.id);
+              }}
+            />
+          )}
         </View>
       </ScrollView>
     </View>
