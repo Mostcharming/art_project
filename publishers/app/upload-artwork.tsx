@@ -295,8 +295,8 @@ export default function UploadArtwork() {
 
         // Navigate after a brief delay
         setTimeout(() => {
-          router.push("/");
-        }, 1500);
+          router.push("/create-carousel");
+        }, 1000);
       }
     } catch {
       setAlertMessage("Failed to save carousel draft");

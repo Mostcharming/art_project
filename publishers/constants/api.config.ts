@@ -7,7 +7,7 @@ export const API_CONFIG = {
     timeout: 30000,
   },
   production: {
-    baseUrl: "https://68.183.44.140/api/publishers",
+    baseUrl: "https://joincarsl.com/api/publishers",
     timeout: 30000,
   },
 };

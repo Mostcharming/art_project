@@ -16,17 +16,19 @@ interface RequestOptions {
   method?: ApiMethod;
   dataType?: DataType;
   headers?: Record<string, string>;
+  payload?: any;
 }
 
 export const useApiMutate = () => {
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
   const token = useUserStore((state) => state.token);
 
   const mutate = async (
     subUrl: string,
-    options: RequestOptions & { payload?: any }
+    options: RequestOptions
   ): Promise<ApiResponse> => {
     const {
       method = "GET",
@@ -41,43 +43,46 @@ export const useApiMutate = () => {
     try {
       const baseUrl = getBaseUrl();
       const url = `${baseUrl}${subUrl}`;
+
       const requestHeaders: Record<string, string> = {
         ...headers,
       };
 
-      // Add authorization token if provided
+      // Add authorization token
       if (token) {
         requestHeaders.Authorization = `Bearer ${token}`;
       }
 
-      let data: any = undefined;
+      const axiosConfig: any = {
+        method,
+        url,
+        // timeout: 30000,
+        headers: requestHeaders,
+      };
 
+      // Attach payload for POST/PUT/PATCH
       if (
         payload &&
         (method === "POST" || method === "PUT" || method === "PATCH")
       ) {
         if (dataType === "json") {
           requestHeaders["Content-Type"] = "application/json";
-          data = payload;
-        } else if (dataType === "formdata") {
-          data = payload;
+          axiosConfig.data = payload;
+        }
+
+        if (dataType === "formdata") {
+          requestHeaders["Content-Type"] = "multipart/form-data";
+          axiosConfig.data = payload;
         }
       }
-
       console.log("API Request:", {
         url,
         method,
+        dataType,
         headers: requestHeaders,
-        data,
+        axiosConfig,
       });
-
-      const response = await axios({
-        method: method as any,
-        url,
-        headers: requestHeaders,
-        data,
-        timeout: 30000,
-      });
+      const response = await axios(axiosConfig);
 
       setData(response.data);
       setIsLoading(false);
@@ -89,30 +94,30 @@ export const useApiMutate = () => {
       };
     } catch (err) {
       let errorMessage = "An unknown error occurred";
-      let details = {};
+
+      console.error("API error:", err);
 
       if (isAxiosError(err)) {
+        console.error("Axios error details:", {
+          response: err.response,
+          request: err.request,
+          message: err.message,
+        });
+
         if (err.response) {
           errorMessage =
             err.response.data?.message ||
             err.response.data?.error ||
             `Error: ${err.response.status} ${err.response.statusText}`;
-          details = {
-            status: err.response.status,
-            data: err.response.data,
-          };
         } else if (err.request) {
           errorMessage =
             "No response from server. Check if backend is running.";
-          details = { request: err.request };
-        } else if (err.message) {
+        } else {
           errorMessage = err.message;
         }
       } else if (err instanceof Error) {
         errorMessage = err.message;
       }
-
-      console.error("API Error:", { errorMessage, details });
 
       setError(errorMessage);
       setIsLoading(false);

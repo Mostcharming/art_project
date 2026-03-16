@@ -7,10 +7,15 @@ exports.createCarouselDraft = async (req, res, next) => {
         let { name, tag, country, description, frameTimingSeconds, artworks } = req.body;
         const publisherId = req.user.id;
 
+        console.log("Creating carousel draft:");
+        console.log("- Files received:", req.files ? req.files.length : 0);
+        console.log("- Body fields:", { name, tag, country, frameTimingSeconds });
+
         // Parse artworks if it's a string (from FormData)
         if (typeof artworks === 'string') {
             artworks = JSON.parse(artworks);
         }
+        console.log("- Artworks count:", artworks ? artworks.length : 0);
 
         // Parse frameTimingSeconds if it's a string (from FormData)
         if (typeof frameTimingSeconds === 'string') {
@@ -40,9 +45,9 @@ exports.createCarouselDraft = async (req, res, next) => {
         const carousel = await Carousel.create({
             publisherId,
             name,
-            tag: tag || null,
+            tag: tag && typeof tag === 'string' ? tag : null,
             country,
-            description: description || null,
+            description: description && typeof description === 'string' ? description : null,
             frameTimingSeconds,
             status: 'draft'
         });
@@ -52,12 +57,16 @@ exports.createCarouselDraft = async (req, res, next) => {
             const artworksToCreate = artworks.map((artwork, index) => {
                 // Handle file from multer or image data
                 let imageUrl = null;
-                if (req.files && req.files[index]) {
+                if (req.files && req.files.length > index && req.files[index]) {
                     // If file was uploaded via multer
                     imageUrl = `/uploads/artworks/${req.files[index].filename}`;
+                    console.log(`Artwork ${index} (${artwork.title}): File saved as ${req.files[index].filename}`);
                 } else if (artwork.imageUrl) {
                     // If imageUrl was provided in request body
                     imageUrl = artwork.imageUrl;
+                    console.log(`Artwork ${index} (${artwork.title}): Using provided imageUrl`);
+                } else {
+                    console.log(`Artwork ${index} (${artwork.title}): No image or imageUrl found`);
                 }
 
                 return {
@@ -151,7 +160,7 @@ exports.updateCarouselDraft = async (req, res, next) => {
                 const artworksToCreate = artworksArray.map((artwork, index) => {
                     // Handle file from multer or image data
                     let imageUrl = null;
-                    if (req.files && req.files[index]) {
+                    if (req.files && req.files.length > index && req.files[index]) {
                         // If file was uploaded via multer
                         imageUrl = `/uploads/artworks/${req.files[index].filename}`;
                     } else if (artwork.imageUrl) {
