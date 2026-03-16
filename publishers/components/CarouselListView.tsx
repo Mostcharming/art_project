@@ -1,8 +1,10 @@
+import { useCarouselApi } from "@/hooks/useCarouselApi";
 import { Carousel } from "@/hooks/useCarouselList";
 import { MaterialIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { FlatList, Image, Pressable, Text, View } from "react-native";
 import { CarouselActionMenu } from "./CarouselActionMenu";
+import { Alert } from "./ui/Alert";
 
 const formatDate = (dateString?: string) => {
   if (!dateString) return "Just now";
@@ -38,6 +40,7 @@ interface CarouselListProps {
   isLoading: boolean;
   viewMode: "list" | "grid";
   onSelectCarousel?: (carousel: Carousel) => void;
+  onRefresh?: () => Promise<void>;
 }
 
 export const CarouselListView: React.FC<CarouselListProps> = ({
@@ -45,20 +48,42 @@ export const CarouselListView: React.FC<CarouselListProps> = ({
   isLoading,
   viewMode,
   onSelectCarousel,
+  onRefresh,
 }) => {
+  const { moveToDraft } = useCarouselApi();
   const [selectedCarousel, setSelectedCarousel] = useState<Carousel | null>(
     null
   );
   const [showActionMenu, setShowActionMenu] = useState(false);
+  const [alertMessage, setAlertMessage] = useState<string>("");
+  const [showAlert, setShowAlert] = useState(false);
 
   const handleCarouselPress = (carousel: Carousel) => {
     setSelectedCarousel(carousel);
     setShowActionMenu(true);
   };
 
-  const handleMoveToDraft = (carousel: Carousel) => {
-    console.log("Move to draft:", carousel.id);
-    // TODO: Implement move to draft functionality
+  const handleMoveToDraft = async (carousel: Carousel) => {
+    try {
+      const response = await moveToDraft(carousel.id.toString());
+
+      if (response.error) {
+        setAlertMessage(response.error || "Failed to move carousel to draft");
+        setShowAlert(true);
+      } else {
+        setAlertMessage("Carousel moved to draft successfully");
+        setShowAlert(true);
+        setShowActionMenu(false);
+        // Refresh the carousel list
+        if (onRefresh) {
+          await onRefresh();
+        }
+      }
+    } catch (error) {
+      setAlertMessage("An unexpected error occurred");
+      setShowAlert(true);
+      console.error("Move to draft error:", error);
+    }
   };
 
   const handleEdit = (carousel: Carousel) => {
@@ -241,6 +266,11 @@ export const CarouselListView: React.FC<CarouselListProps> = ({
           onEdit={handleEdit}
           onDelete={handleDelete}
         />
+        <Alert
+          visible={showAlert}
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
       </>
     );
   }
@@ -395,6 +425,11 @@ export const CarouselListView: React.FC<CarouselListProps> = ({
         onMoveToDraft={handleMoveToDraft}
         onEdit={handleEdit}
         onDelete={handleDelete}
+      />
+      <Alert
+        visible={showAlert}
+        message={alertMessage}
+        onClose={() => setShowAlert(false)}
       />
     </>
   );

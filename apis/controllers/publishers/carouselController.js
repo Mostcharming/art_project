@@ -269,6 +269,58 @@ exports.deleteCarouselDraft = async (req, res, next) => {
     }
 };
 
+exports.moveToDraft = async (req, res, next) => {
+    try {
+        const { carouselId } = req.params;
+        const publisherId = req.user.id;
+
+        const carousel = await Carousel.findOne({
+            where: {
+                id: carouselId,
+                publisherId
+            }
+        });
+
+        if (!carousel) {
+            return res.status(404).json({ error: 'Carousel not found' });
+        }
+
+        // Only allow moving from active or scheduled to draft
+        if (!['active', 'scheduled'].includes(carousel.status)) {
+            return res.status(400).json({
+                error: 'Can only move active or scheduled carousels to draft'
+            });
+        }
+
+        // Update carousel status to draft and clear scheduled publish date if exists
+        await carousel.update({
+            status: 'draft',
+            scheduledPublishDate: null
+        });
+
+        // Update all artworks status to draft
+        await Artwork.update(
+            { status: 'draft' },
+            { where: { carouselId } }
+        );
+
+        const updatedCarousel = await Carousel.findByPk(carouselId, {
+            include: {
+                model: Artwork,
+                as: 'artworks'
+            }
+        });
+
+        res.status(200).json({
+            message: 'Carousel moved to draft successfully',
+            carousel: processCarouselImages(updatedCarousel)
+        });
+    } catch (error) {
+        console.error('Move to draft error:', error);
+        next(error);
+    }
+};
+
 exports.getActiveCarousels = async (req, res, next) => {
     try {
         const publisherId = req.user.id;

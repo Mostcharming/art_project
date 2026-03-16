@@ -16,7 +16,11 @@ export default function Dashboard() {
   const { dashboardData, isLoading } = useDashboardData();
   const [activeTab, setActiveTab] = useState<CarouselType>("publishers");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
-  const { carousels, isLoading: carouselsLoading } = useCarouselList(activeTab);
+  const {
+    carousels,
+    isLoading: carouselsLoading,
+    refetch,
+  } = useCarouselList(activeTab);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -207,6 +211,7 @@ export default function Dashboard() {
                 // TODO: Navigate to carousel details
                 console.log("Selected carousel:", carousel.id);
               }}
+              onRefresh={refetch}
             />
           )}
         </View>

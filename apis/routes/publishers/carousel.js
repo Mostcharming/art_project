@@ -20,6 +20,8 @@ router.get('/active', authenticatePublisher, carouselController.getActiveCarouse
 
 router.get('/scheduled', authenticatePublisher, carouselController.getScheduledCarousels);
 
+router.patch('/:carouselId/move-to-draft', authenticatePublisher, carouselController.moveToDraft);
+
 router.get('/:carouselId', authenticatePublisher, carouselController.getOneCarousel);
 
 router.patch('/:carouselId', authenticatePublisher, upload.array('artworkImages'), carouselController.updateCarousel);

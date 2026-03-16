@@ -163,11 +163,18 @@ export const useCarouselApi = () => {
     });
   };
 
+  const moveToDraft = async (carouselId: string) => {
+    return mutate(`/carousels/${carouselId}/move-to-draft`, {
+      method: "PATCH",
+    });
+  };
+
   return {
     saveDraft,
     updateDraft,
     getDraft,
     getAllDrafts,
     deleteDraft,
+    moveToDraft,
   };
 };

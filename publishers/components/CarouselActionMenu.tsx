@@ -149,29 +149,6 @@ export const CarouselActionMenu: React.FC<CarouselActionMenuProps> = ({
                 </Text>
               </Pressable>
             </View>
-
-            {/* Cancel Button */}
-            <Pressable
-              onPress={onClose}
-              style={{
-                marginTop: 16,
-                paddingVertical: 14,
-                paddingHorizontal: 16,
-                backgroundColor: "#262626",
-                borderRadius: 12,
-              }}
-            >
-              <Text
-                style={{
-                  color: "#9CA3AF",
-                  fontSize: 16,
-                  fontWeight: "500",
-                  textAlign: "center",
-                }}
-              >
-                Cancel
-              </Text>
-            </Pressable>
           </Pressable>
         </View>
       </Pressable>
