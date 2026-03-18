@@ -28,9 +28,10 @@ const NAVBAR_SEGMENTS = [
   "create-carousel",
   "upload-artwork",
   "edit-carousel",
+  "tag-detail",
 ];
 
-const HIDE_NAVBAR_SEGMENTS = ["carousel-preview"];
+const HIDE_NAVBAR_SEGMENTS = ["carousel-preview", "carousel-success"];
 
 function useProtectedRoute() {
   const segments = useSegments();
@@ -128,6 +129,7 @@ export default function RootLayout() {
             <Stack.Screen name="profile" options={{ headerShown: false }} />
             <Stack.Screen name="settings" options={{ headerShown: false }} />
             <Stack.Screen name="tags" options={{ headerShown: false }} />
+            <Stack.Screen name="tag-detail" options={{ headerShown: false }} />
             <Stack.Screen
               name="create-carousel"
               options={{ headerShown: false }}
@@ -142,6 +144,10 @@ export default function RootLayout() {
             />
             <Stack.Screen
               name="carousel-preview"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="carousel-success"
               options={{ headerShown: false }}
             />
             <Stack.Screen

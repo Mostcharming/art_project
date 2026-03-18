@@ -159,6 +159,7 @@ export default function CarouselPreview() {
         setShowAlert(true);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.carousel, params.isNew]);
 
   const handlePublish = async () => {
@@ -215,7 +216,13 @@ export default function CarouselPreview() {
           setShowAlert(true);
 
           setTimeout(() => {
-            router.push("/dashboard");
+            router.push({
+              pathname: "/carousel-success" as any,
+              params: {
+                carousel: JSON.stringify(carousel),
+                type: "scheduled",
+              },
+            });
           }, 1500);
         }
       } else {
@@ -230,7 +237,13 @@ export default function CarouselPreview() {
           setShowAlert(true);
 
           setTimeout(() => {
-            router.push("/dashboard");
+            router.push({
+              pathname: "/carousel-success" as any,
+              params: {
+                carousel: JSON.stringify(carousel),
+                type: "published",
+              },
+            });
           }, 1500);
         }
       }
