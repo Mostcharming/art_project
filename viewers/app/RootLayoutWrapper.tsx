@@ -1,28 +1,22 @@
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useAuthStore } from "@/store/authStore";
 import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
 import { Stack } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
-import "react-native-reanimated";
 
-import { useColorScheme } from "@/hooks/use-color-scheme";
-import { useAuthStore } from "@/store/authStore";
-
-export const unstable_settings = {
-  anchor: "(tabs)",
-};
-
-export default function RootLayout() {
+export default function RootLayoutWrapper() {
   const colorScheme = useColorScheme();
   const [isReady, setIsReady] = useState(false);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   useEffect(() => {
-    // Wait for auth state to be restored from AsyncStorage
+    // Restore token from AsyncStorage on app startup
+    // This happens automatically with Zustand persist middleware
     const timer = setTimeout(() => {
       setIsReady(true);
     }, 500);
@@ -32,15 +26,8 @@ export default function RootLayout() {
 
   if (!isReady) {
     return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: "#fff",
-        }}
-      >
-        <ActivityIndicator size="large" color="#007AFF" />
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
       </View>
     );
   }
@@ -49,18 +36,14 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack>
         {isAuthenticated ? (
-          <>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="modal"
-              options={{ presentation: "modal", title: "Modal" }}
-            />
-          </>
+          // Authenticated screens
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         ) : (
+          // Auth screens
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         )}
+        <Stack.Screen name="modal" options={{ presentation: "modal" }} />
       </Stack>
-      <StatusBar style="auto" />
     </ThemeProvider>
   );
 }

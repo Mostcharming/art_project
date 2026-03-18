@@ -65,33 +65,35 @@ export const CarouselActionMenu: React.FC<CarouselActionMenuProps> = ({
 
             {/* Actions */}
             <View style={{ gap: 12 }}>
-              {/* Move to Draft */}
-              <Pressable
-                onPress={() => {
-                  onMoveToDraft(carousel);
-                  onClose();
-                }}
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  paddingVertical: 14,
-                  paddingHorizontal: 16,
-                  backgroundColor: "#262626",
-                  borderRadius: 12,
-                  gap: 12,
-                }}
-              >
-                <MaterialIcons name="archive" size={20} color="#9CA3AF" />
-                <Text
+              {/* Move to Draft - Only show if not already a draft */}
+              {carousel.status !== "draft" && (
+                <Pressable
+                  onPress={() => {
+                    onMoveToDraft(carousel);
+                    onClose();
+                  }}
                   style={{
-                    color: "#ffffff",
-                    fontSize: 16,
-                    fontWeight: "500",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    paddingVertical: 14,
+                    paddingHorizontal: 16,
+                    backgroundColor: "#262626",
+                    borderRadius: 12,
+                    gap: 12,
                   }}
                 >
-                  Move to Draft
-                </Text>
-              </Pressable>
+                  <MaterialIcons name="archive" size={20} color="#9CA3AF" />
+                  <Text
+                    style={{
+                      color: "#ffffff",
+                      fontSize: 16,
+                      fontWeight: "500",
+                    }}
+                  >
+                    Move to Draft
+                  </Text>
+                </Pressable>
+              )}
 
               {/* Edit Carousel */}
               <Pressable

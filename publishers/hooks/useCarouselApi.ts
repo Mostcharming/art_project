@@ -163,6 +163,12 @@ export const useCarouselApi = () => {
     });
   };
 
+  const deleteCarousel = async (carouselId: string) => {
+    return mutate(`/carousels/${carouselId}`, {
+      method: "DELETE",
+    });
+  };
+
   const moveToDraft = async (carouselId: string) => {
     return mutate(`/carousels/${carouselId}/move-to-draft`, {
       method: "PATCH",
@@ -175,6 +181,7 @@ export const useCarouselApi = () => {
     getDraft,
     getAllDrafts,
     deleteDraft,
+    deleteCarousel,
     moveToDraft,
   };
 };

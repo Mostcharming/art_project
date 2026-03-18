@@ -569,9 +569,8 @@ exports.getDashboardData = async (req, res, next) => {
             },
             attributes: ['id', 'views']
         });
-
         const totalViews = allCarousels.reduce((sum, carousel) => sum + (carousel.views || 0), 0);
-        const watchTimeInHours = Math.round((totalViews * 10) / 60);
+        const watchTimeInHours = Math.round((totalViews * 3) / 60);
 
         res.status(200).json({
             dashboardData: {

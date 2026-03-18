@@ -4,6 +4,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { FlatList, Image, Pressable, Text, View } from "react-native";
 import { CarouselActionMenu } from "./CarouselActionMenu";
+import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 import { Alert } from "./ui/Alert";
 
 const formatDate = (dateString?: string) => {
@@ -50,11 +51,12 @@ export const CarouselListView: React.FC<CarouselListProps> = ({
   onSelectCarousel,
   onRefresh,
 }) => {
-  const { moveToDraft } = useCarouselApi();
+  const { moveToDraft, deleteCarousel, deleteDraft } = useCarouselApi();
   const [selectedCarousel, setSelectedCarousel] = useState<Carousel | null>(
     null
   );
   const [showActionMenu, setShowActionMenu] = useState(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [alertMessage, setAlertMessage] = useState<string>("");
   const [showAlert, setShowAlert] = useState(false);
 
@@ -92,8 +94,39 @@ export const CarouselListView: React.FC<CarouselListProps> = ({
   };
 
   const handleDelete = (carousel: Carousel) => {
-    console.log("Delete carousel:", carousel.id);
-    // TODO: Implement delete functionality
+    // If it's a draft, delete immediately
+    if (carousel.status === "draft") {
+      handleConfirmDelete(carousel);
+    } else {
+      // Otherwise show the confirmation modal
+      setSelectedCarousel(carousel);
+      setShowDeleteConfirmation(true);
+    }
+  };
+
+  const handleConfirmDelete = async (carousel: Carousel) => {
+    try {
+      // Use the appropriate delete endpoint based on carousel status
+      const deleteMethod =
+        carousel.status === "draft" ? deleteDraft : deleteCarousel;
+      const response = await deleteMethod(carousel.id.toString());
+
+      if (response.error) {
+        setAlertMessage(response.error || "Failed to delete carousel");
+        setShowAlert(true);
+      } else {
+        setAlertMessage("Carousel deleted successfully");
+        setShowAlert(true);
+        // Refresh the carousel list
+        if (onRefresh) {
+          await onRefresh();
+        }
+      }
+    } catch (error) {
+      setAlertMessage("An unexpected error occurred");
+      setShowAlert(true);
+      console.error("Delete carousel error:", error);
+    }
   };
   if (isLoading) {
     return (
@@ -266,6 +299,13 @@ export const CarouselListView: React.FC<CarouselListProps> = ({
           onEdit={handleEdit}
           onDelete={handleDelete}
         />
+        <DeleteConfirmationModal
+          visible={showDeleteConfirmation}
+          carousel={selectedCarousel}
+          onClose={() => setShowDeleteConfirmation(false)}
+          onConfirmDelete={handleConfirmDelete}
+          onMoveToDraft={handleMoveToDraft}
+        />
         <Alert
           visible={showAlert}
           message={alertMessage}
@@ -425,6 +465,13 @@ export const CarouselListView: React.FC<CarouselListProps> = ({
         onMoveToDraft={handleMoveToDraft}
         onEdit={handleEdit}
         onDelete={handleDelete}
+      />
+      <DeleteConfirmationModal
+        visible={showDeleteConfirmation}
+        carousel={selectedCarousel}
+        onClose={() => setShowDeleteConfirmation(false)}
+        onConfirmDelete={handleConfirmDelete}
+        onMoveToDraft={handleMoveToDraft}
       />
       <Alert
         visible={showAlert}
