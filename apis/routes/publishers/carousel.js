@@ -12,6 +12,8 @@ router.get('/draft/:carouselId', authenticatePublisher, carouselController.getCa
 
 router.patch('/draft/:carouselId', authenticatePublisher, upload.array('artworkImages'), carouselController.updateCarouselDraft);
 
+router.patch('/draft/:carouselId/publish', authenticatePublisher, carouselController.publishCarouselDraft);
+
 router.delete('/draft/:carouselId', authenticatePublisher, carouselController.deleteCarouselDraft);
 
 router.get('/dashboard-data', authenticatePublisher, carouselController.getDashboardData);

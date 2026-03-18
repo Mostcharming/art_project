@@ -27,7 +27,10 @@ const NAVBAR_SEGMENTS = [
   "tags",
   "create-carousel",
   "upload-artwork",
+  "edit-carousel",
 ];
+
+const HIDE_NAVBAR_SEGMENTS = ["carousel-preview"];
 
 function useProtectedRoute() {
   const segments = useSegments();
@@ -74,9 +77,9 @@ export default function RootLayout() {
     loadFonts();
   }, []);
 
-  const showBottomNavbar = NAVBAR_SEGMENTS.some((seg) =>
-    pathname.includes(seg)
-  );
+  const showBottomNavbar =
+    NAVBAR_SEGMENTS.some((seg) => pathname.includes(seg)) &&
+    !HIDE_NAVBAR_SEGMENTS.some((seg) => pathname.includes(seg));
 
   if (!fontsLoaded) {
     return (
@@ -131,6 +134,14 @@ export default function RootLayout() {
             />
             <Stack.Screen
               name="upload-artwork"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="edit-carousel"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="carousel-preview"
               options={{ headerShown: false }}
             />
             <Stack.Screen

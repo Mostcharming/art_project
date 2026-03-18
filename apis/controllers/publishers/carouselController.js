@@ -1,5 +1,6 @@
 const { Carousel, Artwork } = require('../../models');
 const { Publisher } = require('../../models');
+const { Op } = require('sequelize');
 const path = require('path');
 const { processCarouselImages, processCarouselsImages } = require('../../utils/imageUrlHelper');
 
@@ -128,36 +129,88 @@ exports.updateCarouselDraft = async (req, res, next) => {
 
         await carousel.update(updateData);
 
-        if (artworks && Array.isArray(artworks)) {
+        if (artworks) {
             const artworksArray = typeof artworks === 'string' ? JSON.parse(artworks) : artworks;
 
-            await Artwork.destroy({
-                where: { carouselId }
+            console.log('=== UPDATE CAROUSEL DEBUG ===');
+            console.log('Total artworks in request:', artworksArray.length);
+            console.log('Files uploaded:', req.files ? req.files.length : 0);
+            artworksArray.forEach((art, idx) => {
+                console.log(`Artwork ${idx}:`, {
+                    id: art.id,
+                    title: art.title,
+                    hasUri: !!art.uri,
+                    hasImageUrl: !!art.imageUrl
+                });
             });
 
-            if (artworksArray.length > 0) {
-                const artworksToCreate = artworksArray.map((artwork, index) => {
-                    let imageUrl = null;
-                    if (req.files && req.files.length > index && req.files[index]) {
-                        imageUrl = `/uploads/artworks/${req.files[index].filename}`;
-                    } else if (artwork.imageUrl) {
-                        imageUrl = artwork.imageUrl;
-                    }
+            // Get IDs of artworks being kept (filter out undefined/null IDs)
+            const artworkIdsToKeep = artworksArray
+                .filter(artwork => artwork.id && artwork.id !== 'undefined')
+                .map(artwork => artwork.id);
 
-                    return {
+            console.log('Artwork IDs to keep:', artworkIdsToKeep);
+
+            // Delete artworks that are not in the new list (they were deleted by the user)
+            if (artworkIdsToKeep.length > 0) {
+                const deleteResult = await Artwork.destroy({
+                    where: {
                         carouselId,
-                        title: artwork.title,
-                        artist: artwork.artist,
-                        heightInches: parseFloat(artwork.height),
-                        widthInches: parseFloat(artwork.width),
-                        yearOfCreation: artwork.yearOfCreation ? parseInt(artwork.yearOfCreation) : null,
-                        purchasePrice: artwork.purchasePrice ? parseFloat(artwork.purchasePrice) : null,
-                        status: 'draft',
-                        imageUrl
-                    };
+                        id: {
+                            [Op.notIn]: artworkIdsToKeep
+                        }
+                    }
                 });
+                console.log('Deleted artworks count:', deleteResult);
+            } else {
+                // If no artworks with IDs are being kept, delete all existing artworks
+                const deleteResult = await Artwork.destroy({
+                    where: { carouselId }
+                });
+                console.log('Deleted all artworks count:', deleteResult);
+            }
 
-                await Artwork.bulkCreate(artworksToCreate);
+            // Keep track of file indices for new artworks
+            let fileIndex = 0;
+            const newArtworksToCreate = [];
+
+            for (const artwork of artworksArray) {
+                // Skip existing artworks (they have an ID)
+                if (artwork.id && artwork.id !== 'undefined') {
+                    console.log(`Skipping existing artwork ${artwork.id}`);
+                    continue;
+                }
+
+                console.log(`Processing new artwork: ${artwork.title}`);
+                let imageUrl = null;
+                if (req.files && req.files.length > fileIndex) {
+                    // New artwork - use the uploaded file
+                    imageUrl = `/uploads/artworks/${req.files[fileIndex].filename}`;
+                    console.log(`New artwork ${artwork.title} using file: ${imageUrl}`);
+                    fileIndex++;
+                } else {
+                    console.log(`New artwork ${artwork.title} has no file uploaded`);
+                }
+
+                newArtworksToCreate.push({
+                    carouselId,
+                    title: artwork.title,
+                    artist: artwork.artist,
+                    heightInches: parseFloat(artwork.height),
+                    widthInches: parseFloat(artwork.width),
+                    yearOfCreation: artwork.yearOfCreation ? parseInt(artwork.yearOfCreation) : null,
+                    purchasePrice: artwork.purchasePrice ? parseFloat(artwork.purchasePrice) : null,
+                    status: 'draft',
+                    imageUrl
+                });
+            }
+
+            console.log('New artworks to create count:', newArtworksToCreate.length);
+
+            // Create new artworks
+            if (newArtworksToCreate.length > 0) {
+                const createdArtworks = await Artwork.bulkCreate(newArtworksToCreate);
+                console.log('Created artworks count:', createdArtworks.length);
             }
         }
 
@@ -174,6 +227,67 @@ exports.updateCarouselDraft = async (req, res, next) => {
         });
     } catch (error) {
         console.error('Update carousel draft error:', error);
+        next(error);
+    }
+};
+
+exports.publishCarouselDraft = async (req, res, next) => {
+    try {
+        const { carouselId } = req.params;
+        const publisherId = req.user.id;
+
+        const carousel = await Carousel.findOne({
+            where: {
+                id: carouselId,
+                publisherId
+            },
+            include: {
+                model: Artwork,
+                as: 'artworks'
+            }
+        });
+
+        if (!carousel) {
+            return res.status(404).json({ error: 'Carousel not found' });
+        }
+
+        if (carousel.status !== 'draft') {
+            return res.status(400).json({
+                error: 'Can only publish carousels in draft status'
+            });
+        }
+
+        // Validate carousel has at least one artwork
+        if (!carousel.artworks || carousel.artworks.length === 0) {
+            return res.status(400).json({
+                error: 'Carousel must have at least one artwork to publish'
+            });
+        }
+
+        // Update carousel status to active
+        await carousel.update({
+            status: 'active'
+        });
+
+        // Update all artworks status to active
+        await Artwork.update(
+            { status: 'active' },
+            { where: { carouselId } }
+        );
+
+        const publishedCarousel = await Carousel.findByPk(carouselId, {
+            include: {
+                model: Artwork,
+                as: 'artworks'
+            }
+        });
+
+        res.status(200).json({
+            message: 'Carousel published successfully',
+            carousel: processCarouselImages(publishedCarousel)
+        });
+    } catch (error) {
+        console.error('Publish carousel draft error:', error);
         next(error);
     }
 };

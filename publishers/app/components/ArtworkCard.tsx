@@ -45,7 +45,7 @@ export default function ArtworkCard({
 
       {/* Image Thumbnail */}
       <Image
-        source={{ uri: artwork.uri }}
+        source={{ uri: artwork.uri || artwork.imageUrl || "" }}
         style={{
           width: 80,
           height: 80,

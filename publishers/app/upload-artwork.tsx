@@ -238,6 +238,31 @@ export default function UploadArtwork() {
     handleCancel();
   };
 
+  const handlePreviewCarousel = () => {
+    if (uploadedArtworks.length === 0) {
+      setAlertMessage("Please add at least one artwork");
+      setShowAlert(true);
+      return;
+    }
+
+    const previewData = {
+      id: "preview",
+      name: carouselName,
+      country: carouselCountry,
+      description: carouselDescription,
+      frameTimingSeconds: frameTiming,
+      artworks: uploadedArtworks,
+    };
+
+    router.push({
+      pathname: "/carousel-preview",
+      params: {
+        carousel: JSON.stringify(previewData),
+        isNew: "true",
+      },
+    });
+  };
+
   const handleSaveDraft = async () => {
     if (!carouselName.trim()) {
       setAlertMessage("Carousel name is required");
@@ -349,7 +374,7 @@ export default function UploadArtwork() {
               <MaterialIcons
                 name="keyboard-arrow-down"
                 size={24}
-                color="#ea580c"
+                color="#ffffff"
               />
             </Pressable>
             <Text className="text-xs text-gray-400 mb-6">
@@ -384,7 +409,7 @@ export default function UploadArtwork() {
                   disabled={isSaving}
                   onPress={handleSaveDraft}
                 >
-                  <Text className="text-base font-bold text-orange-600">
+                  <Text className="text-base  text-orange-600">
                     {isSaving ? "Saving..." : "Save Draft"}
                   </Text>
                 </Pressable>
@@ -399,9 +424,7 @@ export default function UploadArtwork() {
                     alignItems: "center",
                     gap: 8,
                   }}
-                  onPress={() => {
-                    // Handle preview carousel action
-                  }}
+                  onPress={handlePreviewCarousel}
                 >
                   <Play size={20} color="#ffffff" />
                   <Text className="text-base  text-white">
@@ -635,9 +658,7 @@ export default function UploadArtwork() {
                     alignItems: "center",
                     gap: 8,
                   }}
-                  onPress={() => {
-                    // Handle preview carousel action
-                  }}
+                  onPress={handlePreviewCarousel}
                 >
                   <Play size={20} color="#ffffff" />
                   <Text className="text-base  text-white">
@@ -706,7 +727,7 @@ export default function UploadArtwork() {
                   {/* Modal Header */}
                   <View className="flex-row items-center justify-between px-5 py-4 ">
                     <Text
-                      className="text-white text-lg font-bold"
+                      className="text-white text-lg"
                       style={{ fontFamily: "BankGothicBold" }}
                     >
                       Add Artwork

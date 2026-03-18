@@ -108,6 +108,8 @@ export const useCarouselApi = () => {
 
       if (payload.artworks) {
         const artworksData = payload.artworks.map((artwork) => ({
+          id: artwork.id || undefined,
+          imageUrl: artwork.imageUrl || undefined,
           title: artwork.title,
           artist: artwork.artist,
           height: artwork.height,
@@ -115,12 +117,17 @@ export const useCarouselApi = () => {
           yearOfCreation: artwork.yearOfCreation,
           purchasePrice: artwork.purchasePrice,
         }));
+
+        console.log("Frontend - Sending artworks:", artworksData);
         formData.append("artworks", JSON.stringify(artworksData));
 
         for (let i = 0; i < payload.artworks.length; i++) {
           const artwork = payload.artworks[i];
 
           if (artwork.uri) {
+            console.log(
+              `Frontend - Appending file for artwork: ${artwork.title}`
+            );
             formData.append("artworkImages", {
               uri: artwork.uri,
               name: `artwork-${i}.jpg`,
@@ -175,6 +182,21 @@ export const useCarouselApi = () => {
     });
   };
 
+  const publishDraft = async (carouselId: string) => {
+    try {
+      return await mutate(`/carousels/draft/${carouselId}/publish`, {
+        method: "PATCH",
+      });
+    } catch (error) {
+      console.error("Publish draft error:", error);
+      return {
+        data: null,
+        error: "Failed to publish carousel",
+        isLoading: false,
+      };
+    }
+  };
+
   return {
     saveDraft,
     updateDraft,
@@ -183,5 +205,6 @@ export const useCarouselApi = () => {
     deleteDraft,
     deleteCarousel,
     moveToDraft,
+    publishDraft,
   };
 };

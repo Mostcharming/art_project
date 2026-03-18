@@ -1,6 +1,7 @@
 import { useCarouselApi } from "@/hooks/useCarouselApi";
 import { Carousel } from "@/hooks/useCarouselList";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { FlatList, Image, Pressable, Text, View } from "react-native";
 import { CarouselActionMenu } from "./CarouselActionMenu";
@@ -51,6 +52,7 @@ export const CarouselListView: React.FC<CarouselListProps> = ({
   onSelectCarousel,
   onRefresh,
 }) => {
+  const router = useRouter();
   const { moveToDraft, deleteCarousel, deleteDraft } = useCarouselApi();
   const [selectedCarousel, setSelectedCarousel] = useState<Carousel | null>(
     null
@@ -89,8 +91,12 @@ export const CarouselListView: React.FC<CarouselListProps> = ({
   };
 
   const handleEdit = (carousel: Carousel) => {
-    console.log("Edit carousel:", carousel.id);
-    // TODO: Implement edit functionality
+    router.push({
+      pathname: "/edit-carousel" as any,
+      params: {
+        carousel: JSON.stringify(carousel),
+      },
+    });
   };
 
   const handleDelete = (carousel: Carousel) => {
@@ -167,8 +173,14 @@ export const CarouselListView: React.FC<CarouselListProps> = ({
                   <Text className="text-gray-400 text-xs">
                     {formatDate(item.createdAt)}
                   </Text>
-                  <View className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                  <Text className="text-xs font-semibold text-white">Live</Text>
+                  {item.status === "active" && (
+                    <>
+                      <View className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                      <Text className="text-xs font-semibold text-white">
+                        Live
+                      </Text>
+                    </>
+                  )}
                 </View>
 
                 {/* Title */}
@@ -419,10 +431,14 @@ export const CarouselListView: React.FC<CarouselListProps> = ({
                 <Text className="text-gray-400 text-xs">
                   {formatDate(item.createdAt)}
                 </Text>
-                <View className="w-1 h-1 rounded-full bg-green-500" />
-                <Text className="text-green-500 text-xs font-semibold">
-                  Live
-                </Text>
+                {item.status === "active" && (
+                  <>
+                    <View className="w-1 h-1 rounded-full bg-green-500" />
+                    <Text className="text-white text-xs font-semibold">
+                      Live
+                    </Text>
+                  </>
+                )}
               </View>
 
               {/* Title */}
