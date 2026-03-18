@@ -90,7 +90,7 @@ export default function TokenPage() {
             };
             setUser(userData);
             // clearSession();
-            navigate("/dashboard");
+            // navigate("/dashboard");
           }
         },
         onError: (error) => {
