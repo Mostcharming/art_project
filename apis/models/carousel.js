@@ -68,7 +68,7 @@ module.exports = (sequelize, DataTypes) => {
         scheduledPublishDate: {
             type: DataTypes.DATE,
             allowNull: true,
-            comment: 'Date when scheduled carousel should be published'
+            comment: 'Date and time when scheduled carousel should be published'
         },
         isDeleted: {
             type: DataTypes.BOOLEAN,

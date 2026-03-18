@@ -7,11 +7,13 @@ import { useEffect, useRef, useState } from "react";
 import {
   Dimensions,
   Image,
+  Modal,
   PanResponder,
   Pressable,
   ScrollView,
   Switch,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -30,7 +32,7 @@ interface PreviewCarousel {
 export default function CarouselPreview() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { publishDraft, saveDraft } = useCarouselApi();
+  const { publishDraft, saveDraft, scheduleCarousel } = useCarouselApi();
   const params = useLocalSearchParams<{
     carousel?: string;
     isNew?: string;
@@ -42,9 +44,14 @@ export default function CarouselPreview() {
   const [alertMessage, setAlertMessage] = useState("");
   const [showAlert, setShowAlert] = useState(false);
   const [scheduleDate, setScheduleDate] = useState<string>("");
-  const [scheduleTime, setScheduleTime] = useState<string>("");
+  const [scheduleHour, setScheduleHour] = useState<string>("");
+  const [scheduleMinute, setScheduleMinute] = useState<string>("");
+  const [scheduleAmPm, setScheduleAmPm] = useState<"AM" | "PM">("AM");
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
   const [carouselId, setCarouselId] = useState<string | null>(null);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDateObj, setSelectedDateObj] = useState<Date>(new Date());
 
   const handleNextImage = () => {
     setCurrentIndex((prevIndex) => {
@@ -60,16 +67,32 @@ export default function CarouselPreview() {
   };
 
   const handleDatePick = () => {
-    const today = new Date();
-    setScheduleDate(today.toISOString().split("T")[0]);
+    setShowDatePicker(true);
   };
 
-  const handleTimePick = () => {
-    const now = new Date();
-    const time = `${String(now.getHours()).padStart(2, "0")}:${String(
-      now.getMinutes()
-    ).padStart(2, "0")}`;
-    setScheduleTime(time);
+  const handleDateSelect = (date: Date) => {
+    const dateString = date.toISOString().split("T")[0];
+    setScheduleDate(dateString);
+    setSelectedDateObj(date);
+    setShowDatePicker(false);
+  };
+
+  const getDaysInMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
+
+  const formatDateDisplay = (dateString: string) => {
+    if (!dateString) return "Select a date";
+    const date = new Date(dateString + "T00:00:00");
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   };
 
   const panResponder = useRef(
@@ -145,20 +168,71 @@ export default function CarouselPreview() {
       return;
     }
 
+    // Validate scheduling inputs if schedule is enabled
+    if (scheduleEnabled) {
+      if (!scheduleDate) {
+        setAlertMessage("Please select a schedule date.");
+        setShowAlert(true);
+        return;
+      }
+      if (!scheduleHour || !scheduleMinute) {
+        setAlertMessage("Please select a schedule time.");
+        setShowAlert(true);
+        return;
+      }
+    }
+
     setIsPublishing(true);
     try {
-      const response = await publishDraft(carouselId);
+      let response;
 
-      if (response.error) {
-        setAlertMessage(response.error);
-        setShowAlert(true);
+      if (scheduleEnabled) {
+        // Convert 12-hour format to 24-hour format
+        let hour = parseInt(scheduleHour, 10);
+        if (scheduleAmPm === "PM" && hour !== 12) {
+          hour += 12;
+        } else if (scheduleAmPm === "AM" && hour === 12) {
+          hour = 0;
+        }
+
+        // Create the scheduled date with the selected time
+        const [year, month, day] = scheduleDate.split("-");
+        const scheduledDate = new Date(
+          parseInt(year),
+          parseInt(month) - 1,
+          parseInt(day),
+          hour,
+          parseInt(scheduleMinute)
+        );
+
+        response = await scheduleCarousel(carouselId, scheduledDate);
+
+        if (response.error) {
+          setAlertMessage(response.error);
+          setShowAlert(true);
+        } else {
+          setAlertMessage("Carousel scheduled successfully!");
+          setShowAlert(true);
+
+          setTimeout(() => {
+            router.push("/dashboard");
+          }, 1500);
+        }
       } else {
-        setAlertMessage("Carousel published successfully!");
-        setShowAlert(true);
+        // Publish immediately
+        response = await publishDraft(carouselId);
 
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 1500);
+        if (response.error) {
+          setAlertMessage(response.error);
+          setShowAlert(true);
+        } else {
+          setAlertMessage("Carousel published successfully!");
+          setShowAlert(true);
+
+          setTimeout(() => {
+            router.push("/dashboard");
+          }, 1500);
+        }
       }
     } catch (error) {
       console.error("Publish error:", error);
@@ -280,33 +354,342 @@ export default function CarouselPreview() {
 
           {scheduleEnabled && (
             <View>
-              <View className="mb-3">
-                <Text className="text-gray-500 text-xs mb-2">Date</Text>
-                <Pressable
-                  onPress={handleDatePick}
-                  className="bg-neutral-800 px-3 py-3 rounded-lg"
-                >
-                  <Text className="text-white text-sm">
-                    {scheduleDate || "Select a date"}
-                  </Text>
-                </Pressable>
-              </View>
-              <View>
-                <Text className="text-gray-500 text-xs mb-2">Time</Text>
-                <Pressable
-                  onPress={handleTimePick}
-                  className="bg-neutral-800 px-3 py-3 rounded-lg"
-                >
-                  <Text className="text-white text-sm">
-                    {scheduleTime || "Select a time"}
-                  </Text>
-                </Pressable>
-              </View>
+              {/* Date and Time Row */}
+              <View className="flex-row gap-3">
+                {/* Date */}
+                <View className="flex-1">
+                  <Text className="text-gray-500 text-xs mb-2">Date</Text>
+                  <Pressable
+                    onPress={handleDatePick}
+                    className="bg-neutral-800 px-3 py-3 rounded-lg"
+                  >
+                    <Text className="text-white text-sm">
+                      {scheduleDate
+                        ? formatDateDisplay(scheduleDate)
+                        : "Select a date"}
+                    </Text>
+                  </Pressable>
+                </View>
 
-              {/* No modals needed - simple button-based approach */}
+                {/* Time */}
+                <View className="flex-1">
+                  <Text className="text-gray-500 text-xs mb-2">Time</Text>
+                  <Pressable
+                    onPress={() => setShowTimePicker(true)}
+                    className="bg-neutral-800 px-3 py-3 rounded-lg"
+                  >
+                    <Text className="text-white text-sm">
+                      {scheduleHour && scheduleMinute && scheduleAmPm
+                        ? `${scheduleHour}:${scheduleMinute} ${scheduleAmPm}`
+                        : "Select a time"}
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
             </View>
           )}
         </View>
+
+        {/* Time Picker Modal */}
+        <Modal
+          visible={showTimePicker}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowTimePicker(false)}
+        >
+          <Pressable
+            className="flex-1 bg-black/95"
+            onPress={() => setShowTimePicker(false)}
+          >
+            <View className="flex-1 justify-end">
+              <Pressable
+                className="bg-neutral-800 rounded-t-2xl px-5 py-4"
+                onPress={(e) => e.stopPropagation()}
+              >
+                {/* Drag Handle */}
+                <View className="w-10 h-1 bg-neutral-600 rounded-full self-center mb-4" />
+
+                {/* Header */}
+                <View className="flex-row items-center justify-between mb-6">
+                  <Text className="text-white text-xl font-bold">
+                    Select Time
+                  </Text>
+                  <Pressable onPress={() => setShowTimePicker(false)}>
+                    <MaterialIcons name="close" size={24} color="#ffffff" />
+                  </Pressable>
+                </View>
+
+                {/* Time Input Section */}
+                <View className="gap-4 mb-6">
+                  {/* Hour and Minute Inputs */}
+                  <View className="flex-row gap-3">
+                    {/* Hour Input */}
+                    <View className="flex-1">
+                      <Text className="text-gray-400 text-sm mb-2">Hour</Text>
+                      <TextInput
+                        className="bg-neutral-700 text-white text-lg px-4 py-3 rounded-lg text-center"
+                        placeholder="12"
+                        placeholderTextColor="#666"
+                        keyboardType="number-pad"
+                        maxLength={2}
+                        value={scheduleHour}
+                        onChangeText={(text) => {
+                          if (text === "") {
+                            setScheduleHour("");
+                          } else if (/^\d+$/.test(text)) {
+                            const num = parseInt(text, 10);
+                            if (num >= 0 && num <= 12) {
+                              setScheduleHour(text);
+                            }
+                          }
+                        }}
+                      />
+                    </View>
+
+                    {/* Minute Input */}
+                    <View className="flex-1">
+                      <Text className="text-gray-400 text-sm mb-2">Minute</Text>
+                      <TextInput
+                        className="bg-neutral-700 text-white text-lg px-4 py-3 rounded-lg text-center"
+                        placeholder="00"
+                        placeholderTextColor="#666"
+                        keyboardType="number-pad"
+                        maxLength={2}
+                        value={scheduleMinute}
+                        onChangeText={(text) => {
+                          if (text === "") {
+                            setScheduleMinute("");
+                          } else if (/^\d+$/.test(text)) {
+                            const num = parseInt(text, 10);
+                            if (num >= 0 && num <= 59) {
+                              setScheduleMinute(text);
+                            }
+                          }
+                        }}
+                      />
+                    </View>
+                  </View>
+
+                  {/* AM/PM Selector */}
+                  <View>
+                    <Text className="text-gray-400 text-sm mb-2">AM/PM</Text>
+                    <View className="flex-row gap-3">
+                      <Pressable
+                        onPress={() => setScheduleAmPm("AM")}
+                        className={`flex-1 py-3 rounded-lg ${
+                          scheduleAmPm === "AM"
+                            ? "bg-orange-600"
+                            : "bg-neutral-700"
+                        }`}
+                      >
+                        <Text
+                          className={`text-center text-lg font-semibold ${
+                            scheduleAmPm === "AM"
+                              ? "text-white"
+                              : "text-gray-400"
+                          }`}
+                        >
+                          AM
+                        </Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => setScheduleAmPm("PM")}
+                        className={`flex-1 py-3 rounded-lg ${
+                          scheduleAmPm === "PM"
+                            ? "bg-orange-600"
+                            : "bg-neutral-700"
+                        }`}
+                      >
+                        <Text
+                          className={`text-center text-lg font-semibold ${
+                            scheduleAmPm === "PM"
+                              ? "text-white"
+                              : "text-gray-400"
+                          }`}
+                        >
+                          PM
+                        </Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Done Button */}
+                <Pressable
+                  onPress={() => setShowTimePicker(false)}
+                  className="bg-orange-600 py-4 rounded-lg"
+                >
+                  <Text className="text-white text-center font-semibold text-base">
+                    Done
+                  </Text>
+                </Pressable>
+
+                <View style={{ marginBottom: 20 }} />
+              </Pressable>
+            </View>
+          </Pressable>
+        </Modal>
+
+        {/* Date Picker Modal */}
+        <Modal
+          visible={showDatePicker}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowDatePicker(false)}
+        >
+          <Pressable
+            className="flex-1 bg-black/95"
+            onPress={() => setShowDatePicker(false)}
+          >
+            <View className="flex-1 justify-end">
+              <Pressable
+                className="bg-neutral-800 rounded-t-2xl px-5 py-4"
+                onPress={(e) => e.stopPropagation()}
+              >
+                {/* Drag Handle */}
+                <View className="w-10 h-1 bg-neutral-600 rounded-full self-center mb-4" />
+
+                {/* Header */}
+                <View className="flex-row items-center justify-between mb-6">
+                  <Text className="text-white text-xl font-bold">
+                    Select Date
+                  </Text>
+                  <Pressable onPress={() => setShowDatePicker(false)}>
+                    <MaterialIcons name="close" size={24} color="#ffffff" />
+                  </Pressable>
+                </View>
+
+                {/* Month/Year Navigation */}
+                <View className="flex-row items-center justify-between mb-6">
+                  <Pressable
+                    onPress={() => {
+                      const newDate = new Date(selectedDateObj);
+                      newDate.setMonth(newDate.getMonth() - 1);
+                      setSelectedDateObj(newDate);
+                    }}
+                  >
+                    <MaterialIcons
+                      name="chevron-left"
+                      size={28}
+                      color="#ea580c"
+                    />
+                  </Pressable>
+                  <Text className="text-white text-lg font-semibold">
+                    {selectedDateObj.toLocaleDateString("en-US", {
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </Text>
+                  <Pressable
+                    onPress={() => {
+                      const newDate = new Date(selectedDateObj);
+                      newDate.setMonth(newDate.getMonth() + 1);
+                      setSelectedDateObj(newDate);
+                    }}
+                  >
+                    <MaterialIcons
+                      name="chevron-right"
+                      size={28}
+                      color="#ea580c"
+                    />
+                  </Pressable>
+                </View>
+
+                {/* Weekday Headers */}
+                <View className="flex-row mb-2">
+                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                    (day) => (
+                      <View key={day} className="flex-1">
+                        <Text className="text-gray-500 text-center text-xs font-semibold mb-2">
+                          {day}
+                        </Text>
+                      </View>
+                    )
+                  )}
+                </View>
+
+                {/* Calendar Days */}
+                <View className="mb-6">
+                  {(() => {
+                    const daysInMonth = getDaysInMonth(selectedDateObj);
+                    const firstDay = getFirstDayOfMonth(selectedDateObj);
+                    const days = [];
+
+                    // Empty cells for days before month starts
+                    for (let i = 0; i < firstDay; i++) {
+                      days.push(
+                        <View key={`empty-${i}`} className="flex-1 py-3" />
+                      );
+                    }
+
+                    // Days of the month
+                    for (let day = 1; day <= daysInMonth; day++) {
+                      const date = new Date(
+                        selectedDateObj.getFullYear(),
+                        selectedDateObj.getMonth(),
+                        day
+                      );
+                      const dateStr = date.toISOString().split("T")[0];
+                      const isSelected = scheduleDate === dateStr;
+                      const isToday =
+                        new Date().toISOString().split("T")[0] === dateStr;
+
+                      days.push(
+                        <Pressable
+                          key={day}
+                          onPress={() => handleDateSelect(date)}
+                          className={`flex-1 py-3 rounded-lg items-center justify-center ${
+                            isSelected
+                              ? "bg-orange-600"
+                              : isToday
+                                ? "bg-neutral-700"
+                                : "bg-transparent"
+                          }`}
+                        >
+                          <Text
+                            className={`text-sm font-semibold ${
+                              isSelected
+                                ? "text-white"
+                                : isToday
+                                  ? "text-orange-500"
+                                  : "text-white"
+                            }`}
+                          >
+                            {day}
+                          </Text>
+                        </Pressable>
+                      );
+                    }
+
+                    // Render in rows of 7
+                    const rows = [];
+                    for (let i = 0; i < days.length; i += 7) {
+                      rows.push(
+                        <View key={`row-${i}`} className="flex-row gap-1 mb-1">
+                          {days.slice(i, i + 7)}
+                        </View>
+                      );
+                    }
+
+                    return rows;
+                  })()}
+                </View>
+
+                {/* Cancel Button */}
+                <Pressable
+                  onPress={() => setShowDatePicker(false)}
+                  className="bg-orange-600 py-4 rounded-lg"
+                >
+                  <Text className="text-white text-center font-semibold text-base">
+                    Done
+                  </Text>
+                </Pressable>
+
+                <View style={{ marginBottom: 20 }} />
+              </Pressable>
+            </View>
+          </Pressable>
+        </Modal>
       </ScrollView>
 
       {/* Bottom Action Buttons */}
@@ -347,7 +730,11 @@ export default function CarouselPreview() {
             }}
           >
             <Text className="text-base text-white font-semibold">
-              {isPublishing ? "Publishing..." : "Publish Now"}
+              {isPublishing
+                ? "Publishing..."
+                : scheduleEnabled
+                  ? "Schedule post"
+                  : "Publish Now"}
             </Text>
           </Pressable>
         </View>

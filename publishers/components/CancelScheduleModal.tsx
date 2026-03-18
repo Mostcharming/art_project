@@ -3,20 +3,24 @@ import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
 import { Modal, Pressable, Text, View } from "react-native";
 
-interface DeleteConfirmationModalProps {
+interface CancelScheduleModalProps {
   visible: boolean;
   carousel: Carousel | null;
   onClose: () => void;
-  onConfirmDelete: (carousel: Carousel) => void;
-  onMoveToDraft?: (carousel: Carousel) => void;
+  onConfirmCancel: (carousel: Carousel) => void;
+  onSaveAsDraft?: (carousel: Carousel) => void;
+  isLoading?: boolean;
 }
 
-export const DeleteConfirmationModal: React.FC<
-  DeleteConfirmationModalProps
-> = ({ visible, carousel, onClose, onConfirmDelete, onMoveToDraft }) => {
+export const CancelScheduleModal: React.FC<CancelScheduleModalProps> = ({
+  visible,
+  carousel,
+  onClose,
+  onConfirmCancel,
+  onSaveAsDraft,
+  isLoading = false,
+}) => {
   if (!carousel) return null;
-
-  const isDraft = carousel.status === "draft";
 
   return (
     <Modal
@@ -66,13 +70,12 @@ export const DeleteConfirmationModal: React.FC<
                 style={{
                   color: "#ffffff",
                   fontSize: 22,
-                  // fontWeight: "700",
                   fontFamily: "BankGothicBold",
                 }}
               >
-                Delete carousel
+                Cancel schedule
               </Text>
-              <Pressable onPress={onClose}>
+              <Pressable onPress={onClose} disabled={isLoading}>
                 <MaterialIcons name="close" size={24} color="#ffffff" />
               </Pressable>
             </View>
@@ -86,8 +89,9 @@ export const DeleteConfirmationModal: React.FC<
                 marginBottom: 24,
               }}
             >
-              Not every stroke makes the final piece. You can let this one go —
-              or save it for later inspiration.
+              Are you sure you want to cancel this scheduled post? Once
+              canceled, this post would be discarded automatically. You will
+              need to schedule it again.
             </Text>
 
             {/* Action Buttons */}
@@ -95,9 +99,9 @@ export const DeleteConfirmationModal: React.FC<
               {/* Delete Button */}
               <Pressable
                 onPress={() => {
-                  onConfirmDelete(carousel);
-                  onClose();
+                  onConfirmCancel(carousel);
                 }}
+                disabled={isLoading}
                 style={{
                   paddingVertical: 14,
                   paddingHorizontal: 16,
@@ -106,36 +110,36 @@ export const DeleteConfirmationModal: React.FC<
                   justifyContent: "center",
                   alignItems: "center",
                   minHeight: 50,
+                  opacity: isLoading ? 0.6 : 1,
                 }}
               >
                 <Text
                   style={{
-                    color: "red",
+                    color: isLoading ? "#9CA3AF" : "red",
                     fontSize: 16,
                     fontWeight: "600",
                   }}
                 >
-                  Delete carousel
+                  {isLoading ? "Canceling..." : "Yes, cancel schedule"}
                 </Text>
               </Pressable>
 
-              {/* Move to Draft Button - Only show if not already a draft */}
-              {!isDraft && onMoveToDraft && (
+              {/* Save as Draft Button */}
+              {onSaveAsDraft && (
                 <Pressable
                   className="border border-gray-700 "
                   onPress={() => {
-                    onMoveToDraft(carousel);
-                    onClose();
+                    onSaveAsDraft(carousel);
                   }}
+                  disabled={isLoading}
                   style={{
                     paddingVertical: 14,
                     paddingHorizontal: 16,
-                    // backgroundColor: "#404040",
                     borderRadius: 12,
-
                     justifyContent: "center",
                     alignItems: "center",
                     minHeight: 50,
+                    opacity: isLoading ? 0.6 : 1,
                   }}
                 >
                   <Text
@@ -145,7 +149,7 @@ export const DeleteConfirmationModal: React.FC<
                       fontWeight: "600",
                     }}
                   >
-                    Move to draft
+                    Save as draft
                   </Text>
                 </Pressable>
               )}

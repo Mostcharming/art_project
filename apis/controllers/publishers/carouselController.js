@@ -540,7 +540,22 @@ exports.updateCarousel = async (req, res, next) => {
             updateData.status = status;
         }
         if (scheduledPublishDate !== undefined) {
-            updateData.scheduledPublishDate = scheduledPublishDate;
+            if (scheduledPublishDate) {
+                const publishDate = new Date(scheduledPublishDate);
+                if (isNaN(publishDate.getTime())) {
+                    return res.status(400).json({
+                        error: 'Invalid scheduled publish date format. Use ISO 8601 format (YYYY-MM-DDTHH:mm:ss)'
+                    });
+                }
+                if (publishDate <= new Date()) {
+                    return res.status(400).json({
+                        error: 'Scheduled publish date must be in the future'
+                    });
+                }
+                updateData.scheduledPublishDate = publishDate;
+            } else {
+                updateData.scheduledPublishDate = null;
+            }
         }
 
         await carousel.update(updateData);
@@ -652,6 +667,89 @@ exports.getOneCarousel = async (req, res, next) => {
         });
     } catch (error) {
         console.error('Get one carousel error:', error);
+        next(error);
+    }
+};
+
+exports.scheduleCarouselForPublish = async (req, res, next) => {
+    try {
+        const { carouselId } = req.params;
+        const { scheduledPublishDate } = req.body;
+        const publisherId = req.user.id;
+
+        if (!scheduledPublishDate) {
+            return res.status(400).json({
+                error: 'scheduledPublishDate is required'
+            });
+        }
+
+        const publishDate = new Date(scheduledPublishDate);
+        if (isNaN(publishDate.getTime())) {
+            return res.status(400).json({
+                error: 'Invalid scheduled publish date format. Use ISO 8601 format (YYYY-MM-DDTHH:mm:ss)'
+            });
+        }
+
+        if (publishDate <= new Date()) {
+            return res.status(400).json({
+                error: 'Scheduled publish date must be in the future'
+            });
+        }
+
+        const carousel = await Carousel.findOne({
+            where: {
+                id: carouselId,
+                publisherId
+            },
+            include: {
+                model: Artwork,
+                as: 'artworks'
+            }
+        });
+
+        if (!carousel) {
+            return res.status(404).json({ error: 'Carousel not found' });
+        }
+
+        // Only allow scheduling from draft or active status
+        if (!['draft', 'active'].includes(carousel.status)) {
+            return res.status(400).json({
+                error: 'Can only schedule carousels in draft or active status'
+            });
+        }
+
+        // Validate carousel has at least one artwork
+        if (!carousel.artworks || carousel.artworks.length === 0) {
+            return res.status(400).json({
+                error: 'Carousel must have at least one artwork to schedule'
+            });
+        }
+
+        // Update carousel status to scheduled with the publish date/time
+        await carousel.update({
+            status: 'scheduled',
+            scheduledPublishDate: publishDate
+        });
+
+        // Update all artworks status to scheduled
+        await Artwork.update(
+            { status: 'scheduled' },
+            { where: { carouselId } }
+        );
+
+        const scheduledCarousel = await Carousel.findByPk(carouselId, {
+            include: {
+                model: Artwork,
+                as: 'artworks'
+            }
+        });
+
+        res.status(200).json({
+            message: 'Carousel scheduled for publish successfully',
+            carousel: processCarouselImages(scheduledCarousel)
+        });
+    } catch (error) {
+        console.error('Schedule carousel for publish error:', error);
         next(error);
     }
 };

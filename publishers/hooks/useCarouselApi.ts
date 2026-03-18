@@ -165,7 +165,7 @@ export const useCarouselApi = () => {
   };
 
   const deleteDraft = async (carouselId: string) => {
-    return mutate(`/api/publishers/carousels/draft/${carouselId}`, {
+    return mutate(`/carousels/draft/${carouselId}`, {
       method: "DELETE",
     });
   };
@@ -197,6 +197,46 @@ export const useCarouselApi = () => {
     }
   };
 
+  const scheduleCarousel = async (
+    carouselId: string,
+    scheduledPublishDate: Date
+  ) => {
+    try {
+      return await mutate(`/carousels/${carouselId}/schedule`, {
+        method: "PATCH",
+        payload: {
+          scheduledPublishDate: scheduledPublishDate.toISOString(),
+        },
+      });
+    } catch (error) {
+      console.error("Schedule carousel error:", error);
+      return {
+        data: null,
+        error: "Failed to schedule carousel",
+        isLoading: false,
+      };
+    }
+  };
+
+  const publishScheduled = async (carouselId: string) => {
+    try {
+      return await mutate(`/carousels/${carouselId}`, {
+        method: "PATCH",
+        payload: {
+          status: "active",
+          scheduledPublishDate: null,
+        },
+      });
+    } catch (error) {
+      console.error("Publish scheduled carousel error:", error);
+      return {
+        data: null,
+        error: "Failed to publish carousel",
+        isLoading: false,
+      };
+    }
+  };
+
   return {
     saveDraft,
     updateDraft,
@@ -206,5 +246,7 @@ export const useCarouselApi = () => {
     deleteCarousel,
     moveToDraft,
     publishDraft,
+    scheduleCarousel,
+    publishScheduled,
   };
 };

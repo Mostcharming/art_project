@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useApiMutate } from "./useApiMutate";
 
 export interface DashboardData {
@@ -15,38 +15,38 @@ export const useDashboardData = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
-        const response = await mutate("/carousels/dashboard-data", {
-          method: "GET",
-        });
+      const response = await mutate("/carousels/dashboard-data", {
+        method: "GET",
+      });
 
-        if (response.error) {
-          setError(response.error);
-          setDashboardData(null);
-        } else if (response.data?.dashboardData) {
-          setDashboardData({
-            liveProjects: response.data.dashboardData.liveProjects,
-            subscribers: response.data.dashboardData.subscribers,
-            watchTimeInHours: response.data.dashboardData.watchTimeInHours,
-          });
-        }
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Failed to fetch dashboard data";
-        setError(errorMessage);
+      if (response.error) {
+        setError(response.error);
         setDashboardData(null);
-      } finally {
-        setIsLoading(false);
+      } else if (response.data?.dashboardData) {
+        setDashboardData({
+          liveProjects: response.data.dashboardData.liveProjects,
+          subscribers: response.data.dashboardData.subscribers,
+          watchTimeInHours: response.data.dashboardData.watchTimeInHours,
+        });
       }
-    };
-
-    fetchDashboardData();
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to fetch dashboard data";
+      setError(errorMessage);
+      setDashboardData(null);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  return { dashboardData, isLoading, error };
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  return { dashboardData, isLoading, error, refetch: fetchDashboardData };
 };

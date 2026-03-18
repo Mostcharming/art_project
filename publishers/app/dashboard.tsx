@@ -13,7 +13,11 @@ export default function Dashboard() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const user = useUserStore((state) => state.user);
-  const { dashboardData, isLoading } = useDashboardData();
+  const {
+    dashboardData,
+    isLoading,
+    refetch: refetchDashboard,
+  } = useDashboardData();
   const [activeTab, setActiveTab] = useState<CarouselType>("publishers");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const {
@@ -207,11 +211,13 @@ export default function Dashboard() {
               carousels={carousels}
               isLoading={carouselsLoading}
               viewMode={viewMode}
+              carouselType={activeTab}
               onSelectCarousel={(carousel) => {
                 // TODO: Navigate to carousel details
                 console.log("Selected carousel:", carousel.id);
               }}
               onRefresh={refetch}
+              onRefreshDashboard={refetchDashboard}
             />
           )}
         </View>

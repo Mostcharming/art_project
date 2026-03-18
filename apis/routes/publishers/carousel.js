@@ -24,6 +24,8 @@ router.get('/scheduled', authenticatePublisher, carouselController.getScheduledC
 
 router.patch('/:carouselId/move-to-draft', authenticatePublisher, carouselController.moveToDraft);
 
+router.patch('/:carouselId/schedule', authenticatePublisher, carouselController.scheduleCarouselForPublish);
+
 router.get('/:carouselId', authenticatePublisher, carouselController.getOneCarousel);
 
 router.patch('/:carouselId', authenticatePublisher, upload.array('artworkImages'), carouselController.updateCarousel);
