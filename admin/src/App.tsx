@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Home from "./pages/Home";
 import Members from "./pages/Members";
 import NotFound from "./pages/NotFound";
+import Profile from "./pages/Profile";
 import ProtectedRoute from "./pages/ProtectedRoute";
 import ResetPassword from "./pages/ResetPassword";
 import Users from "./pages/Users";
@@ -25,6 +26,7 @@ const routeComponents: Record<string, React.FC> = {
   Content,
   Users,
   Members,
+  Profile,
   NotFound,
 };
 
@@ -38,7 +40,13 @@ interface AppProps {
 }
 
 function App({ routes }: AppProps) {
-  const protectedRoutes = ["Dashboard", "Content", "Users", "Members"];
+  const protectedRoutes = [
+    "Dashboard",
+    "Content",
+    "Users",
+    "Members",
+    "Profile",
+  ];
   return (
     <BrowserRouter>
       <ErrorBoundary>

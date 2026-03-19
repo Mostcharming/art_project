@@ -1,5 +1,5 @@
+import { Menu } from "lucide-react";
 import React, { useState } from "react";
-import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -19,12 +19,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
 
       {/* Main content */}
-      <div className="flex flex-col flex-1 overflow-hidden">
-        {/* Header */}
-        <Header onMenuClick={toggleSidebar} />
+      <div className="flex flex-col flex-1 h-screen overflow-hidden">
+        {/* Mobile toggle button */}
+        <div className="lg:hidden flex items-center h-16 px-4 border-b border-gray-700 bg-[#oc111d]">
+          <button
+            onClick={toggleSidebar}
+            className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500"
+            aria-label="Toggle sidebar"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+        </div>
 
         {/* Page content */}
-        <main className="flex-1 overflow-auto bg-gray-900 p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto bg-gray-900 p-4 sm:p-6 lg:p-8">
           {children}
         </main>
       </div>
