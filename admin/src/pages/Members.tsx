@@ -13,17 +13,17 @@ export default function Members() {
 
       {/* Members stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <div className="bg-[#oc111d] rounded-lg p-6 border border-gray-700">
           <p className="text-gray-400 text-sm">Total Members</p>
           <p className="text-3xl font-bold text-white mt-2">156</p>
           <p className="text-xs text-green-400 mt-2">↑ 12 this month</p>
         </div>
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <div className="bg-[#oc111d] rounded-lg p-6 border border-gray-700">
           <p className="text-gray-400 text-sm">Active</p>
           <p className="text-3xl font-bold text-white mt-2">143</p>
           <p className="text-xs text-gray-400 mt-2">91.7% of total</p>
         </div>
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <div className="bg-[#oc111d] rounded-lg p-6 border border-gray-700">
           <p className="text-gray-400 text-sm">Inactive</p>
           <p className="text-3xl font-bold text-white mt-2">13</p>
           <p className="text-xs text-gray-400 mt-2">8.3% of total</p>
@@ -31,7 +31,7 @@ export default function Members() {
       </div>
 
       {/* Members list */}
-      <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+      <div className="bg-[#oc111d] rounded-lg border border-gray-700 overflow-hidden">
         <table className="min-w-full divide-y divide-gray-700">
           <thead className="bg-gray-900">
             <tr>

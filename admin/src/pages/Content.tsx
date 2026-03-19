@@ -16,7 +16,7 @@ export default function Content() {
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <div
             key={i}
-            className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden hover:border-gray-600 transition-colors"
+            className="bg-[#oc111d] rounded-lg border border-gray-700 overflow-hidden hover:border-gray-600 transition-colors"
           >
             <div className="aspect-video bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
               <span className="text-4xl">📋</span>

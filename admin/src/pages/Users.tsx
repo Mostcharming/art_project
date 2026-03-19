@@ -7,7 +7,7 @@ export default function Users() {
       </div>
 
       {/* Users table */}
-      <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+      <div className="bg-[#oc111d] rounded-lg border border-gray-700 overflow-hidden">
         <table className="min-w-full divide-y divide-gray-700">
           <thead className="bg-gray-900">
             <tr>

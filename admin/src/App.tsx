@@ -9,6 +9,7 @@ import Content from "./pages/Content";
 import Dashboard from "./pages/Dashboard";
 import Home from "./pages/Home";
 import Members from "./pages/Members";
+import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./pages/ProtectedRoute";
 import ResetPassword from "./pages/ResetPassword";
 import Users from "./pages/Users";
@@ -24,6 +25,7 @@ const routeComponents: Record<string, React.FC> = {
   Content,
   Users,
   Members,
+  NotFound,
 };
 
 export interface RouteConfig {
@@ -60,6 +62,8 @@ function App({ routes }: AppProps) {
               />
             );
           })}
+          {/* Catch-all route for 404 */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </ErrorBoundary>
     </BrowserRouter>

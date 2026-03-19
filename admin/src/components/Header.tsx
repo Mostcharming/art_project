@@ -1,6 +1,5 @@
 import { LogOut, Menu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import carslLogo from "../assets/carsl.svg";
 import { useUserStore } from "../store/userStore";
 
 interface HeaderProps {
@@ -17,8 +16,8 @@ export default function Header({ onMenuClick }: HeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-40 flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8 bg-gray-800 border-b border-gray-700">
-      {/* Left section - Logo and Menu button */}
+    <header className="sticky top-0 z-40 flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8 bg-[#oc111d] border-b border-gray-700">
+      {/* Left section - Menu button */}
       <div className="flex items-center gap-4">
         {/* Menu button - visible on small screens */}
         <button
@@ -28,11 +27,6 @@ export default function Header({ onMenuClick }: HeaderProps) {
         >
           <Menu className="w-6 h-6" />
         </button>
-
-        {/* Logo */}
-        <div className="flex items-center">
-          <img src={carslLogo} alt="CARSL" className="h-6" />
-        </div>
       </div>
 
       {/* Right section - User info and logout */}

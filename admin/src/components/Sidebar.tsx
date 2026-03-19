@@ -1,5 +1,6 @@
 import { Crown, FileText, LayoutDashboard, Users, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import carslLogo from "../assets/carsl.svg";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -13,17 +14,17 @@ const menuItems = [
     icon: LayoutDashboard,
   },
   {
+    label: "Content Management",
+    href: "/content",
+    icon: FileText,
+  },
+  {
     label: "Users",
     href: "/users",
     icon: Users,
   },
   {
-    label: "Content",
-    href: "/content",
-    icon: FileText,
-  },
-  {
-    label: "Members",
+    label: "Team Members",
     href: "/members",
     icon: Crown,
   },
@@ -40,18 +41,19 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     <>
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-16 left-0 z-40 w-64 bg-gray-800 border-r border-gray-700 transform transition-transform duration-300 ease-in-out lg:relative lg:inset-auto lg:translate-x-0 ${
+        className={`fixed inset-y-16 left-0 z-40 w-64 bg-[#oc111d] border-r border-gray-700 transform transition-transform duration-300 ease-in-out lg:relative lg:inset-auto lg:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         style={{ top: "4rem" }}
       >
         <div className="flex flex-col h-full">
-          {/* Close button - visible on small screens */}
-          <div className="flex items-center justify-between p-4 lg:hidden border-b border-gray-700">
-            <h2 className="text-lg font-semibold text-white">Menu</h2>
+          {/* Logo section */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-700">
+            <img src={carslLogo} alt="CARSL" className="h-6" />
+            {/* Close button - visible on small screens */}
             <button
               onClick={onClose}
-              className="p-1 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500"
+              className="lg:hidden p-1 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500"
               aria-label="Close sidebar"
             >
               <X className="w-5 h-5" />

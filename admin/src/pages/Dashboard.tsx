@@ -9,7 +9,7 @@ export default function Dashboard() {
       {/* Dashboard content grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {/* Card 1 */}
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <div className="bg-[#oc111d] rounded-lg p-6 border border-gray-700">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-400 text-sm">Total Users</p>
@@ -22,7 +22,7 @@ export default function Dashboard() {
         </div>
 
         {/* Card 2 */}
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <div className="bg-[#oc111d] rounded-lg p-6 border border-gray-700">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-400 text-sm">Total Content</p>
@@ -35,7 +35,7 @@ export default function Dashboard() {
         </div>
 
         {/* Card 3 */}
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <div className="bg-[#oc111d] rounded-lg p-6 border border-gray-700">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-400 text-sm">Members</p>
@@ -48,7 +48,7 @@ export default function Dashboard() {
         </div>
 
         {/* Card 4 */}
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <div className="bg-[#oc111d] rounded-lg p-6 border border-gray-700">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-400 text-sm">Revenue</p>
@@ -62,7 +62,7 @@ export default function Dashboard() {
       </div>
 
       {/* Recent activity section */}
-      <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
+      <div className="bg-[#oc111d] rounded-lg border border-gray-700 p-6">
         <h2 className="text-lg font-semibold text-white mb-4">
           Recent Activity
         </h2>
