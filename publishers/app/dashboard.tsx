@@ -18,7 +18,7 @@ export default function Dashboard() {
     isLoading,
     refetch: refetchDashboard,
   } = useDashboardData();
-  const [activeTab, setActiveTab] = useState<CarouselType>("publishers");
+  const [activeTab, setActiveTab] = useState<CarouselType>("published");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const {
     carousels,
@@ -116,7 +116,7 @@ export default function Dashboard() {
           <View className="flex-row items-center justify-between">
             {/* Tab buttons */}
             <View className="flex-row gap-6">
-              {["publishers", "scheduled", "drafts"].map((tab) => (
+              {["published", "scheduled", "drafts"].map((tab) => (
                 <Pressable
                   key={tab}
                   onPress={() => setActiveTab(tab as typeof activeTab)}

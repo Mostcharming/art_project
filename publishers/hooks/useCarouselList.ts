@@ -33,7 +33,7 @@ export interface Carousel {
   updatedAt: string;
 }
 
-export type CarouselType = "publishers" | "scheduled" | "drafts";
+export type CarouselType = "published" | "scheduled" | "drafts";
 
 export interface UseCarouselListResponse {
   carousels: Carousel[];
@@ -58,7 +58,7 @@ export const useCarouselList = (
 
         let endpoint = "";
         switch (type) {
-          case "publishers":
+          case "published":
             endpoint = "/carousels/active";
             break;
           case "scheduled":
@@ -99,7 +99,7 @@ export const useCarouselList = (
 
       let endpoint = "";
       switch (type) {
-        case "publishers":
+        case "published":
           endpoint = "/carousels/active";
           break;
         case "scheduled":
