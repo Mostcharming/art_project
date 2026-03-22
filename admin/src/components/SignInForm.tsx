@@ -66,7 +66,7 @@ export default function SignInForm() {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
           {error && (
             <div className="p-3 bg-red-500 bg-opacity-10 border border-red-500 text-red-400 rounded-lg text-sm">
               {error}
@@ -88,6 +88,7 @@ export default function SignInForm() {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-gray-700 bg-gray-800 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
               placeholder="Enter your email"
+              autoComplete="off"
               required
             />
           </div>
@@ -108,6 +109,7 @@ export default function SignInForm() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-3 rounded-lg border border-gray-700 bg-gray-800 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                 placeholder="Enter your password"
+                autoComplete="new-password"
                 required
               />
               <button
