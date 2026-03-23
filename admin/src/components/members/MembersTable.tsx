@@ -71,7 +71,8 @@ export default function MembersTable({ members }: MembersTableProps) {
             {!member.profilePicture && (
               <div className="w-10 h-10 rounded-full bg-gray-400 flex items-center justify-center flex-shrink-0">
                 <span className="text-white text-sm font-medium">
-                  {member.firstName[0]}{member.lastName[0]}
+                  {member.firstName[0]}
+                  {member.lastName[0]}
                 </span>
               </div>
             )}

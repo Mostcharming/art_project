@@ -240,4 +240,39 @@ exports.deleteRole = async (req, res) => {
     }
 };
 
+/**
+ * Get privileges for a specific role
+ */
+exports.getRolePrivileges = async (req, res) => {
+    try {
+        const { roleId } = req.params;
+
+        const role = await Role.findByPk(roleId, {
+            include: [{
+                model: db.Privilege,
+                as: 'privileges',
+                through: { attributes: [] }
+            }]
+        });
+
+        if (!role) {
+            return res.status(404).json({
+                success: false,
+                message: 'Role not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            data: role.privileges || []
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching role privileges',
+            error: error.message
+        });
+    }
+};
+
 module.exports = exports;

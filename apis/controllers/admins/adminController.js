@@ -966,3 +966,142 @@ exports.getMembersPageData = async (req, res) => {
         });
     }
 };
+
+/**
+ * Invite a team member to create an admin account
+ */
+exports.inviteMember = async (req, res) => {
+    try {
+        const { email, roleId, privilegeIds } = req.body;
+
+        // Validate required fields
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email is required'
+            });
+        }
+
+        if (!roleId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Role ID is required'
+            });
+        }
+
+        // Check if admin already exists
+        const existingAdmin = await Admin.findOne({ where: { email } });
+        if (existingAdmin) {
+            return res.status(409).json({
+                success: false,
+                message: 'Admin with this email already exists'
+            });
+        }
+
+        // Verify role exists
+        const role = await db.Role.findByPk(roleId);
+        if (!role) {
+            return res.status(404).json({
+                success: false,
+                message: 'Role not found'
+            });
+        }
+
+        // If role is custom, verify all privileges exist
+        if (role.isCustom && privilegeIds && privilegeIds.length > 0) {
+            const privileges = await db.Privilege.findAll({
+                where: { id: privilegeIds }
+            });
+
+            if (privileges.length !== privilegeIds.length) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'One or more privileges not found'
+                });
+            }
+        }
+
+        // Generate random password (16 characters)
+        const tempPassword = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+
+        // Hash password
+        const hashedPassword = await hashPassword(tempPassword);
+
+        // Create admin with generated name from email
+        const nameParts = email.split('@')[0].split('.');
+        const firstName = nameParts[0] ? nameParts[0].charAt(0).toUpperCase() + nameParts[0].slice(1) : 'Admin';
+        const lastName = nameParts[1] ? nameParts[1].charAt(0).toUpperCase() + nameParts[1].slice(1) : 'User';
+
+        const admin = await Admin.create({
+            email,
+            password: hashedPassword,
+            firstName,
+            lastName,
+            roleId,
+            isActive: true
+        });
+
+        // If custom role with specific privileges, update role privileges
+        if (role.isCustom && privilegeIds && privilegeIds.length > 0) {
+            // Clear existing privileges for this role
+            await db.RolePrivilege.destroy({ where: { roleId } });
+
+            // Add new privileges
+            for (const privilegeId of privilegeIds) {
+                await db.RolePrivilege.create({
+                    roleId,
+                    privilegeId
+                });
+            }
+        }
+
+        // Send invitation email with credentials
+        try {
+            await sendEmail(email, 'adminInvitation', {
+                name: firstName,
+                email,
+                password: tempPassword,
+                adminDashboardUrl: process.env.ADMIN_DASHBOARD_URL || 'https://joincarsl.com/admin'
+            });
+        } catch (emailError) {
+            console.error('Error sending invitation email:', emailError);
+            // Don't fail the request, but log the error
+        }
+
+        // Fetch created admin with role and privileges
+        const newAdmin = await Admin.findByPk(admin.id, {
+            include: {
+                model: db.Role,
+                as: 'roleDetails',
+                attributes: ['id', 'name', 'description', 'isDefault', 'isCustom'],
+                include: {
+                    model: db.Privilege,
+                    as: 'privileges',
+                    attributes: ['id', 'name', 'description', 'category'],
+                    through: { attributes: [] }
+                }
+            }
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'Team member invited successfully',
+            data: {
+                id: newAdmin.id,
+                email: newAdmin.email,
+                firstName: newAdmin.firstName,
+                lastName: newAdmin.lastName,
+                roleId: newAdmin.roleId,
+                role: newAdmin.roleDetails,
+                isActive: newAdmin.isActive
+            }
+        });
+    } catch (error) {
+        console.error('Error inviting member:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error inviting team member',
+            error: error.message
+        });
+    }
+};

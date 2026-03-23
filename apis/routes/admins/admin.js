@@ -103,6 +103,13 @@ router.put('/profile', verifyToken, adminController.updateProfile);
 router.get('/list', verifyToken, adminController.listAdmins);
 
 /**
+ * @route   POST /api/admin/invite-member
+ * @desc    Invite a new team member to create an admin account
+ * @access  Private (superadmin only)
+ */
+router.post('/invite-member', verifyToken, adminController.inviteMember);
+
+/**
  * @route   PUT /api/admin/profile-picture
  * @desc    Change admin profile picture
  * @access  Private
@@ -156,6 +163,13 @@ router.get('/roles', verifyToken, roleController.getAllRoles);
  * @access  Private
  */
 router.get('/roles/:id', verifyToken, roleController.getRole);
+
+/**
+ * @route   GET /api/admin/roles/:roleId/privileges
+ * @desc    Get privileges for a specific role
+ * @access  Private
+ */
+router.get('/roles/:roleId/privileges', verifyToken, roleController.getRolePrivileges);
 
 /**
  * @route   POST /api/admin/roles

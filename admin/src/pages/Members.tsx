@@ -1,8 +1,10 @@
 import { useState } from "react";
+import InviteModal from "../components/InviteModal";
 import RoleSection from "../components/members/RoleSection";
-import { useMembersStore } from "../store/membersStore";
 import { useFetchMembersPageData } from "../hooks/useFetchMembersPageData";
 import type { Member } from "../store/membersStore";
+import { useMembersStore } from "../store/membersStore";
+import { exportMembersAsCSV } from "../utils/csvExport";
 
 const SearchIcon = () => (
   <svg
@@ -42,6 +44,7 @@ const PlusIcon = () => (
 
 export default function Index() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [showInviteModal, setShowInviteModal] = useState(false);
   const roles = useMembersStore((s) => s.roles);
   const isLoading = useMembersStore((s) => s.isLoading);
   const error = useMembersStore((s) => s.error);
@@ -49,16 +52,18 @@ export default function Index() {
   // Fetch members page data
   useFetchMembersPageData();
 
-  const filteredSections = roles.map((section) => ({
-    ...section,
-    members: section.members.filter(
-      (m: Member) =>
-        !searchQuery ||
-        m.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        m.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        m.email.toLowerCase().includes(searchQuery.toLowerCase())
-    ),
-  })).filter((section) => section.members.length > 0 || !searchQuery);
+  const filteredSections = roles
+    .map((section) => ({
+      ...section,
+      members: section.members.filter(
+        (m: Member) =>
+          !searchQuery ||
+          m.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          m.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          m.email.toLowerCase().includes(searchQuery.toLowerCase())
+      ),
+    }))
+    .filter((section) => section.members.length > 0 || !searchQuery);
 
   return (
     <div className="min-h-screen font-inter">
@@ -100,7 +105,10 @@ export default function Index() {
 
           {/* Action Buttons Row */}
           <div className="flex items-center justify-between gap-4 flex-wrap">
-            <button className="flex items-center gap-1 px-3.5 py-2.5 rounded-lg bg-[#D8522E] hover:bg-[#c24826] transition-colors cursor-pointer">
+            <button
+              onClick={() => setShowInviteModal(true)}
+              className="flex items-center gap-1 px-3.5 py-2.5 rounded-lg bg-[#D8522E] hover:bg-[#c24826] transition-colors cursor-pointer"
+            >
               <PlusIcon />
               <span className="text-white text-sm font-semibold leading-5 px-0.5">
                 Add new member
@@ -108,7 +116,11 @@ export default function Index() {
             </button>
 
             <div className="flex items-center gap-4">
-              <button className="px-3.5 py-2.5 rounded-lg bg-[#363b45] hover:bg-[#1e2538] transition-colors cursor-pointer">
+              <button
+                onClick={() => exportMembersAsCSV(roles)}
+                disabled={roles.length === 0}
+                className="px-3.5 py-2.5 rounded-lg bg-[#363b45] hover:bg-[#1e2538] disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              >
                 <span className="text-[#CECFD2] text-sm font-semibold leading-5 px-0.5">
                   Export CSV
                 </span>
@@ -157,10 +169,26 @@ export default function Index() {
         {/* Empty State */}
         {!isLoading && filteredSections.length === 0 && roles.length > 0 && (
           <div className="text-center py-12">
-            <p className="text-[#94969c]">No members found matching your search.</p>
+            <p className="text-[#94969c]">
+              No members found matching your search.
+            </p>
           </div>
         )}
       </div>
+
+      {/* Invite Modal */}
+      {showInviteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <InviteModal
+            onClose={() => setShowInviteModal(false)}
+            onSuccess={() => {
+              setShowInviteModal(false);
+              // Optionally refetch members data
+              // useFetchMembersPageData();
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
