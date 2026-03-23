@@ -68,22 +68,75 @@ function ProfileField({
   label,
   value,
   type = "text",
+  editable = false,
+  onSave,
+  isLoading = false,
 }: {
   label: string;
   value: string;
   type?: string;
+  editable?: boolean;
+  onSave?: (value: string) => void;
+  isLoading?: boolean;
 }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(value);
+
+  const handleSave = async () => {
+    if (onSave && editValue.trim()) {
+      await onSave(editValue.trim());
+      setIsEditing(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setEditValue(value);
+    setIsEditing(false);
+  };
+
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-8 w-full">
       <div className="sm:flex-1 text-[#D2D6DB] text-lg font-medium leading-7 min-w-[120px]">
         {label}
       </div>
       <div className="sm:flex-1 flex flex-col gap-1.5">
-        <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-lg border border-[#333741] bg-[#0C111D] w-full">
-          <span className="flex-1 text-[#85888E] text-base font-normal leading-6 truncate">
-            {type === "password" ? "**************" : value}
-          </span>
-        </div>
+        {isEditing && editable ? (
+          <div className="flex items-center gap-2">
+            <input
+              type={type === "password" ? "password" : "text"}
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              className="flex-1 px-3.5 py-2.5 rounded-lg border border-[#333741] bg-[#0C111D] text-[#85888E] text-base font-normal leading-6 outline-none focus:border-[#D8522E] transition-colors"
+              autoFocus
+            />
+            <button
+              onClick={handleSave}
+              disabled={isLoading || !editValue.trim()}
+              className="px-4 py-2.5 rounded-lg bg-[#D8522E] text-white text-sm font-medium hover:bg-[#c44a28] transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+            >
+              {isLoading ? "Saving..." : "Save"}
+            </button>
+            <button
+              onClick={handleCancel}
+              disabled={isLoading}
+              className="px-4 py-2.5 rounded-lg border border-[#333741] text-[#D2D6DB] text-sm font-medium hover:bg-[#161B26] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <div
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-lg border border-[#333741] bg-[#0C111D] w-full cursor-pointer hover:border-[#D8522E] transition-colors"
+            onClick={() => editable && setIsEditing(true)}
+          >
+            <span className="flex-1 text-[#85888E] text-base font-normal leading-6 truncate">
+              {type === "password" ? "**************" : value}
+            </span>
+            {editable && (
+              <span className="text-[#85888E] text-xs">(Click to edit)</span>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -99,6 +152,11 @@ export default function Index() {
     endpoint: "/admins/profile-picture",
     method: "PUT",
     isFormData: true,
+  });
+
+  const updateProfile = useApiMutation({
+    endpoint: "/admins/profile",
+    method: "PUT",
   });
 
   const fullName = `${user?.firstname || ""} ${user?.lastname || ""}`.trim();
@@ -148,6 +206,33 @@ export default function Index() {
       console.error("Error processing file:", error);
       alert("Error processing file");
     }
+  };
+
+  const handleNameSave = async (fullName: string) => {
+    // Split the name into first and last name
+    const parts = fullName.trim().split(/\s+/);
+    const firstName = parts[0];
+    const lastName = parts.slice(1).join(" ") || "";
+
+    updateProfile.mutate(
+      { firstName, lastName },
+      {
+        onSuccess: (response) => {
+          // Update the user store with new names
+          if (user) {
+            setUser({
+              ...user,
+              firstname: response.data?.firstName || firstName,
+              lastname: response.data?.lastName || lastName,
+            });
+          }
+        },
+        onError: (error) => {
+          alert(error.message || "Failed to update profile");
+          console.error("Profile update error:", error);
+        },
+      }
+    );
   };
 
   return (
@@ -222,7 +307,13 @@ export default function Index() {
         <div className="pl-0 sm:pl-8 flex flex-col gap-8">
           {/* Personal Info */}
           <div className="pl-0 sm:pl-4 flex flex-col gap-8">
-            <ProfileField label="Name" value={fullName} />
+            <ProfileField
+              label="Name"
+              value={fullName}
+              editable={true}
+              onSave={handleNameSave}
+              isLoading={updateProfile.isPending}
+            />
             <ProfileField label="Email" value={user?.email || ""} />
           </div>
 

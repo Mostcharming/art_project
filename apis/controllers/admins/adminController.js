@@ -5,6 +5,7 @@ const { generateToken } = require('../../utils/tokenGenerator');
 const { generateVerificationCode, verifyCode } = require('../../utils/verificationCode');
 const { sendEmail } = require('../../utils/emailService');
 const { getCompleteImageUrl } = require('../../utils/imageUrlHelper');
+const { logActivity } = require('../../utils/adminActivityService');
 const { get } = require('node:http');
 
 /**
@@ -421,14 +422,19 @@ exports.updateProfile = async (req, res) => {
         }
 
         await admin.update({
-            firstName,
-            lastName
+            firstName: firstName || admin.firstName,
+            lastName: lastName || admin.lastName
         });
 
         res.json({
             success: true,
             message: 'Profile updated successfully',
-            data: admin
+            data: {
+                firstName: admin.firstName,
+                lastName: admin.lastName,
+                id: admin.id,
+                email: admin.email
+            }
         });
     } catch (error) {
         res.status(500).json({
@@ -1054,6 +1060,17 @@ exports.inviteMember = async (req, res) => {
                 });
             }
         }
+
+        // Log activity for inviting new member
+        await logActivity(req.user.id, 'INVITE_MEMBER', {
+            entityType: 'Admin',
+            entityId: admin.id,
+            details: {
+                invitedEmail: email,
+                roleName: role.name,
+                roleId: roleId
+            }
+        });
 
         // Send invitation email with credentials
         try {
