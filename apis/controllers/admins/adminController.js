@@ -5,13 +5,14 @@ const { generateToken } = require('../../utils/tokenGenerator');
 const { generateVerificationCode, verifyCode } = require('../../utils/verificationCode');
 const { sendEmail } = require('../../utils/emailService');
 const { getCompleteImageUrl } = require('../../utils/imageUrlHelper');
+const { get } = require('node:http');
 
 /**
  * Register a new admin (superadmin only)
  */
 exports.registerAdmin = async (req, res) => {
     try {
-        const { email, password, firstName, lastName, role } = req.body;
+        const { email, password, firstName, lastName, roleId } = req.body;
 
         // Validate required fields
         if (!email || !password) {
@@ -39,7 +40,7 @@ exports.registerAdmin = async (req, res) => {
             password: hashedPassword,
             firstName,
             lastName,
-            role: role || 'admin'
+            roleId
         });
 
         res.status(201).json({
@@ -50,7 +51,7 @@ exports.registerAdmin = async (req, res) => {
                 email: admin.email,
                 firstName: admin.firstName,
                 lastName: admin.lastName,
-                role: admin.role
+                roleId: admin.roleId
             }
         });
     } catch (error) {
@@ -232,12 +233,23 @@ exports.verifyLoginToken = async (req, res) => {
             });
         }
 
-        // Find admin with valid login token
+        // Find admin with valid login token and include role with privileges
         const admin = await Admin.findOne({
             where: {
                 email,
                 loginTokenExpires: {
                     [db.Sequelize.Op.gt]: new Date() // Token must not be expired
+                }
+            },
+            include: {
+                model: db.Role,
+                as: 'roleDetails',
+                attributes: ['id', 'name', 'description', 'isDefault', 'isCustom'],
+                include: {
+                    model: db.Privilege,
+                    as: 'privileges',
+                    attributes: ['id', 'name', 'description', 'category'],
+                    through: { attributes: [] } // Exclude join table attributes
                 }
             }
         });
@@ -276,7 +288,7 @@ exports.verifyLoginToken = async (req, res) => {
         const token = generateToken({
             id: admin.id,
             email: admin.email,
-            role: admin.role
+            roleId: admin.roleId
         });
 
         res.json({
@@ -284,18 +296,21 @@ exports.verifyLoginToken = async (req, res) => {
             message: 'Login successful',
             data: {
                 token,
+                id: admin.id,
                 email: admin.email,
                 firstname: admin.firstName,
                 lastname: admin.lastName,
-                role: admin.role,
-                profilePicture: admin.profilePicture,
+                roleId: admin.roleId,
+                role: admin.roleDetails,
+                profilePicture: getCompleteImageUrl(admin.profilePicture),
                 admin: {
                     id: admin.id,
                     email: admin.email,
                     firstName: admin.firstName,
                     lastName: admin.lastName,
-                    role: admin.role,
-                    profilePicture: admin.profilePicture
+                    roleId: admin.roleId,
+                    role: admin.roleDetails,
+                    profilePicture: getCompleteImageUrl(admin.profilePicture)
                 }
             }
         });
@@ -349,7 +364,18 @@ exports.logoutAdmin = async (req, res) => {
 exports.getProfile = async (req, res) => {
     try {
         const admin = await Admin.findByPk(req.user.id, {
-            attributes: { exclude: ['password', 'resetPasswordToken', 'resetPasswordTokenExpires'] }
+            attributes: { exclude: ['password', 'resetPasswordToken', 'resetPasswordTokenExpires'] },
+            include: {
+                model: db.Role,
+                as: 'roleDetails',
+                attributes: ['id', 'name', 'description', 'isDefault', 'isCustom'],
+                include: {
+                    model: db.Privilege,
+                    as: 'privileges',
+                    attributes: ['id', 'name', 'description', 'category'],
+                    through: { attributes: [] }
+                }
+            }
         });
 
         if (!admin) {
@@ -660,7 +686,18 @@ exports.resetPassword = async (req, res) => {
 exports.listAdmins = async (req, res) => {
     try {
         const admins = await Admin.findAll({
-            attributes: { exclude: ['password', 'resetPasswordToken', 'resetPasswordTokenExpires'] }
+            attributes: { exclude: ['password', 'resetPasswordToken', 'resetPasswordTokenExpires'] },
+            include: {
+                model: db.Role,
+                as: 'roleDetails',
+                attributes: ['id', 'name', 'description', 'isDefault', 'isCustom'],
+                include: {
+                    model: db.Privilege,
+                    as: 'privileges',
+                    attributes: ['id', 'name', 'description', 'category'],
+                    through: { attributes: [] }
+                }
+            }
         });
 
         res.json({
@@ -683,7 +720,7 @@ exports.listAdmins = async (req, res) => {
 exports.updateAdmin = async (req, res) => {
     try {
         const { id } = req.params;
-        const { firstName, lastName, role, isActive } = req.body;
+        const { firstName, lastName, roleId, isActive } = req.body;
 
         const admin = await Admin.findByPk(id);
         if (!admin) {
@@ -696,14 +733,29 @@ exports.updateAdmin = async (req, res) => {
         await admin.update({
             firstName,
             lastName,
-            role,
+            roleId,
             isActive
+        });
+
+        // Fetch updated admin with role details
+        const updatedAdmin = await Admin.findByPk(id, {
+            include: {
+                model: db.Role,
+                as: 'roleDetails',
+                attributes: ['id', 'name', 'description', 'isDefault', 'isCustom'],
+                include: {
+                    model: db.Privilege,
+                    as: 'privileges',
+                    attributes: ['id', 'name', 'description', 'category'],
+                    through: { attributes: [] }
+                }
+            }
         });
 
         res.json({
             success: true,
             message: 'Admin updated successfully',
-            data: admin
+            data: updatedAdmin
         });
     } catch (error) {
         res.status(500).json({
@@ -782,7 +834,7 @@ exports.changeProfilePicture = async (req, res) => {
                 email: admin.email,
                 firstName: admin.firstName,
                 lastName: admin.lastName,
-                role: admin.role,
+                roleId: admin.roleId,
                 profilePicture: getCompleteImageUrl(profilePictureUrl)
             }
         });

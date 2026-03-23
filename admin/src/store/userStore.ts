@@ -1,12 +1,30 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+export interface Privilege {
+  id: number;
+  name: string;
+  description?: string;
+  category: "content" | "users" | "analytics" | "system";
+}
+
+export interface Role {
+  id: number;
+  name: string;
+  description?: string;
+  isDefault: boolean;
+  isCustom: boolean;
+  privileges?: Privilege[];
+}
+
 export interface __UserData__ {
   token: string;
+  id: number;
   email: string;
   firstname: string;
   lastname: string;
-  role: string;
+  roleId: number;
+  role: Role;
   profilePicture?: string;
 }
 

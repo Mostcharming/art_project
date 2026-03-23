@@ -211,7 +211,7 @@ export default function Index() {
               </div>
               <div className="flex items-center px-2.5 py-1 rounded-lg border border-[#333741] bg-[#161B26]">
                 <span className="text-[#CECFD2] text-sm font-medium leading-5 text-center">
-                  {user?.role || "Admin"}
+                  {user?.role?.name || "Admin"}
                 </span>
               </div>
             </div>

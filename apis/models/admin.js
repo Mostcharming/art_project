@@ -11,7 +11,17 @@ module.exports = (sequelize, DataTypes) => {
          * The `models/index` file will call this method automatically.
          */
         static associate(models) {
-            // Define associations here if needed
+            // Belongs to Role
+            Admin.belongsTo(models.Role, {
+                foreignKey: 'roleId',
+                as: 'roleDetails'
+            });
+
+            // One-to-Many relationship with AdminActivityLog
+            Admin.hasMany(models.AdminActivityLog, {
+                foreignKey: 'adminId',
+                as: 'activityLogs'
+            });
         }
     }
     Admin.init({
@@ -34,11 +44,6 @@ module.exports = (sequelize, DataTypes) => {
         lastName: {
             type: DataTypes.STRING,
             allowNull: true
-        },
-        role: {
-            type: DataTypes.ENUM('superadmin', 'admin', 'moderator'),
-            defaultValue: 'admin',
-            comment: 'Role of the admin user'
         },
         isActive: {
             type: DataTypes.BOOLEAN,
@@ -72,6 +77,15 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: true,
             comment: 'URL or path to admin profile picture'
+        },
+        roleId: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            references: {
+                model: 'Roles',
+                key: 'id'
+            },
+            comment: 'Foreign key to Role table'
         }
     }, {
         sequelize,

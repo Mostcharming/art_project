@@ -3,8 +3,11 @@ const router = express.Router();
 const { verifyToken } = require('../../middleware/auth');
 const profilePictureUpload = require('../../middleware/profilePictureUpload');
 
-// Import admin controllers
+// Import controllers
 const adminController = require('../../controllers/admins/adminController');
+const roleController = require('../../controllers/admins/roleController');
+const privilegeController = require('../../controllers/admins/privilegeController');
+const activityLogController = require('../../controllers/admins/activityLogController');
 
 /**
  * @route   POST /api/admin/auth/register
@@ -126,5 +129,128 @@ router.put('/:id', verifyToken, adminController.updateAdmin);
  * @access  Private (superadmin only)
  */
 router.delete('/:id', verifyToken, adminController.deleteAdmin);
+
+/**
+ * ==========================================
+ * ROLE ROUTES
+ * ==========================================
+ */
+
+/**
+ * @route   GET /api/admin/roles
+ * @desc    Get all roles with privileges
+ * @access  Private
+ */
+router.get('/roles', verifyToken, roleController.getAllRoles);
+
+/**
+ * @route   GET /api/admin/roles/:id
+ * @desc    Get single role with privileges
+ * @access  Private
+ */
+router.get('/roles/:id', verifyToken, roleController.getRole);
+
+/**
+ * @route   POST /api/admin/roles
+ * @desc    Create a new custom role
+ * @access  Private (superadmin only)
+ */
+router.post('/roles', verifyToken, roleController.createRole);
+
+/**
+ * @route   PUT /api/admin/roles/:id
+ * @desc    Update a custom role
+ * @access  Private (superadmin only)
+ */
+router.put('/roles/:id', verifyToken, roleController.updateRole);
+
+/**
+ * @route   DELETE /api/admin/roles/:id
+ * @desc    Delete a custom role
+ * @access  Private (superadmin only)
+ */
+router.delete('/roles/:id', verifyToken, roleController.deleteRole);
+
+/**
+ * ==========================================
+ * PRIVILEGE ROUTES
+ * ==========================================
+ */
+
+/**
+ * @route   GET /api/admin/privileges
+ * @desc    Get all privileges grouped by category
+ * @access  Private
+ */
+router.get('/privileges', verifyToken, privilegeController.getAllPrivileges);
+
+/**
+ * @route   GET /api/admin/privileges/:id
+ * @desc    Get single privilege
+ * @access  Private
+ */
+router.get('/privileges/:id', verifyToken, privilegeController.getPrivilege);
+
+/**
+ * @route   POST /api/admin/privileges
+ * @desc    Create a new privilege
+ * @access  Private (superadmin only)
+ */
+router.post('/privileges', verifyToken, privilegeController.createPrivilege);
+
+/**
+ * @route   PUT /api/admin/privileges/:id
+ * @desc    Update a privilege
+ * @access  Private (superadmin only)
+ */
+router.put('/privileges/:id', verifyToken, privilegeController.updatePrivilege);
+
+/**
+ * @route   DELETE /api/admin/privileges/:id
+ * @desc    Delete a privilege
+ * @access  Private (superadmin only)
+ */
+router.delete('/privileges/:id', verifyToken, privilegeController.deletePrivilege);
+
+/**
+ * ==========================================
+ * ACTIVITY LOG ROUTES
+ * ==========================================
+ */
+
+/**
+ * @route   GET /api/admin/activity-logs/me
+ * @desc    Get current admin's activity logs
+ * @access  Private
+ */
+router.get('/activity-logs/me', verifyToken, activityLogController.getMyActivityLogs);
+
+/**
+ * @route   GET /api/admin/activity-logs/stats/me
+ * @desc    Get current admin's activity statistics
+ * @access  Private
+ */
+router.get('/activity-logs/stats/me', verifyToken, activityLogController.getMyActivityStats);
+
+/**
+ * @route   GET /api/admin/activity-logs
+ * @desc    Get all admins' activity logs (admin only)
+ * @access  Private (admin only)
+ */
+router.get('/activity-logs', verifyToken, activityLogController.getAllActivityLogs);
+
+/**
+ * @route   GET /api/admin/activity-logs/stats
+ * @desc    Get activity statistics (admin only)
+ * @access  Private (admin only)
+ */
+router.get('/activity-logs/stats', verifyToken, activityLogController.getAllActivityStats);
+
+/**
+ * @route   GET /api/admin/activity-logs/:id
+ * @desc    Get activity log detail
+ * @access  Private
+ */
+router.get('/activity-logs/:id', verifyToken, activityLogController.getActivityLogDetail);
 
 module.exports = router;

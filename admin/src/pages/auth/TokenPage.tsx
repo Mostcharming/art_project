@@ -83,10 +83,12 @@ export default function TokenPage() {
           if (response.data?.token) {
             const userData = {
               token: response.data.token,
+              id: response.data.id,
               email: response.data.email || adminEmail,
               firstname: response.data.firstname || "",
               lastname: response.data.lastname || "",
-              role: response.data.role || "admin",
+              roleId: response.data.roleId,
+              role: response.data.role,
               profilePicture: response.data.profilePicture || "",
             };
             setUser(userData);
