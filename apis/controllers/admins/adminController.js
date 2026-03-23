@@ -916,3 +916,53 @@ exports.changePassword = async (req, res) => {
         });
     }
 };
+
+/**
+ * Get members page data (roles with admins)
+ */
+exports.getMembersPageData = async (req, res) => {
+    try {
+        // Fetch roles (only up to 4 roles) with their associated admins
+        const roles = await db.Role.findAll({
+            limit: 4,
+            include: [{
+                model: db.Admin,
+                as: 'admins',
+                attributes: {
+                    exclude: ['password', 'resetPasswordToken', 'resetPasswordTokenExpires', 'loginToken', 'loginTokenExpires']
+                }
+            }],
+            attributes: ['id', 'name', 'description', 'isDefault', 'isCustom'],
+            order: [['isDefault', 'DESC'], ['name', 'ASC']]
+        });
+
+        // Format the response
+        const rolesWithMembers = roles.map(role => ({
+            id: role.id,
+            name: role.name,
+            description: role.description,
+            isDefault: role.isDefault,
+            isCustom: role.isCustom,
+            members: (role.admins || []).map(admin => ({
+                id: admin.id,
+                email: admin.email,
+                firstName: admin.firstName,
+                lastName: admin.lastName,
+                profilePicture: getCompleteImageUrl(admin.profilePicture),
+                dateAdded: admin.createdAt ? new Date(admin.createdAt).toLocaleDateString('en-US') : 'N/A',
+                lastActive: admin.lastLoginAt ? new Date(admin.lastLoginAt).toLocaleDateString('en-US') : 'Never'
+            }))
+        }));
+
+        res.json({
+            success: true,
+            data: rolesWithMembers
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching members page data',
+            error: error.message
+        });
+    }
+};

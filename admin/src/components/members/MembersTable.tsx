@@ -1,7 +1,9 @@
 interface Member {
-  name: string;
-  handle: string;
-  avatar: string;
+  id: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  profilePicture?: string;
   dateAdded: string;
   lastActive: string;
 }
@@ -59,17 +61,26 @@ export default function MembersTable({ members }: MembersTableProps) {
         >
           {/* Name + Avatar */}
           <div className="px-6 py-4 h-[72px] flex items-center gap-3">
-            <img
-              src={member.avatar}
-              alt={member.name}
-              className="w-10 h-10 rounded-full object-cover flex-shrink-0"
-            />
+            {member.profilePicture && (
+              <img
+                src={member.profilePicture}
+                alt={`${member.firstName} ${member.lastName}`}
+                className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+              />
+            )}
+            {!member.profilePicture && (
+              <div className="w-10 h-10 rounded-full bg-gray-400 flex items-center justify-center flex-shrink-0">
+                <span className="text-white text-sm font-medium">
+                  {member.firstName[0]}{member.lastName[0]}
+                </span>
+              </div>
+            )}
             <div className="flex flex-col min-w-0">
               <span className="text-white text-sm font-medium leading-5 truncate">
-                {member.name}
+                {member.firstName} {member.lastName}
               </span>
               <span className="text-[#94969C] text-sm font-normal leading-5 truncate">
-                {member.handle}
+                {member.email}
               </span>
             </div>
           </div>

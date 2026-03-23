@@ -1,9 +1,11 @@
 import MembersTable from "./MembersTable";
 
 interface Member {
-  name: string;
-  handle: string;
-  avatar: string;
+  id: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  profilePicture?: string;
   dateAdded: string;
   lastActive: string;
 }

@@ -1,75 +1,8 @@
 import { useState } from "react";
 import RoleSection from "../components/members/RoleSection";
-
-const AVATARS = {
-  phoenix:
-    "https://api.builder.io/api/v1/image/assets/TEMP/d2a201bccf02cb9250775b6eb1d525835e7f31ce?width=80",
-  lana: "https://api.builder.io/api/v1/image/assets/TEMP/1d3152c7796887b884ce56b224346c2a1a2b6271?width=80",
-  demi: "https://api.builder.io/api/v1/image/assets/TEMP/1c136361aa7120701865f25fd306706a62a50e12?width=80",
-  candice:
-    "https://api.builder.io/api/v1/image/assets/TEMP/f936379a17c7cf339cbd3055757ae4eaf739624c?width=80",
-  natali:
-    "https://api.builder.io/api/v1/image/assets/TEMP/7fd534eaf17c8b0fb2e6d18edf12c983b7d4844e?width=80",
-};
-
-const ALL_MEMBERS = [
-  {
-    name: "Phoenix Baker",
-    handle: "@phoenix.baker",
-    avatar: AVATARS.phoenix,
-    dateAdded: "1/2/2024",
-    lastActive: "Active now",
-  },
-  {
-    name: "Lana Steiner",
-    handle: "@lanasteiner",
-    avatar: AVATARS.lana,
-    dateAdded: "1/7/2024",
-    lastActive: "1 hr ago",
-  },
-  {
-    name: "Demi Wilkinson",
-    handle: "@demi_wilkinson",
-    avatar: AVATARS.demi,
-    dateAdded: "1/6/2024",
-    lastActive: "2 hr ago",
-  },
-  {
-    name: "Candice Wu",
-    handle: "@candicewu",
-    avatar: AVATARS.candice,
-    dateAdded: "1/4/2024",
-    lastActive: "1d ago",
-  },
-  {
-    name: "Natali Craig",
-    handle: "@nat.craig",
-    avatar: AVATARS.natali,
-    dateAdded: "1/2/2024",
-    lastActive: "13/1/26",
-  },
-];
-
-const ROLE_SECTIONS = [
-  {
-    roleName: "Super Admin",
-    roleDescription:
-      "Full system access, including user roles, content moderation, and platform configuration.",
-    members: ALL_MEMBERS.slice(0, 3),
-  },
-  {
-    roleName: "Admin",
-    roleDescription:
-      "Full access to manage content, users, and platform settings.",
-    members: ALL_MEMBERS,
-  },
-  {
-    roleName: "Content Manager",
-    roleDescription:
-      "Manages content reviews, approvals, and visibility across the platform.",
-    members: ALL_MEMBERS,
-  },
-];
+import { useMembersStore } from "../store/membersStore";
+import { useFetchMembersPageData } from "../hooks/useFetchMembersPageData";
+import type { Member } from "../store/membersStore";
 
 const SearchIcon = () => (
   <svg
@@ -109,14 +42,21 @@ const PlusIcon = () => (
 
 export default function Index() {
   const [searchQuery, setSearchQuery] = useState("");
+  const roles = useMembersStore((s) => s.roles);
+  const isLoading = useMembersStore((s) => s.isLoading);
+  const error = useMembersStore((s) => s.error);
 
-  const filteredSections = ROLE_SECTIONS.map((section) => ({
+  // Fetch members page data
+  useFetchMembersPageData();
+
+  const filteredSections = roles.map((section) => ({
     ...section,
     members: section.members.filter(
-      (m) =>
+      (m: Member) =>
         !searchQuery ||
-        m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        m.handle.toLowerCase().includes(searchQuery.toLowerCase())
+        m.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        m.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        m.email.toLowerCase().includes(searchQuery.toLowerCase())
     ),
   })).filter((section) => section.members.length > 0 || !searchQuery);
 
@@ -130,9 +70,7 @@ export default function Index() {
             {/* Title + Description */}
             <div className="flex flex-col gap-1 min-w-0 flex-1">
               <h1
-                className="text-white text-3xl font-bold leading-[38px] small-caps-heading 
-              
-              "
+                className="text-white text-3xl font-bold leading-[38px] small-caps-heading"
                 style={{ fontFamily: "BankGothicBold" }}
               >
                 Team Members
@@ -184,21 +122,44 @@ export default function Index() {
           </div>
         </div>
 
+        {/* Error State */}
+        {error && (
+          <div className="p-4 bg-red-900 bg-opacity-20 border border-red-500 text-red-200 rounded-lg">
+            {error}
+          </div>
+        )}
+
+        {/* Loading State */}
+        {isLoading && (
+          <div className="text-center py-12">
+            <p className="text-[#94969c]">Loading members...</p>
+          </div>
+        )}
+
         {/* Role Sections */}
-        <div className="flex flex-col gap-8">
-          {filteredSections.map((section, index) => (
-            <div key={section.roleName}>
-              <RoleSection
-                roleName={section.roleName}
-                roleDescription={section.roleDescription}
-                members={section.members}
-              />
-              {index < filteredSections.length - 1 && (
-                <div className="h-px bg-[#E4E7EC] w-full mt-8" />
-              )}
-            </div>
-          ))}
-        </div>
+        {!isLoading && filteredSections.length > 0 && (
+          <div className="flex flex-col gap-8">
+            {filteredSections.map((section, index: number) => (
+              <div key={section.id}>
+                <RoleSection
+                  roleName={section.name}
+                  roleDescription={section.description}
+                  members={section.members}
+                />
+                {index < filteredSections.length - 1 && (
+                  <div className="h-px bg-[#94969c] w-full mt-8" />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && filteredSections.length === 0 && roles.length > 0 && (
+          <div className="text-center py-12">
+            <p className="text-[#94969c]">No members found matching your search.</p>
+          </div>
+        )}
       </div>
     </div>
   );

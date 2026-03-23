@@ -117,6 +117,13 @@ router.put('/profile-picture', verifyToken, profilePictureUpload.single('profile
 router.post('/change-password', verifyToken, adminController.changePassword);
 
 /**
+ * @route   GET /api/admin/members-page
+ * @desc    Get members page data (roles with admins)
+ * @access  Private
+ */
+router.get('/members-page', verifyToken, adminController.getMembersPageData);
+
+/**
  * @route   PUT /api/admin/:id
  * @desc    Update admin by id
  * @access  Private (superadmin only)
