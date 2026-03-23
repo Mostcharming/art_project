@@ -67,6 +67,11 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.DATE,
             allowNull: true,
             comment: 'Expiration time for login token'
+        },
+        profilePicture: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            comment: 'URL or path to admin profile picture'
         }
     }, {
         sequelize,

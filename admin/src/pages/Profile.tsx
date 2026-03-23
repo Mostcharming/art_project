@@ -1,139 +1,254 @@
-import { ArrowLeft, Edit2, Eye, EyeOff, User } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ChangePasswordModal from "../components/ChangePasswordModal";
+import { useApiMutation } from "../hooks/useApiMutation";
 import { useUserStore } from "../store/userStore";
 
-export default function Profile() {
-  const { user } = useUserStore();
+function UserIcon() {
+  return (
+    <svg
+      width="57"
+      height="57"
+      viewBox="0 0 57 57"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M7.05 47C12.5391 41.1781 19.9915 37.6 28.2 37.6C36.4085 37.6 43.8609 41.1781 49.35 47M38.775 17.625C38.775 23.4654 34.0404 28.2 28.2 28.2C22.3596 28.2 17.625 23.4654 17.625 17.625C17.625 11.7846 22.3596 7.05 28.2 7.05C34.0404 7.05 38.775 11.7846 38.775 17.625Z"
+        stroke="#94969C"
+        strokeWidth="4.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function EditIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 18 18"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M13.5 7.5L10.5 4.5M1.87498 16.125L4.41326 15.843C4.72338 15.8085 4.87844 15.7913 5.02337 15.7444C5.15195 15.7027 5.27432 15.6439 5.38715 15.5695C5.51433 15.4857 5.62464 15.3753 5.84528 15.1547L15.75 5.25C16.5784 4.42157 16.5784 3.07843 15.75 2.25C14.9216 1.42157 13.5784 1.42157 12.75 2.25L2.84528 12.1547C2.62464 12.3753 2.51433 12.4857 2.43046 12.6128C2.35606 12.7257 2.29725 12.848 2.25562 12.9766C2.2087 13.1215 2.19147 13.2766 2.15702 13.5867L1.87498 16.125Z"
+        stroke="white"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ArrowLeftIcon() {
+  return (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M20 12H4M4 12L10 18M4 12L10 6"
+        stroke="white"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ProfileField({
+  label,
+  value,
+  type = "text",
+}: {
+  label: string;
+  value: string;
+  type?: string;
+}) {
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-8 w-full">
+      <div className="sm:flex-1 text-[#D2D6DB] text-lg font-medium leading-7 min-w-[120px]">
+        {label}
+      </div>
+      <div className="sm:flex-1 flex flex-col gap-1.5">
+        <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-lg border border-[#333741] bg-[#0C111D] w-full">
+          <span className="flex-1 text-[#85888E] text-base font-normal leading-6 truncate">
+            {type === "password" ? "**************" : value}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function Index() {
+  const { user, setUser } = useUserStore();
   const navigate = useNavigate();
-  const [isEditing, setIsEditing] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    firstname: user?.firstname || "",
-    lastname: user?.lastname || "",
-    email: user?.email || "",
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const uploadProfilePicture = useApiMutation({
+    endpoint: "/admins/profile-picture",
+    method: "PUT",
+    isFormData: true,
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  const fullName = `${user?.firstname || ""} ${user?.lastname || ""}`.trim();
+
+  const handleProfilePictureClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      alert("Please select a valid image file");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert("File size must be less than 5MB");
+      return;
+    }
+
+    try {
+      // Create FormData with the file
+      const formData = new FormData();
+      formData.append("profilePicture", file);
+
+      // Call API to upload profile picture
+      uploadProfilePicture.mutate(formData, {
+        onSuccess: (response) => {
+          // Update the user store with new profile picture URL
+          if (user && response.data?.profilePicture) {
+            setUser({
+              ...user,
+              profilePicture: response.data.profilePicture,
+            });
+          }
+        },
+        onError: (error) => {
+          alert(error.message || "Failed to upload profile picture");
+          console.error("Profile picture upload error:", error);
+        },
+      });
+    } catch (error) {
+      console.error("Error processing file:", error);
+      alert("Error processing file");
+    }
   };
 
   return (
-    <div className="min-h-screen bg-black p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Back Button */}
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-white hover:text-orange-400 transition mb-8"
-        >
-          <ArrowLeft size={20} />
-          <span className="text-sm font-medium">Go Back</span>
-        </button>
-
-        {/* Profile Header Section */}
-        <div className="flex items-start gap-6 mb-12">
-          {/* User Avatar */}
-          <div className="relative">
-            <div className="w-32 h-32 bg-gray-700 rounded-lg flex items-center justify-center">
-              <User size={64} className="text-gray-500" />
-            </div>
-            <button
-              onClick={() => setIsEditing(!isEditing)}
-              className="absolute bottom-0 right-0 bg-orange-500 hover:bg-orange-600 p-3 rounded-lg transition transform hover:scale-105"
-            >
-              <Edit2 size={20} className="text-white" />
-            </button>
-          </div>
-
-          {/* User Info */}
-          <div className="flex flex-col justify-center">
-            <h1 className="text-4xl font-bold text-white mb-2">
-              {user?.firstname} {user?.lastname}
-            </h1>
-            <p className="text-lg text-gray-400">{user?.role}</p>
-          </div>
+    <div className="min-h-screen bfont-sans">
+      <ChangePasswordModal
+        open={showChangePassword}
+        onClose={() => setShowChangePassword(false)}
+      />
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8 pb-12 flex flex-col gap-8">
+        {/* Go Back */}
+        <div className="pl-6 sm:pl-0">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-[#F5F5F6] text-base font-medium leading-6 hover:opacity-80 transition-opacity"
+          >
+            <ArrowLeftIcon />
+            <span>Go Back</span>
+          </button>
         </div>
 
-        {/* Edit Profile Section */}
-        <div className="bg-gray-900 rounded-xl p-8 mb-8">
-          <h2 className="text-2xl font-bold text-white mb-6">
-            Profile Information
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Name Input */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Name
-              </label>
-              <input
-                type="text"
-                name="firstname"
-                value={formData.firstname}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className={`w-full px-4 py-3 rounded-lg border transition ${
-                  isEditing
-                    ? "bg-gray-800 border-orange-500 text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    : "bg-gray-800 border-gray-700 text-gray-300 cursor-not-allowed"
-                }`}
-                placeholder="Enter your name"
-              />
-            </div>
-
-            {/* Email Input */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className={`w-full px-4 py-3 rounded-lg border transition ${
-                  isEditing
-                    ? "bg-gray-800 border-orange-500 text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    : "bg-gray-800 border-gray-700 text-gray-300 cursor-not-allowed"
-                }`}
-                placeholder="Enter your email"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Security Settings Section */}
-        <div className="bg-gray-900 rounded-xl p-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white">Security Settings</h2>
-            <button className="text-orange-500 hover:text-orange-400 transition text-sm font-medium">
-              Change Password
-            </button>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Password
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                value="••••••••••••"
-                disabled
-                className="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 pr-12"
-              />
+        {/* Page Header - Avatar + Name */}
+        <div className="pl-0 sm:pl-8 flex flex-col gap-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-8">
+            {/* Avatar */}
+            <div className="relative flex-shrink-0">
+              <div className="flex items-center justify-center w-[94px] h-[94px] rounded-full bg-[#1F242F] overflow-hidden">
+                {user?.profilePicture ? (
+                  <img
+                    src={user.profilePicture}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <UserIcon />
+                )}
+              </div>
+              {/* Edit button */}
               <button
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300 transition"
+                onClick={handleProfilePictureClick}
+                disabled={uploadProfilePicture.isPending}
+                className="absolute bottom-0 right-0 flex items-center justify-center w-9 h-9 rounded-full bg-[#D8522E] border border-white/12 hover:bg-[#c44a28] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                <EditIcon />
+              </button>
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+            </div>
+
+            {/* Name + Badge */}
+            <div className="flex flex-col items-start gap-4">
+              <div className="flex flex-col gap-2">
+                <h1 className="text-[#F5F5F6] text-3xl font-semibold leading-[38px]">
+                  {fullName}
+                </h1>
+              </div>
+              <div className="flex items-center px-2.5 py-1 rounded-lg border border-[#333741] bg-[#161B26]">
+                <span className="text-[#CECFD2] text-sm font-medium leading-5 text-center">
+                  {user?.role || "Admin"}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Form Fields */}
+        <div className="pl-0 sm:pl-8 flex flex-col gap-8">
+          {/* Personal Info */}
+          <div className="pl-0 sm:pl-4 flex flex-col gap-8">
+            <ProfileField label="Name" value={fullName} />
+            <ProfileField label="Email" value={user?.email || ""} />
+          </div>
+
+          {/* Security Settings */}
+          <div className="pl-0 sm:pl-4 flex flex-col gap-11">
+            {/* Section header */}
+            <div className="flex items-center justify-between gap-8">
+              <h2 className="text-white text-xl font-bold">
+                Security Settings
+              </h2>
+              <button
+                onClick={() => setShowChangePassword(!showChangePassword)}
+                className="flex items-center justify-center h-9 px-[18px] rounded-lg border-2 border-[#D8522E] hover:bg-[#D8522E]/10 transition-colors"
+              >
+                <span className="text-[#D8522E] text-sm font-medium leading-6">
+                  Change password
+                </span>
               </button>
             </div>
+
+            {/* Password field */}
+            <ProfileField
+              label="Password"
+              value="**************"
+              type="password"
+            />
           </div>
         </div>
       </div>

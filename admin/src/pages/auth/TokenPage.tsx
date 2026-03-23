@@ -87,6 +87,7 @@ export default function TokenPage() {
               firstname: response.data.firstname || "",
               lastname: response.data.lastname || "",
               role: response.data.role || "admin",
+              profilePicture: response.data.profilePicture || "",
             };
             setUser(userData);
             // clearSession();

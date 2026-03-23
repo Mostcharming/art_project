@@ -54,7 +54,8 @@ app.use(morgan('combined'));
 app.use(express.json());
 
 // Serve uploaded files as static
-app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
+const uploadPath = process.env.NODE_ENV === 'production' ? '/api/uploads' : '/uploads';
+app.use(uploadPath, express.static(path.join(__dirname, 'uploads')));
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'API is running' });

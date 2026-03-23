@@ -4,6 +4,7 @@ const { hashPassword, comparePassword } = require('../../utils/passwordHash');
 const { generateToken } = require('../../utils/tokenGenerator');
 const { generateVerificationCode, verifyCode } = require('../../utils/verificationCode');
 const { sendEmail } = require('../../utils/emailService');
+const { getCompleteImageUrl } = require('../../utils/imageUrlHelper');
 
 /**
  * Register a new admin (superadmin only)
@@ -287,12 +288,14 @@ exports.verifyLoginToken = async (req, res) => {
                 firstname: admin.firstName,
                 lastname: admin.lastName,
                 role: admin.role,
+                profilePicture: admin.profilePicture,
                 admin: {
                     id: admin.id,
                     email: admin.email,
                     firstName: admin.firstName,
                     lastName: admin.lastName,
-                    role: admin.role
+                    role: admin.role,
+                    profilePicture: admin.profilePicture
                 }
             }
         });
@@ -356,9 +359,16 @@ exports.getProfile = async (req, res) => {
             });
         }
 
+        const adminData = admin.toJSON ? admin.toJSON() : admin;
+
+        // Add complete image URL for profile picture
+        if (adminData.profilePicture) {
+            adminData.profilePicture = getCompleteImageUrl(adminData.profilePicture);
+        }
+
         res.json({
             success: true,
-            data: admin
+            data: adminData
         });
     } catch (error) {
         res.status(500).json({
@@ -729,6 +739,127 @@ exports.deleteAdmin = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error deleting admin',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Update admin profile picture
+ */
+exports.changeProfilePicture = async (req, res) => {
+    try {
+        const { id } = req.user; // Get admin id from authenticated user
+
+        // Check if file was uploaded
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: 'No file uploaded'
+            });
+        }
+
+        const admin = await Admin.findByPk(id);
+        if (!admin) {
+            return res.status(404).json({
+                success: false,
+                message: 'Admin not found'
+            });
+        }
+
+        // Store relative path to the uploaded file
+        const profilePictureUrl = `/uploads/profile-pictures/${req.file.filename}`;
+
+        await admin.update({
+            profilePicture: profilePictureUrl
+        });
+
+        res.json({
+            success: true,
+            message: 'Profile picture updated successfully',
+            data: {
+                id: admin.id,
+                email: admin.email,
+                firstName: admin.firstName,
+                lastName: admin.lastName,
+                role: admin.role,
+                profilePicture: getCompleteImageUrl(profilePictureUrl)
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error updating profile picture',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Change admin password
+ */
+exports.changePassword = async (req, res) => {
+    try {
+        const { id } = req.user; // Get admin id from authenticated user
+        const { oldPassword, newPassword } = req.body;
+
+        // Validate required fields
+        if (!oldPassword || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'Old password and new password are required'
+            });
+        }
+
+        // Validate password strength
+        if (newPassword.length < 8) {
+            return res.status(400).json({
+                success: false,
+                message: 'New password must be at least 8 characters long'
+            });
+        }
+
+        const admin = await Admin.findByPk(id);
+        if (!admin) {
+            return res.status(404).json({
+                success: false,
+                message: 'Admin not found'
+            });
+        }
+
+        // Verify old password
+        const isPasswordValid = await comparePassword(oldPassword, admin.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({
+                success: false,
+                message: 'Old password is incorrect'
+            });
+        }
+
+        // Check if new password is the same as old password
+        const isSamePassword = await comparePassword(newPassword, admin.password);
+        if (isSamePassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'New password must be different from old password'
+            });
+        }
+
+        // Hash new password
+        const hashedPassword = await hashPassword(newPassword);
+
+        await admin.update({
+            password: hashedPassword
+        });
+
+        res.json({
+            success: true,
+            message: 'Password changed successfully'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error changing password',
             error: error.message
         });
     }

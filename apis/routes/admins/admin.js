@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { verifyToken } = require('../../middleware/auth');
+const profilePictureUpload = require('../../middleware/profilePictureUpload');
 
 // Import admin controllers
 const adminController = require('../../controllers/admins/adminController');
@@ -97,6 +98,20 @@ router.put('/profile', verifyToken, adminController.updateProfile);
  * @access  Private (superadmin only)
  */
 router.get('/list', verifyToken, adminController.listAdmins);
+
+/**
+ * @route   PUT /api/admin/profile-picture
+ * @desc    Change admin profile picture
+ * @access  Private
+ */
+router.put('/profile-picture', verifyToken, profilePictureUpload.single('profilePicture'), adminController.changeProfilePicture);
+
+/**
+ * @route   POST /api/admin/change-password
+ * @desc    Change admin password
+ * @access  Private
+ */
+router.post('/change-password', verifyToken, adminController.changePassword);
 
 /**
  * @route   PUT /api/admin/:id

@@ -7,6 +7,7 @@ export interface __UserData__ {
   firstname: string;
   lastname: string;
   role: string;
+  profilePicture?: string;
 }
 
 interface __UserStore__ {
