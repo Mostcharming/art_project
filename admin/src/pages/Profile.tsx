@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import ChangePasswordModal from "../components/ChangePasswordModal";
 import { useApiMutation } from "../hooks/useApiMutation";
 import { useUserStore } from "../store/userStore";
@@ -171,13 +172,13 @@ export default function Index() {
 
     // Validate file type
     if (!file.type.startsWith("image/")) {
-      alert("Please select a valid image file");
+      toast.error("Please select a valid image file");
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert("File size must be less than 5MB");
+      toast.error("File size must be less than 5MB");
       return;
     }
 
@@ -195,16 +196,17 @@ export default function Index() {
               ...user,
               profilePicture: response.data.profilePicture,
             });
+            toast.success("Profile picture updated successfully");
           }
         },
         onError: (error) => {
-          alert(error.message || "Failed to upload profile picture");
+          toast.error(error.message || "Failed to upload profile picture");
           console.error("Profile picture upload error:", error);
         },
       });
     } catch (error) {
       console.error("Error processing file:", error);
-      alert("Error processing file");
+      toast.error("Error processing file");
     }
   };
 
@@ -225,10 +227,11 @@ export default function Index() {
               firstname: response.data?.firstName || firstName,
               lastname: response.data?.lastName || lastName,
             });
+            toast.success("Name updated successfully");
           }
         },
         onError: (error) => {
-          alert(error.message || "Failed to update profile");
+          toast.error(error.message || "Failed to update profile");
           console.error("Profile update error:", error);
         },
       }

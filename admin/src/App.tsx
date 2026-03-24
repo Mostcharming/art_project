@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Toaster } from "sonner";
 import "./App.css";
 import ErrorBoundary from "./components/ErrorBoundary";
 import ForgotPassword from "./pages/auth/ForgotPassword";
@@ -74,6 +75,7 @@ function App({ routes }: AppProps) {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </ErrorBoundary>
+      <Toaster position="top-right" theme="dark" />
     </BrowserRouter>
   );
 }

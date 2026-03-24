@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { useApiMutation } from "../hooks/useApiMutation";
 
 interface Role {
@@ -30,6 +31,7 @@ export default function InviteModal({ onClose, onSuccess }: InviteModalProps) {
   const [selectedPermissions, setSelectedPermissions] = useState<number[]>([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [rolePermissions, setRolePermissions] = useState<number[]>([]);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Load roles and privileges mutation
   const rolesMutation = useApiMutation({
@@ -120,25 +122,28 @@ export default function InviteModal({ onClose, onSuccess }: InviteModalProps) {
 
       await inviteMutation.mutateAsync(payload);
 
-      // Success - reset form and close
-      setEmail("");
-      setSelectedRoleId(null);
-      setSelectedPermissions([]);
-
-      // Show success message or callback
-      if (onSuccess) {
-        onSuccess();
-      } else {
-        alert("Team member invited successfully!");
-      }
-
-      if (onClose) {
-        onClose();
-      }
+      // Success - show success modal
+      setShowSuccessModal(true);
     } catch (error: any) {
       const errorMessage =
         error.message || "Failed to send invite. Please try again.";
-      alert(`Error: ${errorMessage}`);
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleCloseSuccess = () => {
+    setShowSuccessModal(false);
+    // Reset form
+    setEmail("");
+    setSelectedRoleId(null);
+    setSelectedPermissions([]);
+    // Trigger callback
+    if (onSuccess) {
+      onSuccess();
+    }
+    // Close modal
+    if (onClose) {
+      onClose();
     }
   };
 
@@ -157,7 +162,10 @@ export default function InviteModal({ onClose, onSuccess }: InviteModalProps) {
           Error loading form data. Please try again.
         </p>
         <button
-          onClick={onClose}
+          onClick={() => {
+            toast.error("Error loading form data");
+            if (onClose) onClose();
+          }}
           className="w-full px-4 py-3 rounded-lg border-2 border-white/10 bg-[#D8522E] text-white text-base font-medium"
         >
           Close
@@ -168,6 +176,53 @@ export default function InviteModal({ onClose, onSuccess }: InviteModalProps) {
 
   const roles = rolesData || [];
   const privileges = privilegesData || [];
+
+  // Show success modal
+  if (showSuccessModal) {
+    return (
+      <div className="relative w-full max-w-[500px] rounded-2xl bg-[#0C111D] p-6 flex flex-col gap-8 items-center text-center animate-modal-in">
+        {/* Success Icon */}
+        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-[#D8522E]/20 border border-[#D8522E]/40">
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 32 32"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M26.6667 8L12 22.6667L5.33333 16"
+              stroke="#D8522E"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+
+        {/* Title */}
+        <h1
+          className="text-white text-2xl font-bold leading-8"
+          style={{ fontFamily: "BankGothicBold" }}
+        >
+          Invite sent successfully
+        </h1>
+
+        {/* Description */}
+        <p className="text-[#A0A4A8] text-base font-normal leading-6">
+          Your team member will receive an email containing their login details
+        </p>
+
+        {/* Close Button */}
+        <button
+          onClick={handleCloseSuccess}
+          className="w-full px-4 py-3 rounded-lg bg-[#D8522E] text-white text-base font-medium leading-6 hover:bg-[#c44a28] transition-colors"
+        >
+          Close
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full max-w-[664px] rounded-2xl bg-[#0C111D] p-6 flex flex-col gap-8 animate-modal-in">
