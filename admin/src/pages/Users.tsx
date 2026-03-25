@@ -1,53 +1,238 @@
-export default function Users() {
+import { useState } from "react";
+import ActiveUsersCard from "../components/users/ActiveUser";
+import UserCategoryCard from "../components/users/UserCategoryCard";
+import UsersTable from "../components/users/UsersTable";
+
+type TabType = "All users" | "Artist" | "Art Gallery" | "Collector" | "Viewer";
+const TABS: TabType[] = [
+  "All users",
+  "Artist",
+  "Art Gallery",
+  "Collector",
+  "Viewer",
+];
+
+const TOTAL_PAGES = 10;
+
+function SearchIcon() {
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">Users</h1>
-        <p className="text-gray-400">View and manage users.</p>
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="shrink-0 text-[#667085]"
+    >
+      <path
+        d="M17.5 17.5L14.5834 14.5833M16.6667 9.58333C16.6667 13.4954 13.4954 16.6667 9.58333 16.6667C5.67132 16.6667 2.5 13.4954 2.5 9.58333C2.5 5.67132 5.67132 2.5 9.58333 2.5C13.4954 2.5 16.6667 5.67132 16.6667 9.58333Z"
+        stroke="#667085"
+        strokeWidth="1.66667"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function FilterIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M5 10H15M2.5 5H17.5M7.5 15H12.5"
+        stroke="#CECFD2"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ArrowLeft() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <path
+        d="M15.8333 9.99996H4.16667M4.16667 9.99996L10 15.8333M4.16667 9.99996L10 4.16663"
+        stroke="#94969C"
+        strokeWidth="1.66667"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ArrowRight() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <path
+        d="M4.16663 9.99996H15.8333M15.8333 9.99996L9.99996 4.16663M15.8333 9.99996L9.99996 15.8333"
+        stroke="#94969C"
+        strokeWidth="1.66667"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+interface PaginationProps {
+  current: number;
+  total: number;
+  onChange: (page: number) => void;
+}
+
+function Pagination({ current, total, onChange }: PaginationProps) {
+  const pages: (number | "...")[] = [1, 2, 3, "...", 8, 9, 10];
+
+  return (
+    <div className="flex items-center justify-between py-5 border-t border-[#E4E7EC]">
+      {/* Previous */}
+      <button
+        className="flex items-center gap-1.5 text-sm font-semibold text-[#94969C] disabled:opacity-40 hover:text-[#CECFD2] transition-colors"
+        onClick={() => onChange(Math.max(1, current - 1))}
+        disabled={current === 1}
+      >
+        <ArrowLeft />
+        Previous
+      </button>
+
+      {/* Page numbers */}
+      <div className="flex items-center gap-0.5">
+        {pages.map((page, idx) =>
+          page === "..." ? (
+            <div
+              key={`ellipsis-${idx}`}
+              className="w-10 h-10 flex items-center justify-center text-sm font-medium text-[#94969C]"
+            >
+              ...
+            </div>
+          ) : (
+            <button
+              key={page}
+              onClick={() => onChange(page as number)}
+              className={`w-10 h-10 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${
+                current === page
+                  ? "bg-[#1F242F] text-[#ECECED]"
+                  : "text-[#94969C] hover:bg-[#161B26] hover:text-[#CECFD2]"
+              }`}
+            >
+              {page}
+            </button>
+          )
+        )}
       </div>
 
-      {/* Users table */}
-      <div className="bg-[#oc111d] rounded-lg border border-gray-700 overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-700">
-          <thead className="bg-gray-900">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                Email
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                Name
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-700">
-            {[1, 2, 3].map((i) => (
-              <tr key={i} className="hover:bg-gray-700 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                  user{i}@example.com
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                  User {i}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                  <span className="px-2 py-1 text-xs font-medium bg-green-600 bg-opacity-20 text-green-400 rounded">
-                    Active
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                  <button className="text-brand-400 hover:text-brand-300">
-                    Edit
-                  </button>
-                </td>
-              </tr>
+      {/* Next */}
+      <button
+        className="flex items-center gap-1.5 text-sm font-semibold text-[#94969C] disabled:opacity-40 hover:text-[#CECFD2] transition-colors"
+        onClick={() => onChange(Math.min(total, current + 1))}
+        disabled={current === total}
+      >
+        Next
+        <ArrowRight />
+      </button>
+    </div>
+  );
+}
+
+export default function Index() {
+  const [activeTab, setActiveTab] = useState<TabType>("All users");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  return (
+    <div className="min-h-screen font-['Inter',sans-serif]">
+      {/* ── PAGE HEADER ── */}
+      <div className="px-8 pt-8">
+        <div className="flex flex-wrap items-start justify-between gap-5 mb-6">
+          {/* Title + Subtitle */}
+          <div className="flex flex-col gap-1 min-w-[260px]">
+            <h1
+              className="text-[30px] font-bold text-white leading-[38px] tracking-wide"
+              style={{ fontFamily: "BankGothicBold" }}
+            >
+              Users Management
+            </h1>
+            <p className="text-base font-normal text-[#475467] leading-6">
+              View, manage, and monitor all users across the Carsl platform.
+            </p>
+          </div>
+
+          {/* Search bar */}
+          <div className="w-full max-w-[382px]">
+            <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-lg border border-[#333741] shadow-[0_1px_2px_0_rgba(16,24,40,0.05)]">
+              <SearchIcon />
+              <input
+                type="text"
+                placeholder="Search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 text-base text-[#667085] placeholder-[#667085] outline-none bg-transparent leading-6 truncate"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-[#333741]" />
+      </div>
+
+      {/* ── STAT CARDS ── */}
+      <div className="px-8 py-6 flex flex-col lg:flex-row gap-6">
+        <UserCategoryCard />
+        <ActiveUsersCard />
+      </div>
+
+      {/* ── TABLE SECTION ── */}
+      <div className="px-8 pb-12">
+        {/* Tabs + Filter row */}
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          {/* Tab bar */}
+          <div className="flex p-1 items-center gap-1 rounded-[10px] border border-[#333741] flex-wrap">
+            {TABS.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => {
+                  setActiveTab(tab);
+                  setCurrentPage(1);
+                }}
+                className={`h-9 px-3 rounded-md text-sm font-semibold leading-5 transition-colors whitespace-nowrap ${
+                  activeTab === tab
+                    ? "bg-[#3c3f45] text-[#CECFD2] shadow-sm"
+                    : "text-[#94969C] hover:text-[#CECFD2]"
+                }`}
+              >
+                {tab}
+              </button>
             ))}
-          </tbody>
-        </table>
+          </div>
+
+          {/* Filter button */}
+          <button className="flex items-center gap-2 px-3.5 py-2.5 rounded-lg border border-[#333741] shadow-[0_1px_2px_0_rgba(16,24,40,0.05)] hover:bg-[#1F242F] transition-colors">
+            <FilterIcon />
+            <span className="text-sm font-semibold text-[#CECFD2] leading-5">
+              Filter
+            </span>
+          </button>
+        </div>
+
+        {/* Table */}
+        <UsersTable activeTab={activeTab} searchQuery={searchQuery} />
+
+        {/* Pagination */}
+        <Pagination
+          current={currentPage}
+          total={TOTAL_PAGES}
+          onChange={setCurrentPage}
+        />
       </div>
     </div>
   );
