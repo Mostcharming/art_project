@@ -778,6 +778,7 @@ exports.updateAdmin = async (req, res) => {
 exports.deleteAdmin = async (req, res) => {
     try {
         const { id } = req.params;
+        const currentAdminId = req.user.id; // Get current admin (the one performing deletion)
 
         const admin = await Admin.findByPk(id);
         if (!admin) {
@@ -786,6 +787,18 @@ exports.deleteAdmin = async (req, res) => {
                 message: 'Admin not found'
             });
         }
+
+        // Log activity for the admin performing the deletion
+        await logActivity(currentAdminId, 'DELETE_ADMIN', {
+            entityType: 'Admin',
+            entityId: id,
+            details: {
+                deletedAdminEmail: admin.email,
+                deletedAdminName: `${admin.firstName} ${admin.lastName}`,
+                timestamp: new Date()
+            },
+            status: 'success'
+        });
 
         await admin.destroy();
 

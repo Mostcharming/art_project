@@ -1,4 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { useApiMutation } from "../hooks/useApiMutation";
+import ConfirmModal from "./ConfirmModal";
 import EditRoleModal from "./EditRoleModal";
 
 interface AdminData {
@@ -34,7 +38,14 @@ export default function ProfileHeader({
   admin,
   onAdminUpdate,
 }: ProfileHeaderProps) {
+  const navigate = useNavigate();
   const [showEditRoleModal, setShowEditRoleModal] = useState(false);
+  const [showRemoveConfirmModal, setShowRemoveConfirmModal] = useState(false);
+
+  const removeAdminMutation = useApiMutation({
+    endpoint: `/admins/${admin?.id}`,
+    method: "DELETE",
+  });
 
   // Use admin data if provided, otherwise use fallback values
   const displayName = admin ? `${admin.firstName} ${admin.lastName}` : "";
@@ -47,6 +58,22 @@ export default function ProfileHeader({
     }
   };
 
+  const handleRemoveTeamMember = async () => {
+    try {
+      await removeAdminMutation.mutateAsync(null);
+      toast.success("Team member removed successfully");
+      setShowRemoveConfirmModal(false);
+      // Navigate back to members page after successful deletion
+      setTimeout(() => {
+        navigate("/members");
+      }, 500);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to remove team member"
+      );
+    }
+  };
+
   if (showEditRoleModal && admin) {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -56,6 +83,21 @@ export default function ProfileHeader({
           onSuccess={handleEditRoleSuccess}
         />
       </div>
+    );
+  }
+
+  if (showRemoveConfirmModal && admin) {
+    return (
+      <ConfirmModal
+        title="Are you sure?"
+        description="This will revoke this team member's access to Carsl"
+        confirmLabel="Remove Team Member"
+        cancelLabel="No, Cancel"
+        onConfirm={handleRemoveTeamMember}
+        onCancel={() => setShowRemoveConfirmModal(false)}
+        onClose={() => setShowRemoveConfirmModal(false)}
+        isLoading={removeAdminMutation.isPending}
+      />
     );
   }
 
@@ -104,7 +146,10 @@ export default function ProfileHeader({
           >
             Edit Role
           </button>
-          <button className="px-3 py-2 rounded-lg bg-red-400 text-white text-sm font-semibold leading-5 hover:opacity-90 transition-opacity">
+          <button
+            onClick={() => setShowRemoveConfirmModal(true)}
+            className="px-3 py-2 rounded-lg bg-red-400 text-white text-sm font-semibold leading-5 hover:opacity-90 transition-opacity"
+          >
             Remove Team member
           </button>
         </div>

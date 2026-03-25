@@ -27,7 +27,7 @@ function formatActionText(action: string): string {
     INVITE_MEMBER: "Invited",
     SUSPEND_MEMBER: "Suspended",
     ACTIVATE_MEMBER: "Activated",
-    DELETE_MEMBER: "Deleted",
+    DELETE_ADMIN: "Deleted",
     APPROVE_CAROUSEL: "Approved carousel",
     REJECT_CAROUSEL: "Rejected carousel",
     APPROVE_ARTWORK: "Approved artwork",
@@ -47,7 +47,11 @@ interface ActivityItem {
   action: string;
   entityType?: string;
   entityId?: string;
-  details?: Record<string, unknown>;
+  details?: Record<string, unknown> & {
+    invitedEmail?: string;
+    deletedAdminName?: string;
+    deletedAdminEmail?: string;
+  };
   status?: "success" | "failed" | "pending";
   createdAt: string;
   admin?: {
@@ -100,6 +104,7 @@ function ActivityFeedItem({ item }: { item: ActivityItem; isLast?: boolean }) {
 
   const actionText = formatActionText(item.action);
   const invitedEmail = item.details?.invitedEmail as string | undefined;
+  const deletedAdminName = item.details?.deletedAdminName as string | undefined;
 
   return (
     <div className="flex items-start gap-3">
@@ -135,13 +140,20 @@ function ActivityFeedItem({ item }: { item: ActivityItem; isLast?: boolean }) {
           {invitedEmail && (
             <span className="text-orange-500 font-medium">{invitedEmail}</span>
           )}
+          {deletedAdminName && (
+            <span className="text-orange-500 font-medium">
+              {deletedAdminName}
+            </span>
+          )}
           {item.highlightName && (
             <span className="text-orange-500 font-medium">
               {item.highlightName}
             </span>
           )}
-          {(invitedEmail || item.highlightName) && (
-            <span className="text-white font-normal"> to the team</span>
+          {(invitedEmail || deletedAdminName || item.highlightName) && (
+            <span className="text-white font-normal">
+              {deletedAdminName ? " from the team" : " to the team"}
+            </span>
           )}
         </p>
       </div>
