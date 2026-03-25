@@ -12,5 +12,6 @@
   { "path": "/content", "element": "Content" },
   { "path": "/users", "element": "Users" },
   { "path": "/members", "element": "Members" },
+  { "path": "/members/:id", "element": "AdminDetails" },
   { "path": "/profile", "element": "Profile" }
 ]

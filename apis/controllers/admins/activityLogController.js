@@ -161,6 +161,54 @@ exports.getAllActivityStats = async (req, res) => {
 };
 
 /**
+ * Get activity logs for a specific admin
+ */
+exports.getAdminActivityLogs = async (req, res) => {
+    try {
+        const { adminId } = req.params;
+        const { action } = req.query;
+
+        const where = {
+            adminId: parseInt(adminId)
+        };
+
+        if (action) {
+            where.action = action;
+        }
+
+        const logs = await db.AdminActivityLog.findAll({
+            where,
+            order: [['createdAt', 'DESC']],
+            include: [{
+                model: db.Admin,
+                as: 'admin',
+                attributes: ['id', 'email', 'firstName', 'lastName', 'profilePicture']
+            }]
+        });
+
+        // Process profile pictures to include complete URLs
+        const processedLogs = logs.map(log => {
+            const logData = log.toJSON ? log.toJSON() : log;
+            if (logData.admin && logData.admin.profilePicture) {
+                logData.admin.profilePicture = getCompleteImageUrl(logData.admin.profilePicture);
+            }
+            return logData;
+        });
+
+        res.json({
+            success: true,
+            data: processedLogs
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching activity logs',
+            error: error.message
+        });
+    }
+};
+
+/**
  * Get detailed activity log
  */
 exports.getActivityLogDetail = async (req, res) => {

@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom";
+
 interface Member {
   id: number;
   email: string;
@@ -31,6 +33,7 @@ const EditIcon = () => (
 );
 
 export default function MembersTable({ members }: MembersTableProps) {
+  const navigate = useNavigate();
   return (
     <div className="w-full overflow-hidden rounded-sm">
       {/* Table Header */}
@@ -102,7 +105,10 @@ export default function MembersTable({ members }: MembersTableProps) {
 
           {/* Edit Action */}
           <div className="w-[72px] px-6 py-4 h-[72px] flex items-center justify-end">
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
+            <button
+              onClick={() => navigate(`/members/${member.id}`)}
+              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+            >
               <EditIcon />
             </button>
           </div>

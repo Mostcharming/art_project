@@ -131,6 +131,14 @@ router.post('/change-password', verifyToken, adminController.changePassword);
 router.get('/members-page', verifyToken, adminController.getMembersPageData);
 
 /**
+ * @route   GET /api/admin/:adminId/activity-logs
+ * @desc    Get activity logs for a specific admin
+ * @access  Private
+ */
+router.get('/:adminId/activity-logs', verifyToken, activityLogController.getAdminActivityLogs);
+
+
+/**
  * @route   PUT /api/admin/:id
  * @desc    Update admin by id
  * @access  Private (superadmin only)
@@ -273,5 +281,13 @@ router.get('/activity-logs/stats', verifyToken, activityLogController.getAllActi
  * @access  Private
  */
 router.get('/activity-logs/:id', verifyToken, activityLogController.getActivityLogDetail);
+
+/**
+ * @route   GET /api/admin/:id
+ * @desc    Get admin by id with role and privileges
+ * @access  Private
+ */
+router.get('/:id', verifyToken, adminController.getAdmin);
+
 
 module.exports = router;

@@ -85,7 +85,9 @@ function FeedItemRow({ item, isLast }: { item: ActivityLog; isLast: boolean }) {
             {item.action === "INVITE_MEMBER" && invitedEmail ? (
               <>
                 <span>{actionText} </span>
-                <span className="text-[#D8522E] font-medium">{invitedEmail}</span>
+                <span className="text-[#D8522E] font-medium">
+                  {invitedEmail}
+                </span>
               </>
             ) : (
               actionText

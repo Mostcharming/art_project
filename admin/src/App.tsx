@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster } from "sonner";
 import "./App.css";
 import ErrorBoundary from "./components/ErrorBoundary";
+import AdminDetails from "./pages/AdminDetails";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ForgotPasswordTokenPage from "./pages/auth/ForgotPasswordTokenPage";
 import Login from "./pages/auth/Login";
@@ -24,6 +25,7 @@ const routeComponents: Record<string, React.FC> = {
   ResetPassword,
   TokenPage,
   Dashboard,
+  AdminDetails,
   Content,
   Users,
   Members,
@@ -46,6 +48,7 @@ function App({ routes }: AppProps) {
     "Content",
     "Users",
     "Members",
+    "AdminDetails",
     "Profile",
   ];
   return (

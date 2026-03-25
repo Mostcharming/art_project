@@ -924,6 +924,65 @@ exports.changePassword = async (req, res) => {
 };
 
 /**
+ * Get single admin by id (with role and privileges)
+ */
+exports.getAdmin = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const admin = await Admin.findByPk(id, {
+            attributes: { exclude: ['password', 'resetPasswordToken', 'resetPasswordTokenExpires', 'loginToken', 'loginTokenExpires'] },
+            include: {
+                model: db.Role,
+                as: 'roleDetails',
+                attributes: ['id', 'name', 'description', 'isDefault', 'isCustom'],
+                include: {
+                    model: db.Privilege,
+                    as: 'privileges',
+                    attributes: ['id', 'name', 'description', 'category'],
+                    through: { attributes: [] }
+                }
+            }
+        });
+
+        if (!admin) {
+            return res.status(404).json({
+                success: false,
+                message: 'Admin not found'
+            });
+        }
+
+        const adminData = admin.toJSON ? admin.toJSON() : admin;
+
+        // Add complete image URL for profile picture
+        if (adminData.profilePicture) {
+            adminData.profilePicture = getCompleteImageUrl(adminData.profilePicture);
+        }
+
+        // Format date joined
+        const dateJoined = new Date(admin.createdAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        });
+
+        res.json({
+            success: true,
+            data: {
+                ...adminData,
+                dateJoined
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error retrieving admin',
+            error: error.message
+        });
+    }
+};
+
+/**
  * Get members page data (roles with admins)
  */
 exports.getMembersPageData = async (req, res) => {
