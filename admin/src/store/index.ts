@@ -1,2 +1,3 @@
+import { useActivityLogStore } from "./activityLogStore";
 import { useUserStore } from "./userStore";
-export { useUserStore };
+export { useActivityLogStore, useUserStore };

@@ -1,5 +1,6 @@
 const db = require('../../models');
 const { getActivityLogs, getAllActivityLogs, getActivityStats } = require('../../utils/adminActivityService');
+const { getCompleteImageUrl } = require('../../utils/imageUrlHelper');
 
 /**
  * Get activity logs for current admin
@@ -39,24 +40,38 @@ exports.getMyActivityLogs = async (req, res) => {
  */
 exports.getAllActivityLogs = async (req, res) => {
     try {
-        const { limit = 50, offset = 0, action, adminId } = req.query;
+        const { action, adminId } = req.query;
 
-        const result = await getAllActivityLogs({
-            limit: parseInt(limit),
-            offset: parseInt(offset),
-            action,
-            adminId: adminId ? parseInt(adminId) : null
+        const where = {};
+        if (action) {
+            where.action = action;
+        }
+        if (adminId) {
+            where.adminId = parseInt(adminId);
+        }
+
+        const logs = await db.AdminActivityLog.findAll({
+            where,
+            order: [['createdAt', 'DESC']],
+            include: [{
+                model: db.Admin,
+                as: 'admin',
+                attributes: ['id', 'email', 'firstName', 'lastName', 'profilePicture']
+            }]
+        });
+
+        // Process profile pictures to include complete URLs
+        const processedLogs = logs.map(log => {
+            const logData = log.toJSON ? log.toJSON() : log;
+            if (logData.admin && logData.admin.profilePicture) {
+                logData.admin.profilePicture = getCompleteImageUrl(logData.admin.profilePicture);
+            }
+            return logData;
         });
 
         res.json({
             success: true,
-            data: result.rows,
-            pagination: {
-                total: result.count,
-                limit: parseInt(limit),
-                offset: parseInt(offset),
-                pages: Math.ceil(result.count / parseInt(limit))
-            }
+            data: processedLogs
         });
     } catch (error) {
         res.status(500).json({

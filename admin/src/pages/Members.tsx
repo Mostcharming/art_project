@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ActivityLog from "../components/ActivityLog";
 import InviteModal from "../components/InviteModal";
 import RoleSection from "../components/members/RoleSection";
 import { useFetchMembersPageData } from "../hooks/useFetchMembersPageData";
@@ -45,6 +46,7 @@ const PlusIcon = () => (
 export default function Index() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showActivityLog, setShowActivityLog] = useState(false);
   const roles = useMembersStore((s) => s.roles);
   const isLoading = useMembersStore((s) => s.isLoading);
   const error = useMembersStore((s) => s.error);
@@ -125,7 +127,10 @@ export default function Index() {
                   Export CSV
                 </span>
               </button>
-              <button className="px-3.5 py-2.5 rounded-lg bg-[#363b45] hover:bg-[#1e2538] transition-colors cursor-pointer">
+              <button
+                onClick={() => setShowActivityLog(true)}
+                className="px-3.5 py-2.5 rounded-lg bg-[#363b45] hover:bg-[#1e2538] transition-colors cursor-pointer"
+              >
                 <span className="text-[#CECFD2] text-sm font-semibold leading-5 px-0.5">
                   View Activity Log
                 </span>
@@ -188,6 +193,25 @@ export default function Index() {
             }}
           />
         </div>
+      )}
+
+      {/* Activity Log Overlay and Panel */}
+      {showActivityLog && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowActivityLog(false)}
+          />
+
+          {/* Activity Log Panel — slide in from right */}
+          <div
+            className={`fixed top-0 right-0 z-50 h-full transition-transform duration-300 ease-in-out ${
+              showActivityLog ? "translate-x-0" : "translate-x-full"
+            }`}
+          >
+            <ActivityLog onClose={() => setShowActivityLog(false)} />
+          </div>
+        </>
       )}
     </div>
   );
