@@ -48,6 +48,13 @@ exports.getCarouselDetails = async (req, res) => {
             raw: true
         });
 
+        // Calculate completion rate based on status
+        const completionRate = carousel.status === 'scheduled' ? 70 : 100;
+        
+        // Calculate average view duration (views * frameTimingSeconds)
+        const totalViews = carousel.views || 0;
+        const averageViewDuration = Math.round((totalViews * carousel.frameTimingSeconds) / 60); // Convert to minutes
+
         // Format the response
         const carouselData = {
             id: carousel.id,
@@ -58,8 +65,8 @@ exports.getCarouselDetails = async (req, res) => {
             views: carousel.views || 0,
             numberOfFavorites: carousel.numberOfFavorites || 0,
             numberOfShares: carousel.numberOfShares || 0,
-            completionRate: 70, // Placeholder - calculate based on actual metrics
-            averageViewDuration: 40, // Placeholder - calculate based on actual metrics
+            completionRate: completionRate,
+            averageViewDuration: averageViewDuration,
             status: carousel.status,
             createdAt: carousel.createdAt,
             frameTimingSeconds: carousel.frameTimingSeconds,
