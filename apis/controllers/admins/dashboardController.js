@@ -278,7 +278,7 @@ exports.getTopCarousels = async (req, res) => {
                     model: db.Artwork,
                     as: 'artworks',
                     attributes: ['id', 'imageUrl'],
-                    where: { isDeleted: false, status: 'active' },
+                    where: { isDeleted: false, },
                     required: false
                 }
             ],
