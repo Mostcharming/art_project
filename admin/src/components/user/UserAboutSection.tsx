@@ -1,3 +1,5 @@
+import { getCountryFlag } from "../../utils/countryFlags";
+
 interface UserAboutSectionProps {
   userType: "Publisher" | "Viewer";
   bio?: string;
@@ -11,32 +13,6 @@ interface UserAboutSectionProps {
   dateJoined: string;
   website?: string;
   email: string;
-}
-
-function NigeriaFlag() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <g clipPath="url(#ng-clip)">
-        <path
-          d="M10 20C15.5228 20 20 15.5228 20 10C20 4.47715 15.5228 0 10 0C4.47715 0 0 4.47715 0 10C0 15.5228 4.47715 20 10 20Z"
-          fill="#F0F0F0"
-        />
-        <path
-          d="M-0.000366211 10.0002C-0.000366211 14.2999 2.71338 17.9653 6.52139 19.3782V0.622223C2.71338 2.03511 -0.000366211 5.70058 -0.000366211 10.0002Z"
-          fill="#6DA544"
-        />
-        <path
-          d="M19.9999 10.0002C19.9999 5.70058 17.2862 2.03511 13.4781 0.622223V19.3783C17.2862 17.9653 19.9999 14.2999 19.9999 10.0002Z"
-          fill="#6DA544"
-        />
-      </g>
-      <defs>
-        <clipPath id="ng-clip">
-          <rect width="20" height="20" fill="white" />
-        </clipPath>
-      </defs>
-    </svg>
-  );
 }
 
 function ExternalLinkIcon({ color = "#D8522E" }: { color?: string }) {
@@ -106,7 +82,7 @@ export default function UserAboutSection({
               Region
             </span>
             <div className="flex items-center gap-2">
-              <NigeriaFlag />
+              {getCountryFlag(region)}
               <span className="text-white font-medium text-base leading-6">
                 {region}
               </span>
