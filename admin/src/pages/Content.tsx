@@ -3,6 +3,7 @@ import CarouselTable from "../components/content/CarouselTable";
 import MetricCard from "../components/content/MetricCard";
 import { useContentData } from "../hooks/useContentData";
 import { useContentStore } from "../store/contentStore";
+import { exportCarouselsAsCSV } from "../utils/csvExport";
 
 function SearchIcon() {
   return (
@@ -39,7 +40,12 @@ export default function Index() {
   // Fetch content data
   useContentData(filters);
 
-  const { stats } = useContentStore();
+  const { stats, carousels } = useContentStore();
+
+  // Handle CSV export
+  const handleExportCSV = () => {
+    exportCarouselsAsCSV(carousels);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -106,7 +112,10 @@ export default function Index() {
               </div>
 
               {/* Export CSV button */}
-              <button className="flex items-center justify-center gap-1 px-3.5 py-2.5 rounded-lg border border-gray-900 bg-gray-600 text-white text-sm font-semibold hover:bg-gray-500 transition-colors shadow-sm">
+              <button
+                onClick={handleExportCSV}
+                className="flex items-center justify-center gap-1 px-3.5 py-2.5 rounded-lg border border-gray-900 bg-gray-600 text-white text-sm font-semibold hover:bg-gray-500 transition-colors shadow-sm"
+              >
                 <span className="px-0.5">Export CSV</span>
               </button>
             </div>
