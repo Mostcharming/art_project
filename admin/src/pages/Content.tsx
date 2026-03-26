@@ -3,7 +3,7 @@ import { useState } from "react";
 
 export default function Content() {
   const [isLoading, setIsLoading] = useState(true);
-
+  console.log("Content page loading state:", setIsLoading);
   if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto">
