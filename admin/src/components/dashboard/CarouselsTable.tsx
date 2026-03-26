@@ -158,13 +158,13 @@ export default function CarouselsTable() {
                 </td>
                 {/* Art Category */}
                 <td className="h-[72px] px-6">
-                  <span className="text-sm text-gray-500 leading-5">
+                  <span className="text-sm text-white leading-5">
                     {carousel.artCategory}
                   </span>
                 </td>
                 {/* Submission Date */}
                 <td className="h-[72px] px-6">
-                  <span className="text-sm text-gray-500 leading-5">
+                  <span className="text-sm text-white leading-5">
                     {carousel.createdAt}
                   </span>
                 </td>
@@ -174,7 +174,7 @@ export default function CarouselsTable() {
                     className={`inline-flex items-center px-3 py-1 rounded-md border text-xs font-medium leading-5 ${
                       creatorTypeColors[
                         carousel.publisherType as CreatorType
-                      ] || "border text-gray-500 bg-gray-800"
+                      ] || "border text-white bg-gray-800"
                     }`}
                   >
                     {carousel.publisherType}

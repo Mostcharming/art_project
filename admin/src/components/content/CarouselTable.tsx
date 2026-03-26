@@ -3,7 +3,7 @@ import { useContentStore } from "../../store/contentStore";
 
 function TypeBadge({ type }: { type: string }) {
   return (
-    <span className="inline-flex items-center px-3 py-1 rounded-md border border-gray-500 text-gray-500 text-xs font-medium whitespace-nowrap">
+    <span className="inline-flex items-center px-3 py-1 rounded-md border border-gray-500 text-white text-xs font-medium whitespace-nowrap">
       {type}
     </span>
   );
@@ -139,25 +139,25 @@ export default function CarouselTable({
                 </td>
                 {/* Creator Name */}
                 <td className="px-6 py-4 h-[72px]">
-                  <span className="text-gray-500 text-sm font-semibold">
+                  <span className="text-white text-sm font-semibold">
                     {carousel.publisherName}
                   </span>
                 </td>
                 {/* Carousel Length */}
                 <td className="px-6 py-4 h-[72px]">
-                  <span className="text-gray-500 text-sm">
+                  <span className="text-white text-sm">
                     {carousel.carouselLength}
                   </span>
                 </td>
                 {/* Art Category */}
                 <td className="px-6 py-4 h-[72px]">
-                  <span className="text-gray-500 text-sm">
+                  <span className="text-white text-sm">
                     {carousel.artCategory}
                   </span>
                 </td>
                 {/* Submission Date */}
                 <td className="px-6 py-4 h-[72px]">
-                  <span className="text-gray-500 text-sm">
+                  <span className="text-white text-sm">
                     {carousel.createdAt}
                   </span>
                 </td>
