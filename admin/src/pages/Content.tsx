@@ -1,92 +1,237 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import CarouselTable from "../components/content/CarouselTable";
+import MetricCard from "../components/content/MetricCard";
+import { useContentData } from "../hooks/useContentData";
+import { useContentStore } from "../store/contentStore";
 
-export default function Content() {
-  const [isLoading, setIsLoading] = useState(true);
-  console.log("Content page loading state:", setIsLoading);
-  if (isLoading) {
-    return (
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1
-              className="text-3xl font-bold text-white mb-2"
-              style={{ fontFamily: "BankGothicBold" }}
-            >
-              Content
-            </h1>
-            <p className="text-gray-400">
-              Review and manage all uploaded artwork and carousels.
-            </p>
-          </div>
-        </div>
+function SearchIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M17.5 17.5L14.5834 14.5833M16.6667 9.58333C16.6667 13.4954 13.4954 16.6667 9.58333 16.6667C5.67132 16.6667 2.5 13.4954 2.5 9.58333C2.5 5.67132 5.67132 2.5 9.58333 2.5C13.4954 2.5 16.6667 5.67132 16.6667 9.58333Z"
+        stroke="#94969C"
+        strokeWidth="1.66667"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
-        {/* Loading skeleton grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div
-              key={i}
-              className="bg-[#1a1a2e] rounded-lg border border-gray-700 overflow-hidden animate-pulse"
-            >
-              <div className="aspect-video bg-gray-700"></div>
-              <div className="p-4 space-y-4">
-                <div className="h-4 bg-gray-700 rounded w-3/4"></div>
-                <div className="space-y-2">
-                  <div className="h-3 bg-gray-700 rounded"></div>
-                  <div className="h-3 bg-gray-700 rounded w-5/6"></div>
-                </div>
-                <div className="flex gap-2">
-                  <div className="flex-1 h-8 bg-gray-700 rounded"></div>
-                  <div className="flex-1 h-8 bg-gray-700 rounded"></div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+type Tab = "statistics" | "moderation";
+
+export default function Index() {
+  const [activeTab, setActiveTab] = useState<Tab>("statistics");
+  const [searchValue, setSearchValue] = useState("");
+  const activePeriod = "12 months";
+
+  // Build filter parameters
+  const filters = useMemo(() => {
+    return { period: activePeriod };
+  }, [activePeriod]);
+
+  // Fetch content data
+  useContentData(filters);
+
+  const { stats } = useContentStore();
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Content</h1>
-          <p className="text-gray-400">Manage your content here.</p>
-        </div>
-        <button className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-medium transition-colors">
-          Add Content
-        </button>
-      </div>
+    <div className="min-h-screen bg-background">
+      <div className="flex flex-col gap-8 py-8 pb-12">
+        {/* Header Section */}
+        <div className="flex flex-col gap-6">
+          <div className="px-8 flex flex-col gap-6">
+            {/* Page header: title + search */}
+            <div className="flex flex-wrap items-center gap-4 justify-between">
+              <div className="flex flex-col gap-1 min-w-[200px]">
+                <h1
+                  className="text-white text-[30px] leading-[38px] tracking-wide uppercase"
+                  style={{ fontFamily: "BankGothicBold" }}
+                >
+                  Content Management
+                </h1>
+                <p className="text-gray-400 text-base font-normal">
+                  Review and manage all uploaded artwork and carousels.
+                </p>
+              </div>
 
-      {/* Content grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div
-            key={i}
-            className="bg-[#oc111d] rounded-lg border border-gray-700 overflow-hidden hover:border-gray-600 transition-colors"
-          >
-            <div className="aspect-video bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
-              <span className="text-4xl">📋</span>
-            </div>
-            <div className="p-4">
-              <h3 className="text-white font-semibold mb-2">
-                Content Item {i}
-              </h3>
-              <p className="text-gray-400 text-sm mb-4">
-                Description of content item {i}
-              </p>
-              <div className="flex gap-2">
-                <button className="flex-1 px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-gray-300 rounded transition-colors">
-                  Edit
-                </button>
-                <button className="flex-1 px-3 py-2 text-sm bg-red-600 bg-opacity-20 hover:bg-opacity-30 text-red-400 rounded transition-colors">
-                  Delete
-                </button>
+              {/* Search input */}
+              <div className="w-full max-w-[382px]">
+                <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-lg border border-gray-500 shadow-sm">
+                  <SearchIcon />
+                  <input
+                    type="text"
+                    placeholder="Search"
+                    value={searchValue}
+                    onChange={(e) => setSearchValue(e.target.value)}
+                    className="flex-1 text-white text-base placeholder:text-text-placeholder outline-none"
+                  />
+                </div>
               </div>
             </div>
+
+            {/* Divider */}
+            <div className="h-px bg-gray-500" />
+
+            {/* Tabs + Export CSV */}
+            <div className="flex items-center gap-4 flex-wrap justify-between">
+              {/* Tab bar */}
+              <div className="flex items-center gap-1 p-1.5 rounded-xl border border-gray-500">
+                <button
+                  onClick={() => setActiveTab("statistics")}
+                  className={`h-11 px-3 flex items-center justify-center gap-2 rounded-md text-base font-semibold transition-all ${
+                    activeTab === "statistics"
+                      ? "bg-gray-500 text-white shadow-sm"
+                      : "text-gray-400 hover:text-gray-400"
+                  }`}
+                >
+                  Content Statistics
+                </button>
+                <button
+                  onClick={() => setActiveTab("moderation")}
+                  className={`h-11 px-3 flex items-center justify-center gap-2 rounded-md text-base font-semibold transition-all ${
+                    activeTab === "moderation"
+                      ? "bg-gray-500 text-white shadow-sm"
+                      : "text-gray-400 hover:text-gray-400"
+                  }`}
+                >
+                  Content Moderation
+                </button>
+              </div>
+
+              {/* Export CSV button */}
+              <button className="flex items-center justify-center gap-1 px-3.5 py-2.5 rounded-lg border border-gray-900 bg-gray-600 text-white text-sm font-semibold hover:bg-gray-500 transition-colors shadow-sm">
+                <span className="px-0.5">Export CSV</span>
+              </button>
+            </div>
           </div>
-        ))}
+        </div>
+
+        {/* Content Statistics Tab */}
+        {activeTab === "statistics" && (
+          <>
+            {/* Metric Cards */}
+            <div className="px-6">
+              <div className="flex flex-col sm:flex-row gap-6 items-stretch">
+                {stats ? (
+                  <>
+                    <MetricCard
+                      heading="Total Views"
+                      value={
+                        stats.totalViews >= 1000000
+                          ? (stats.totalViews / 1000000).toFixed(1) + " M"
+                          : (stats.totalViews / 1000).toFixed(1) + " K"
+                      }
+                      trend={
+                        stats.totalViewsPercentage >= 0
+                          ? "positive"
+                          : "negative"
+                      }
+                      percentage={Math.abs(stats.totalViewsPercentage).toFixed(
+                        0
+                      )}
+                    />
+                    <MetricCard
+                      heading="Average Watch Time (mins)"
+                      value={stats.averageWatchTime + " mins"}
+                      trend={
+                        stats.averageWatchTimePercentage >= 0
+                          ? "positive"
+                          : "negative"
+                      }
+                      percentage={Math.abs(
+                        stats.averageWatchTimePercentage
+                      ).toFixed(0)}
+                    />
+                    <MetricCard
+                      heading="Engagement Rate"
+                      value={stats.engagementRate + "%"}
+                      trend={
+                        stats.engagementRatePercentage >= 0
+                          ? "positive"
+                          : "negative"
+                      }
+                      percentage={Math.abs(
+                        stats.engagementRatePercentage
+                      ).toFixed(0)}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <MetricCard
+                      heading="Total Views"
+                      value="0"
+                      trend="positive"
+                      percentage="0"
+                    />
+                    <MetricCard
+                      heading="Average Watch Time (mins)"
+                      value="0 mins"
+                      trend="positive"
+                      percentage="0"
+                    />
+                    <MetricCard
+                      heading="Engagement Rate"
+                      value="0%"
+                      trend="positive"
+                      percentage="0"
+                    />
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Table Section */}
+            <div className="flex flex-col gap-6">
+              <CarouselTable />
+            </div>
+          </>
+        )}
+
+        {/* Content Moderation Tab */}
+        {activeTab === "moderation" && (
+          <div className="px-8 flex items-center justify-center py-24">
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full bg-surface border border-gray-400 flex items-center justify-center mx-auto mb-4">
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="#94969C"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M12 8V12M12 16H12.01"
+                    stroke="#94969C"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-white text-lg font-semibold mb-2">
+                Content Moderation
+              </h3>
+              <p className="text-gray-400 text-sm max-w-sm">
+                This section is under development. Continue prompting to build
+                out this page's content.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

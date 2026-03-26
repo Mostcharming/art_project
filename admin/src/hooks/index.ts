@@ -4,6 +4,8 @@ export type {
   ApiMutationOptions,
   ApiResponse,
 } from "./useApiMutation";
+export { useContentData } from "./useContentData";
+export { useDashboardData } from "./useDashboardData";
 export { useFetchUserDetails } from "./useFetchUserDetails";
 export type { UserDetails } from "./useFetchUserDetails";
 export {
