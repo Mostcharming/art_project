@@ -1,4 +1,5 @@
 import { type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import { useContentStore } from "../../store/contentStore";
 
 function TypeBadge({ type }: { type: string }) {
@@ -66,6 +67,7 @@ export default function CarouselTable({
   onPageChange,
 }: CarouselTableProps) {
   const { carousels, totalCarousels, pageSize } = useContentStore();
+  const navigate = useNavigate();
 
   return (
     <div className="flex flex-col gap-6">
@@ -123,7 +125,8 @@ export default function CarouselTable({
             {carousels.map((carousel) => (
               <tr
                 key={carousel.id}
-                className="border-b border-gray-500 transition-colors hover:bg-surface-hover"
+                onClick={() => navigate(`/content/${carousel.id}`)}
+                className="border-b border-gray-500 transition-colors hover:bg-surface-hover cursor-pointer"
               >
                 {/* Carousel Title */}
                 <td className="px-6 py-4 h-[72px]">

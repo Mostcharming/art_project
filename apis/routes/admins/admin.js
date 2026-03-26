@@ -10,6 +10,7 @@ const privilegeController = require('../../controllers/admins/privilegeControlle
 const activityLogController = require('../../controllers/admins/activityLogController');
 const usersController = require('../../controllers/admins/usersController');
 const dashboardController = require('../../controllers/admins/dashboardController');
+const carouselController = require('../../controllers/admins/carouselController');
 
 /**
  * @route   POST /api/admin/auth/register
@@ -372,5 +373,12 @@ router.get('/dashboard/monthly-data', verifyToken, dashboardController.getMonthl
  * @access  Private
  */
 router.get('/dashboard/top-carousels', verifyToken, dashboardController.getTopCarousels);
+
+/**
+ * @route   GET /api/admin/carousels/:carouselId
+ * @desc    Get single carousel details with publisher and artworks
+ * @access  Private
+ */
+router.get('/carousels/:carouselId', verifyToken, carouselController.getCarouselDetails);
 
 module.exports = router;

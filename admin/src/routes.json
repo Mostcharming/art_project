@@ -14,5 +14,6 @@
   { "path": "/users/:userId", "element": "UserDetails" },
   { "path": "/members", "element": "Members" },
   { "path": "/members/:id", "element": "AdminDetails" },
+  { "path": "/content/:carouselId", "element": "CarouselDetails" },
   { "path": "/profile", "element": "Profile" }
 ]

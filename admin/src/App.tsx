@@ -7,6 +7,7 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import ForgotPasswordTokenPage from "./pages/auth/ForgotPasswordTokenPage";
 import Login from "./pages/auth/Login";
 import TokenPage from "./pages/auth/TokenPage";
+import CarouselDetails from "./pages/CarouselDetails";
 import Content from "./pages/Content";
 import Dashboard from "./pages/Dashboard";
 import Home from "./pages/Home";
@@ -27,6 +28,7 @@ const routeComponents: Record<string, React.FC> = {
   TokenPage,
   Dashboard,
   AdminDetails,
+  CarouselDetails,
   Content,
   Users,
   Members,
@@ -48,6 +50,7 @@ function App({ routes }: AppProps) {
   const protectedRoutes = [
     "Dashboard",
     "Content",
+    "CarouselDetails",
     "Users",
     "Members",
     "AdminDetails",

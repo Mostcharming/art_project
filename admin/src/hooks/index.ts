@@ -6,6 +6,12 @@ export type {
 } from "./useApiMutation";
 export { useContentData } from "./useContentData";
 export { useDashboardData } from "./useDashboardData";
+export { useFetchCarouselDetails } from "./useFetchCarouselDetails";
+export type {
+  Artwork,
+  CarouselDetails,
+  Publisher,
+} from "./useFetchCarouselDetails";
 export { useFetchUserDetails } from "./useFetchUserDetails";
 export type { UserDetails } from "./useFetchUserDetails";
 export {
