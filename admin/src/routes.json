@@ -11,6 +11,7 @@
   { "path": "/dashboard", "element": "Dashboard" },
   { "path": "/content", "element": "Content" },
   { "path": "/users", "element": "Users" },
+  { "path": "/users/:userId", "element": "UserDetails" },
   { "path": "/members", "element": "Members" },
   { "path": "/members/:id", "element": "AdminDetails" },
   { "path": "/profile", "element": "Profile" }

@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import type { CategoryType, StatusType } from "./UserBadges";
 import { CategoryBadge, StatusBadge } from "./UserBadges";
 
@@ -58,6 +59,8 @@ export default function UsersTable({
   users,
   isLoading = false,
 }: UsersTableProps) {
+  const navigate = useNavigate();
+
   const filtered = useMemo(() => {
     let result = users || [];
 
@@ -126,7 +129,8 @@ export default function UsersTable({
             filtered.map((user: User, idx: number) => (
               <tr
                 key={`${user.id}-${idx}`}
-                className=" border-b border-[#1F242F] hover:bg-[#161B26] transition-colors"
+                onClick={() => navigate(`/users/${user.userId}`)}
+                className="border-b border-[#1F242F] hover:bg-[#161B26] transition-colors cursor-pointer"
               >
                 {/* Full Name */}
                 <td className="px-6 py-4">

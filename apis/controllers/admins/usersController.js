@@ -204,17 +204,17 @@ exports.getUsersStatistics = async (req, res) => {
         const categoryData = [
             {
                 name: 'Artists',
-                value: publishersByCategory.find(p => p.personaType === 'Artist')?.count || 0,
+                value: parseInt(publishersByCategory.find(p => p.personaType === 'Artist')?.count || 0),
                 color: '#475467'
             },
             {
                 name: 'Art Galleries',
-                value: publishersByCategory.find(p => p.personaType === 'Gallery')?.count || 0,
+                value: parseInt(publishersByCategory.find(p => p.personaType === 'Gallery')?.count || 0),
                 color: '#D8522E'
             },
             {
                 name: 'Collectors',
-                value: publishersByCategory.find(p => p.personaType === 'Collector')?.count || 0,
+                value: parseInt(publishersByCategory.find(p => p.personaType === 'Collector')?.count || 0),
                 color: '#BA24D5'
             },
             {

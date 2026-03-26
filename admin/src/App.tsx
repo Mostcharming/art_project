@@ -15,6 +15,7 @@ import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./pages/ProtectedRoute";
 import ResetPassword from "./pages/ResetPassword";
+import UserDetails from "./pages/UserDetails";
 import Users from "./pages/Users";
 
 const routeComponents: Record<string, React.FC> = {
@@ -31,6 +32,7 @@ const routeComponents: Record<string, React.FC> = {
   Members,
   Profile,
   NotFound,
+  UserDetails,
 };
 
 export interface RouteConfig {
@@ -50,6 +52,7 @@ function App({ routes }: AppProps) {
     "Members",
     "AdminDetails",
     "Profile",
+    "UserDetails",
   ];
   return (
     <BrowserRouter>
