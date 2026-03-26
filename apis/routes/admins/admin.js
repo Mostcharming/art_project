@@ -9,6 +9,7 @@ const roleController = require('../../controllers/admins/roleController');
 const privilegeController = require('../../controllers/admins/privilegeController');
 const activityLogController = require('../../controllers/admins/activityLogController');
 const usersController = require('../../controllers/admins/usersController');
+const dashboardController = require('../../controllers/admins/dashboardController');
 
 /**
  * @route   POST /api/admin/auth/register
@@ -344,5 +345,32 @@ router.put('/users/:userId/ban', verifyToken, usersController.banUser);
  * @access  Private
  */
 router.put('/users/:userId/reactivate', verifyToken, usersController.reactivateUser);
+
+/**
+ * ==========================================
+ * DASHBOARD ROUTES
+ * ==========================================
+ */
+
+/**
+ * @route   GET /api/admin/dashboard/stats
+ * @desc    Get dashboard statistics (users, carousels, views, favorites)
+ * @access  Private
+ */
+router.get('/dashboard/stats', verifyToken, dashboardController.getDashboardStats);
+
+/**
+ * @route   GET /api/admin/dashboard/monthly-data
+ * @desc    Get monthly chart data for the dashboard
+ * @access  Private
+ */
+router.get('/dashboard/monthly-data', verifyToken, dashboardController.getMonthlyData);
+
+/**
+ * @route   GET /api/admin/dashboard/top-carousels
+ * @desc    Get top performing carousels
+ * @access  Private
+ */
+router.get('/dashboard/top-carousels', verifyToken, dashboardController.getTopCarousels);
 
 module.exports = router;

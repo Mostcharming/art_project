@@ -1,3 +1,5 @@
+import { useDashboardStore } from "../../store/dashboardStore";
+
 const TrendUpIcon = () => (
   <svg
     width="20"
@@ -52,30 +54,55 @@ function MetricCard({ label, value, change, large }: MetricProps) {
   );
 }
 
-const xLabels = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-
 export default function StatsSection() {
+  const { stats, monthlyChartData } = useDashboardStore();
+
+  // Format numbers for display
+  const formatNumber = (num: number) => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1) + "M";
+    }
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1) + "K";
+    }
+    return num.toString();
+  };
+
+  // Get max value for chart scaling
+  const maxValue =
+    monthlyChartData.length > 0
+      ? Math.max(...monthlyChartData.map((d) => d.value))
+      : 100;
+
+  // Generate chart path
+  const chartWidth = 891;
+  const chartHeight = 166;
+  const cellWidth = chartWidth / (monthlyChartData.length || 12);
+
+  const points = monthlyChartData.map((d, i) => {
+    const x = (i + 0.5) * cellWidth;
+    const y = chartHeight - (d.value / maxValue) * chartHeight;
+    return { x, y, value: d.value };
+  });
+
+  const pathData =
+    points.length > 0
+      ? `M${points.map((p) => `${p.x} ${p.y}`).join("L")}`
+      : "M0 83L891 83";
+
+  const areaData =
+    points.length > 0
+      ? `M${points.map((p) => `${p.x} ${p.y}`).join("L")}L891 166L0 166Z`
+      : "M0 83L891 83L891 166L0 166Z";
+
   return (
     <div className="flex flex-col lg:flex-row items-start gap-8 px-4 sm:px-8 pb-6 border-b border-gray-500">
       {/* Chart + primary metric */}
       <div className="flex-1 min-w-0 flex flex-col gap-4">
         <MetricCard
           label="Total Active Users"
-          value="180.8K"
-          change="7.4%"
+          value={formatNumber(stats?.totalActiveUsers || 0)}
+          change={`${stats?.newUsersPercentage || 0}%`}
           large
         />
 
@@ -115,14 +142,11 @@ export default function StatsSection() {
                 <stop offset="1" stopColor="#D8522E" stopOpacity="0" />
               </linearGradient>
             </defs>
-            <path
-              d="M0 93.8542L20.1926 90.3091L41.0163 88.6552L61.8399 91.963L83.2946 90.3091H104.749L125.573 88.6552H145.135L165.327 86.45L185.52 88.6552L209.499 84.796L227.167 86.45L246.098 84.796L265.028 83.1421L289.007 84.796L306.676 83.1421L323.082 79.8343L345.168 76.5265L367.254 73.7699H389.339L412.687 72.116L429.093 73.7699H438.559L454.334 76.5265L472.634 81.4882L491.564 83.1421H498.506L514.281 76.5265L530.688 73.7699L545.201 72.116L573.597 70.4621L583.062 66.6029L603.886 64.949L627.865 63.2951H637.961C641.958 63.8464 650.203 64.949 651.212 64.949C652.222 64.949 665.095 66.0516 671.405 66.6029L687.812 70.4621H707.373L726.304 66.6029L739.555 68.2569L764.796 70.4621L780.572 68.2569L807.705 66.6029C810.86 66.0516 817.423 64.949 818.433 64.949C819.442 64.949 826.426 63.1113 829.791 62.1925H842.411L851.877 56.6794H872.069L891 50.7917V212H0V93.8542Z"
-              fill="url(#chartGradient)"
-            />
+            <path d={areaData} fill="url(#chartGradient)" />
 
             {/* Line */}
             <path
-              d="M0 93.8542L20.1926 90.3091L41.0163 88.6552L61.8399 91.963L83.2946 90.3091H104.749L125.573 88.6552H145.135L165.327 86.45L185.52 88.6552L209.499 84.796L227.167 86.45L246.098 84.796L265.028 83.1421L289.007 84.796L306.676 83.1421L323.082 79.8343L345.168 76.5265L367.254 73.7699H389.339L412.687 72.116L429.093 73.7699H438.559L454.334 76.5265L472.634 81.4882L491.564 83.1421H498.506L514.281 76.5265L530.688 73.7699L545.201 72.116L573.597 70.4621L583.062 66.6029L603.886 64.949L627.865 63.2951H637.961C641.958 63.8464 650.203 64.949 651.212 64.949C652.222 64.949 665.095 66.0516 671.405 66.6029L687.812 70.4621H707.373L726.304 66.6029L739.555 68.2569L764.796 70.4621L780.572 68.2569L807.705 66.6029C810.86 66.0516 817.423 64.949 818.433 64.949C819.442 64.949 826.426 63.1113 829.791 62.1925H842.411L851.877 56.6794H872.069L891 50.7917"
+              d={pathData}
               stroke="#D8522E"
               strokeWidth="2"
               strokeLinecap="round"
@@ -133,12 +157,12 @@ export default function StatsSection() {
 
           {/* X-axis labels */}
           <div className="flex justify-between px-6 mt-1">
-            {xLabels.map((label) => (
+            {monthlyChartData.map((d, i) => (
               <span
-                key={label}
+                key={i}
                 className="text-xs text-gray-300 text-center leading-[18px] font-body"
               >
-                {label}
+                {d.month}
               </span>
             ))}
           </div>
@@ -147,13 +171,21 @@ export default function StatsSection() {
 
       {/* Right metrics */}
       <div className="flex flex-row lg:flex-col flex-wrap gap-5 lg:w-60 lg:shrink-0">
-        <MetricCard label="Active Publishers" value="4,862" change="9.2%" />
         <MetricCard
-          label="Total Carousels Uploaded"
-          value="2,671"
-          change="6.6%"
+          label="Total Carousels"
+          value={formatNumber(stats?.totalCarousels || 0)}
+          change={`${stats?.totalCarouselsPercentage || 0}%`}
         />
-        <MetricCard label="Total TV app views" value="82.7M" change="8.1%" />
+        <MetricCard
+          label="Total Views"
+          value={formatNumber(stats?.totalViews || 0)}
+          change={`${stats?.totalViewsPercentage || 0}%`}
+        />
+        <MetricCard
+          label="Total Favorites"
+          value={formatNumber(stats?.totalFavorites || 0)}
+          change={`${stats?.totalFavoritesPercentage || 0}%`}
+        />
       </div>
     </div>
   );

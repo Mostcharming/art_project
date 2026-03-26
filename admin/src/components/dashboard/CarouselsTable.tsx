@@ -1,99 +1,9 @@
 import { useState } from "react";
+import { useDashboardStore } from "../../store/dashboardStore";
 
 type CreatorType = "Artist" | "Collector" | "Art Gallery";
 
-interface Carousel {
-  id: number;
-  title: string;
-  image: string;
-  creatorName: string;
-  carouselLength: number;
-  artCategory: string;
-  submissionDate: string;
-  creatorType: CreatorType;
-}
-
-const carousels: Carousel[] = [
-  {
-    id: 1,
-    title: "Halos Of Life",
-    image:
-      "https://api.builder.io/api/v1/image/assets/TEMP/f9caed0d21469b65e7b266691dea379620974313?width=80",
-    creatorName: "Mike Afolarin",
-    carouselLength: 10,
-    artCategory: "Abstract",
-    submissionDate: "1/1/2025",
-    creatorType: "Artist",
-  },
-  {
-    id: 2,
-    title: "Tea or Coffee",
-    image:
-      "https://api.builder.io/api/v1/image/assets/TEMP/2e3c1a0190690e4c56103686a548f8497ab2f787?width=80",
-    creatorName: "Sofia Torres",
-    carouselLength: 30,
-    artCategory: "Photography",
-    submissionDate: "4/1/2025",
-    creatorType: "Collector",
-  },
-  {
-    id: 3,
-    title: "Man on Fire",
-    image:
-      "https://api.builder.io/api/v1/image/assets/TEMP/755e5d72c5990f38997f81ba18c598ef51415f2b?width=80",
-    creatorName: "Rahul Patel",
-    carouselLength: 25,
-    artCategory: "Modern",
-    submissionDate: "3/1/2025",
-    creatorType: "Art Gallery",
-  },
-  {
-    id: 4,
-    title: "Marketplace",
-    image:
-      "https://api.builder.io/api/v1/image/assets/TEMP/648916da02f7f4a3c58a13399440e80404196d8e?width=80",
-    creatorName: "Ethan Kim",
-    carouselLength: 10,
-    artCategory: "NFT",
-    submissionDate: "5/1/2025",
-    creatorType: "Artist",
-  },
-  {
-    id: 5,
-    title: "The upside down",
-    image:
-      "https://api.builder.io/api/v1/image/assets/TEMP/e1b7c2d3a4f5e6789012345678901234567890ab?width=80",
-    creatorName: "Jessica Lin",
-    carouselLength: 22,
-    artCategory: "Historic",
-    submissionDate: "2/1/2025",
-    creatorType: "Artist",
-  },
-  {
-    id: 6,
-    title: "Colonial Monkey",
-    image:
-      "https://api.builder.io/api/v1/image/assets/TEMP/a1b2c3d4e5f6789012345678901234567890abcd?width=80",
-    creatorName: "Leila Ali",
-    carouselLength: 32,
-    artCategory: "Hyper- realism",
-    submissionDate: "6/1/2025",
-    creatorType: "Art Gallery",
-  },
-  {
-    id: 7,
-    title: "YTRNW",
-    image:
-      "https://api.builder.io/api/v1/image/assets/TEMP/b2c3d4e5f6a789012345678901234567890abcde?width=80",
-    creatorName: "Gbemidele Aderigbe",
-    carouselLength: 40,
-    artCategory: "African",
-    submissionDate: "1/1/2025",
-    creatorType: "Collector",
-  },
-];
-
-const creatorTypeColors: Record<CreatorType, string> = {
+const creatorTypeColors: Record<string, string> = {
   Artist: "border text-gray-500 bg-gray-800",
   Collector: "border text-gray-500 bg-gray-800",
   "Art Gallery": "border text-gray-500 bg-gray-800",
@@ -137,10 +47,29 @@ function AvatarImage({
   );
 }
 
-const pages = [1, 2, 3, "...", 8, 9, 10];
-
 export default function CarouselsTable() {
   const [currentPage, setCurrentPage] = useState(1);
+  const { topCarousels, isLoadingCarousels } = useDashboardStore();
+
+  const itemsPerPage = 10;
+  const displayCarousels = topCarousels || [];
+  const totalPages = Math.ceil(displayCarousels.length / itemsPerPage);
+
+  const startIdx = (currentPage - 1) * itemsPerPage;
+  const paginatedCarousels = displayCarousels.slice(
+    startIdx,
+    startIdx + itemsPerPage
+  );
+
+  if (isLoadingCarousels) {
+    return (
+      <div className="flex flex-col gap-6 px-4 sm:px-8">
+        <div className="flex items-center justify-center py-12">
+          <span className="text-gray-400">Loading carousels...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6 px-4 sm:px-8">
@@ -197,7 +126,7 @@ export default function CarouselsTable() {
             </tr>
           </thead>
           <tbody>
-            {carousels.map((carousel) => (
+            {paginatedCarousels.map((carousel) => (
               <tr
                 key={carousel.id}
                 className="border-b border-gray-500 hover:bg-gray-500/30 transition-colors"
@@ -206,19 +135,19 @@ export default function CarouselsTable() {
                 <td className="h-[72px] px-6">
                   <div className="flex items-center gap-3">
                     <AvatarImage
-                      src={carousel.image}
-                      title={carousel.title}
+                      src={carousel.artworkImage || ""}
+                      title={carousel.name}
                       id={carousel.id}
                     />
                     <span className="text-sm font-medium text-white leading-5">
-                      {carousel.title}
+                      {carousel.name}
                     </span>
                   </div>
                 </td>
                 {/* Creator Name */}
                 <td className="h-[72px] px-6">
                   <span className="text-sm font-bold text-gray-300 leading-5">
-                    {carousel.creatorName}
+                    {carousel.publisherName}
                   </span>
                 </td>
                 {/* Carousel Length */}
@@ -236,17 +165,19 @@ export default function CarouselsTable() {
                 {/* Submission Date */}
                 <td className="h-[72px] px-6">
                   <span className="text-sm text-gray-500 leading-5">
-                    {carousel.submissionDate}
+                    {carousel.createdAt}
                   </span>
                 </td>
                 {/* Creator Type */}
                 <td className="h-[72px] px-6">
                   <span
                     className={`inline-flex items-center px-3 py-1 rounded-md border text-xs font-medium leading-5 ${
-                      creatorTypeColors[carousel.creatorType]
+                      creatorTypeColors[
+                        carousel.publisherType as CreatorType
+                      ] || "border text-gray-500 bg-gray-800"
                     }`}
                   >
-                    {carousel.creatorType}
+                    {carousel.publisherType}
                   </span>
                 </td>
               </tr>
@@ -283,10 +214,10 @@ export default function CarouselsTable() {
 
         {/* Page numbers */}
         <div className="flex items-center gap-0.5">
-          {pages.map((page, i) => (
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
             <button
-              key={i}
-              onClick={() => typeof page === "number" && setCurrentPage(page)}
+              key={page}
+              onClick={() => setCurrentPage(page)}
               className={[
                 "w-10 h-10 flex items-center justify-center rounded-lg text-sm font-medium leading-5 transition-colors",
                 page === currentPage
@@ -301,8 +232,9 @@ export default function CarouselsTable() {
 
         {/* Next */}
         <button
-          className="flex items-center gap-2 px-3.5 py-2 text-sm font-semibold text-gray-500 hover:text-gray-400 transition-colors"
-          onClick={() => setCurrentPage((p) => p + 1)}
+          className="flex items-center gap-2 px-3.5 py-2 text-sm font-semibold text-gray-500 hover:text-gray-400 transition-colors disabled:opacity-40"
+          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
         >
           Next
           <svg
