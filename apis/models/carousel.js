@@ -61,14 +61,54 @@ module.exports = (sequelize, DataTypes) => {
             comment: 'Frame timing per artwork in seconds'
         },
         status: {
-            type: DataTypes.ENUM('active', 'draft', 'scheduled'),
+            type: DataTypes.ENUM('active', 'draft', 'scheduled', 'flagged'),
             defaultValue: 'draft',
             comment: 'Status of the carousel'
+        },
+        flaggedReason: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            comment: 'Reason why the carousel was flagged'
+        },
+        additionalReason: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+            comment: 'Additional details about the flagged content'
+        },
+        adminApproved: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
+            comment: 'Whether the carousel has been approved by admin'
         },
         scheduledPublishDate: {
             type: DataTypes.DATE,
             allowNull: true,
             comment: 'Date and time when scheduled carousel should be published'
+        },
+        temporaryUnpublishStatus: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
+            comment: 'Flag to indicate if carousel is temporarily unpublished'
+        },
+        temporaryUnpublishStartDate: {
+            type: DataTypes.DATE,
+            allowNull: true,
+            comment: 'Start date for temporary unpublish'
+        },
+        temporaryUnpublishEndDate: {
+            type: DataTypes.DATE,
+            allowNull: true,
+            comment: 'End date for temporary unpublish'
+        },
+        temporaryUnpublishReason: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+            comment: 'Reason for temporary unpublishing'
+        },
+        removalReason: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+            comment: 'Reason for removal of the carousel'
         },
         isDeleted: {
             type: DataTypes.BOOLEAN,

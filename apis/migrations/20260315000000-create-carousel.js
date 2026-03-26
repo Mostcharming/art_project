@@ -67,16 +67,16 @@ module.exports = {
                 defaultValue: 0,
                 comment: 'Number of views for the carousel'
             },
-            numberOfFavorites: {
-                type: Sequelize.INTEGER,
-                defaultValue: 0,
-                comment: 'Number of times this carousel has been favorited'
-            },
-            numberOfShares: {
-                type: Sequelize.INTEGER,
-                defaultValue: 0,
-                comment: 'Number of times this carousel has been shared'
-            },
+            // numberOfFavorites: {
+            //     type: Sequelize.INTEGER,
+            //     defaultValue: 0,
+            //     comment: 'Number of times this carousel has been favorited'
+            // },
+            // numberOfShares: {
+            //     type: Sequelize.INTEGER,
+            //     defaultValue: 0,
+            //     comment: 'Number of times this carousel has been shared'
+            // },
             createdAt: {
                 allowNull: false,
                 type: Sequelize.DATE
