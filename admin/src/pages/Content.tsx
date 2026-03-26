@@ -1,4 +1,52 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { useState } from "react";
+
 export default function Content() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  if (isLoading) {
+    return (
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1
+              className="text-3xl font-bold text-white mb-2"
+              style={{ fontFamily: "BankGothicBold" }}
+            >
+              Content
+            </h1>
+            <p className="text-gray-400">
+              Review and manage all uploaded artwork and carousels.
+            </p>
+          </div>
+        </div>
+
+        {/* Loading skeleton grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div
+              key={i}
+              className="bg-[#1a1a2e] rounded-lg border border-gray-700 overflow-hidden animate-pulse"
+            >
+              <div className="aspect-video bg-gray-700"></div>
+              <div className="p-4 space-y-4">
+                <div className="h-4 bg-gray-700 rounded w-3/4"></div>
+                <div className="space-y-2">
+                  <div className="h-3 bg-gray-700 rounded"></div>
+                  <div className="h-3 bg-gray-700 rounded w-5/6"></div>
+                </div>
+                <div className="flex gap-2">
+                  <div className="flex-1 h-8 bg-gray-700 rounded"></div>
+                  <div className="flex-1 h-8 bg-gray-700 rounded"></div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto">
       <div className="mb-8 flex items-center justify-between">
