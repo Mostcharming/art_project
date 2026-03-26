@@ -472,3 +472,227 @@ exports.getUserDetailsById = async (req, res) => {
         });
     }
 };
+
+/**
+ * Suspend a user (Publisher or Viewer)
+ */
+exports.suspendUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { suspensionStartDate, suspensionEndDate, reasonForSuspension } = req.body;
+        const adminId = req.user?.id;
+
+        if (!suspensionStartDate || !suspensionEndDate || !reasonForSuspension) {
+            return res.status(400).json({
+                success: false,
+                message: 'Start date, end date, and reason are required'
+            });
+        }
+
+        let userType = null;
+        let actualId = null;
+
+        if (userId.startsWith('PUB-')) {
+            userType = 'publisher';
+            actualId = userId.replace('PUB-', '');
+        } else if (userId.startsWith('VIE-')) {
+            userType = 'viewer';
+            actualId = userId.replace('VIE-', '');
+        } else {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid user ID format'
+            });
+        }
+
+        const UserModel = userType === 'publisher' ? db.Publisher : db.Viewer;
+
+        const user = await UserModel.update(
+            {
+                status: 'suspended',
+                suspensionStartDate: new Date(suspensionStartDate),
+                suspensionEndDate: new Date(suspensionEndDate),
+                reasonForSuspension: reasonForSuspension
+            },
+            { where: { id: actualId } }
+        );
+
+        if (!user || user[0] === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        const { logActivity } = require('../../utils/adminActivityService');
+        await logActivity(adminId, 'SUSPEND_USER', {
+            entityType: userType === 'publisher' ? 'Publisher' : 'Viewer',
+            entityId: actualId,
+            details: {
+                startDate: suspensionStartDate,
+                endDate: suspensionEndDate,
+                reason: reasonForSuspension
+            }
+        });
+
+        res.json({
+            success: true,
+            message: 'User suspended successfully',
+            data: {
+                userId,
+                suspensionStartDate,
+                suspensionEndDate,
+                reasonForSuspension
+            }
+        });
+    } catch (error) {
+        console.error('Error suspending user:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error suspending user',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Ban a user (Publisher or Viewer)
+ */
+exports.banUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { reasonForBan } = req.body;
+        const adminId = req.user?.id;
+
+        if (!reasonForBan) {
+            return res.status(400).json({
+                success: false,
+                message: 'Reason for ban is required'
+            });
+        }
+
+        let userType = null;
+        let actualId = null;
+
+        if (userId.startsWith('PUB-')) {
+            userType = 'publisher';
+            actualId = userId.replace('PUB-', '');
+        } else if (userId.startsWith('VIE-')) {
+            userType = 'viewer';
+            actualId = userId.replace('VIE-', '');
+        } else {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid user ID format'
+            });
+        }
+
+        const UserModel = userType === 'publisher' ? db.Publisher : db.Viewer;
+
+        const user = await UserModel.update(
+            {
+                status: 'banned',
+                reasonForBan: reasonForBan
+            },
+            { where: { id: actualId } }
+        );
+
+        if (!user || user[0] === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        const { logActivity } = require('../../utils/adminActivityService');
+        await logActivity(adminId, 'BAN_USER', {
+            entityType: userType === 'publisher' ? 'Publisher' : 'Viewer',
+            entityId: actualId,
+            details: {
+                reason: reasonForBan
+            }
+        });
+
+        res.json({
+            success: true,
+            message: 'User banned successfully',
+            data: {
+                userId,
+                reasonForBan
+            }
+        });
+    } catch (error) {
+        console.error('Error banning user:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error banning user',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Reactivate a user (Publisher or Viewer)
+ */
+exports.reactivateUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const adminId = req.user?.id;
+
+        let userType = null;
+        let actualId = null;
+
+        if (userId.startsWith('PUB-')) {
+            userType = 'publisher';
+            actualId = userId.replace('PUB-', '');
+        } else if (userId.startsWith('VIE-')) {
+            userType = 'viewer';
+            actualId = userId.replace('VIE-', '');
+        } else {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid user ID format'
+            });
+        }
+
+        const UserModel = userType === 'publisher' ? db.Publisher : db.Viewer;
+
+        const user = await UserModel.update(
+            {
+                status: 'active',
+                suspensionStartDate: null,
+                suspensionEndDate: null,
+                reasonForSuspension: null
+            },
+            { where: { id: actualId } }
+        );
+
+        if (!user || user[0] === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        const { logActivity } = require('../../utils/adminActivityService');
+        await logActivity(adminId, 'REACTIVATE_USER', {
+            entityType: userType === 'publisher' ? 'Publisher' : 'Viewer',
+            entityId: actualId
+        });
+
+        res.json({
+            success: true,
+            message: 'User reactivated successfully',
+            data: {
+                userId
+            }
+        });
+    } catch (error) {
+        console.error('Error reactivating user:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error reactivating user',
+            error: error.message
+        });
+    }
+};

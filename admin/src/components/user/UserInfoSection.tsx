@@ -5,6 +5,16 @@ interface UserInfoSectionProps {
   suspensionEndDate?: string;
 }
 
+const formatDate = (dateString: string | undefined): string => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
+
 export default function UserInfoSection({
   category,
   accountStatus,
@@ -70,7 +80,8 @@ export default function UserInfoSection({
                 Timeframe
               </span>
               <span className="text-white font-semibold text-lg leading-7">
-                {suspensionStartDate} - {suspensionEndDate}
+                {formatDate(suspensionStartDate)} -{" "}
+                {formatDate(suspensionEndDate)}
               </span>
             </div>
           )}

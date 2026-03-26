@@ -324,4 +324,25 @@ router.get('/users/monthly-growth', verifyToken, usersController.getMonthlyUserG
  */
 router.get('/users/:userId', verifyToken, usersController.getUserDetailsById);
 
+/**
+ * @route   PUT /api/admin/users/:userId/suspend
+ * @desc    Suspend a user (Publisher or Viewer)
+ * @access  Private
+ */
+router.put('/users/:userId/suspend', verifyToken, usersController.suspendUser);
+
+/**
+ * @route   PUT /api/admin/users/:userId/ban
+ * @desc    Ban a user (Publisher or Viewer)
+ * @access  Private
+ */
+router.put('/users/:userId/ban', verifyToken, usersController.banUser);
+
+/**
+ * @route   PUT /api/admin/users/:userId/reactivate
+ * @desc    Reactivate a user (Publisher or Viewer)
+ * @access  Private
+ */
+router.put('/users/:userId/reactivate', verifyToken, usersController.reactivateUser);
+
 module.exports = router;

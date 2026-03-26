@@ -6,3 +6,8 @@ export type {
 } from "./useApiMutation";
 export { useFetchUserDetails } from "./useFetchUserDetails";
 export type { UserDetails } from "./useFetchUserDetails";
+export {
+  useBanUserMutation,
+  useReactivateUserMutation,
+  useSuspendUserMutation,
+} from "./useUserActionMutations";
