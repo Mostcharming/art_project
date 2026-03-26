@@ -79,6 +79,42 @@ module.exports = (sequelize, DataTypes) => {
         resetPasswordTokenExpires: {
             type: DataTypes.DATE,
             allowNull: true
+        },
+        status: {
+            type: DataTypes.ENUM('active', 'suspended', 'banned'),
+            defaultValue: 'active',
+            allowNull: false,
+            comment: 'Publisher account status: active, suspended, or banned'
+        },
+        suspensionStartDate: {
+            type: DataTypes.DATE,
+            allowNull: true,
+            comment: 'Start date of suspension'
+        },
+        suspensionEndDate: {
+            type: DataTypes.DATE,
+            allowNull: true,
+            comment: 'End date of suspension'
+        },
+        reasonForSuspension: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+            comment: 'Reason for publisher account suspension'
+        },
+        reasonForBan: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+            comment: 'Reason for publisher account ban'
+        },
+        reasonForReactivation: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+            comment: 'Reason for reactivating publisher account'
+        },
+        profilePicture: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            comment: 'URL to publisher profile picture'
         }
     }, {
         sequelize,

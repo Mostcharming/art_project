@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -6,29 +7,85 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { useApiMutation } from "../../hooks/useApiMutation";
 
-const CHART_DATA = [
-  { month: "Jan", users: 55200 },
-  { month: "Feb", users: 56800 },
-  { month: "Mar", users: 56100 },
-  { month: "Apr", users: 57500 },
-  { month: "May", users: 57900 },
-  { month: "Jun", users: 58900 },
-  { month: "Jul", users: 59600 },
-  { month: "Aug", users: 60200 },
-  { month: "Sep", users: 61500 },
-  { month: "Oct", users: 63500 },
-  { month: "Nov", users: 66800 },
-  { month: "Dec", users: 72000 },
+interface ChartDataPoint {
+  month: string;
+  users: number;
+}
+
+const DEFAULT_CHART_DATA: ChartDataPoint[] = [
+  { month: "Jan", users: 0 },
+  { month: "Feb", users: 0 },
+  { month: "Mar", users: 0 },
+  { month: "Apr", users: 0 },
+  { month: "May", users: 0 },
+  { month: "Jun", users: 0 },
+  { month: "Jul", users: 0 },
+  { month: "Aug", users: 0 },
+  { month: "Sep", users: 0 },
+  { month: "Oct", users: 0 },
+  { month: "Nov", users: 0 },
+  { month: "Dec", users: 0 },
 ];
 
 function yTickFormatter(v: number) {
   if (v === 0) return "0";
-  if (v === 20000) return "20k";
-  return `${v / 1000}K`;
+  if (v >= 1000) return `${(v / 1000).toFixed(0)}k`;
+  return v.toString();
 }
 
 export default function ActiveUsersCard() {
+  const [chartData, setChartData] =
+    useState<ChartDataPoint[]>(DEFAULT_CHART_DATA);
+
+  // Fetch monthly growth data
+  const { mutate: fetchMonthlyGrowth } = useApiMutation({
+    endpoint: "/admins/users/monthly-growth",
+    method: "GET",
+  });
+
+  useEffect(() => {
+    fetchMonthlyGrowth({} as Record<string, unknown>, {
+      onSuccess: (response: Record<string, unknown>) => {
+        const data = response.data as ChartDataPoint[];
+        if (data && Array.isArray(data)) {
+          setChartData(data);
+        }
+      },
+    });
+  }, [fetchMonthlyGrowth]);
+
+  // Calculate max value for Y-axis with intelligent scaling
+  const actualMax = Math.max(...chartData.map((d) => d.users));
+
+  // Smart scaling based on the actual max value
+  let yAxisMax: number;
+  let yAxisTicks: number[];
+
+  if (actualMax === 0) {
+    yAxisMax = 10;
+    yAxisTicks = [0, 5, 10];
+  } else if (actualMax <= 10) {
+    yAxisMax = Math.ceil(actualMax * 1.5);
+    yAxisTicks = Array.from({ length: Math.min(5, yAxisMax + 1) }, (_, i) => i);
+  } else if (actualMax <= 100) {
+    yAxisMax = Math.ceil(actualMax / 10) * 10 * 1.2;
+    yAxisTicks = Array.from({ length: 6 }, (_, i) =>
+      Math.floor((i * yAxisMax) / 5)
+    );
+  } else if (actualMax <= 1000) {
+    yAxisMax = Math.ceil(actualMax / 100) * 100 * 1.2;
+    yAxisTicks = Array.from({ length: 6 }, (_, i) =>
+      Math.floor((i * yAxisMax) / 5)
+    );
+  } else {
+    yAxisMax = Math.ceil(actualMax / 1000) * 1000 * 1.2;
+    yAxisTicks = Array.from({ length: 6 }, (_, i) =>
+      Math.floor((i * yAxisMax) / 5)
+    );
+  }
+
   return (
     <div className="flex flex-col rounded-xl border border-[#1F242F] overflow-hidden flex-1 min-h-[360px]">
       <div className="flex flex-col gap-6 p-6 flex-1">
@@ -39,7 +96,7 @@ export default function ActiveUsersCard() {
         <div className="flex-1" style={{ minHeight: 260 }}>
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
-              data={CHART_DATA}
+              data={chartData}
               margin={{ top: 10, right: 10, left: 10, bottom: 36 }}
             >
               <defs>
@@ -72,8 +129,8 @@ export default function ActiveUsersCard() {
               />
 
               <YAxis
-                domain={[0, 100000]}
-                ticks={[0, 20000, 40000, 60000, 80000, 100000]}
+                domain={[0, yAxisMax]}
+                ticks={yAxisTicks}
                 tickFormatter={yTickFormatter}
                 tick={{ fill: "#94969C", fontSize: 12, fontFamily: "Inter" }}
                 axisLine={false}

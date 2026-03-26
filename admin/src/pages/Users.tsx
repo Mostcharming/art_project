@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ActiveUsersCard from "../components/users/ActiveUser";
-import UserCategoryCard from "../components/users/UserCategoryCard";
-import UsersTable from "../components/users/UsersTable";
+import UserCategoryCard, {
+  type CategoryData,
+} from "../components/users/UserCategoryCard";
+import UsersTable, { type User } from "../components/users/UsersTable";
+import { useApiMutation } from "../hooks/useApiMutation";
 
 type TabType = "All users" | "Artist" | "Art Gallery" | "Collector" | "Viewer";
 const TABS: TabType[] = [
@@ -12,7 +15,7 @@ const TABS: TabType[] = [
   "Viewer",
 ];
 
-const TOTAL_PAGES = 10;
+const ITEMS_PER_PAGE = 10;
 
 function SearchIcon() {
   return (
@@ -90,10 +93,33 @@ interface PaginationProps {
 }
 
 function Pagination({ current, total, onChange }: PaginationProps) {
-  const pages: (number | "...")[] = [1, 2, 3, "...", 8, 9, 10];
+  // Generate page numbers intelligently
+  const getPages = (): (number | "...")[] => {
+    if (total <= 7) {
+      // Show all pages if 7 or fewer
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+
+    const pages: (number | "...")[] = [1];
+
+    if (current <= 4) {
+      // Near the beginning
+      pages.push(2, 3, 4, 5, "...", total);
+    } else if (current >= total - 3) {
+      // Near the end
+      pages.push("...", total - 4, total - 3, total - 2, total - 1, total);
+    } else {
+      // In the middle
+      pages.push("...", current - 1, current, current + 1, "...", total);
+    }
+
+    return pages;
+  };
+
+  const pages = getPages();
 
   return (
-    <div className="flex items-center justify-between py-5 border-t border-[#E4E7EC]">
+    <div className="flex items-center justify-between py-5 border-t border-[#333741]">
       {/* Previous */}
       <button
         className="flex items-center gap-1.5 text-sm font-semibold text-[#94969C] disabled:opacity-40 hover:text-[#CECFD2] transition-colors"
@@ -147,9 +173,69 @@ export default function Index() {
   const [activeTab, setActiveTab] = useState<TabType>("All users");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
+  const [users, setUsers] = useState<User[]>([]);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [statsData, setStatsData] = useState<Record<string, unknown> | null>(
+    null
+  );
+
+  // Fetch users data
+  const { mutate: fetchUsers } = useApiMutation({
+    endpoint: "/admins/users/all",
+    method: "GET",
+  });
+
+  // Fetch statistics
+  const { mutate: fetchStats } = useApiMutation({
+    endpoint: "/admins/users/statistics",
+    method: "GET",
+  });
+
+  // Fetch users when filters change
+  useEffect(() => {
+    const categoryParam =
+      activeTab === "All users"
+        ? "all"
+        : activeTab === "Art Gallery"
+        ? "Gallery"
+        : activeTab;
+
+    fetchUsers(
+      {
+        page: currentPage,
+        limit: ITEMS_PER_PAGE,
+        search: searchQuery,
+        category: categoryParam,
+      } as Record<string, unknown>,
+      {
+        onSuccess: (response: Record<string, unknown>) => {
+          const data = response.data as User[];
+          const pagination = response.pagination as Record<string, unknown>;
+          setUsers(data || []);
+          setTotalUsers((pagination?.total as number) || 0);
+        },
+        onError: () => {
+          setUsers([]);
+          setTotalUsers(0);
+        },
+      }
+    );
+
+    // Fetch stats on initial load
+    if (currentPage === 1) {
+      fetchStats({} as Record<string, unknown>, {
+        onSuccess: (response: Record<string, unknown>) => {
+          setStatsData(response.data as Record<string, unknown>);
+        },
+      });
+    }
+  }, [activeTab, currentPage, searchQuery, fetchUsers, fetchStats]);
+
+  // Calculate total pages
+  const totalPages = Math.ceil(totalUsers / ITEMS_PER_PAGE);
 
   return (
-    <div className="min-h-screen font-['Inter',sans-serif]">
+    <div className="min-h-screen ">
       {/* ── PAGE HEADER ── */}
       <div className="px-8 pt-8">
         <div className="flex flex-wrap items-start justify-between gap-5 mb-6">
@@ -187,7 +273,16 @@ export default function Index() {
 
       {/* ── STAT CARDS ── */}
       <div className="px-8 py-6 flex flex-col lg:flex-row gap-6">
-        <UserCategoryCard />
+        <UserCategoryCard
+          data={
+            statsData
+              ? (statsData.categoryDistribution as CategoryData[])
+              : undefined
+          }
+          totalUsers={
+            statsData ? (statsData.totalActiveUsers as number) : undefined
+          }
+        />
         <ActiveUsersCard />
       </div>
 
@@ -225,12 +320,16 @@ export default function Index() {
         </div>
 
         {/* Table */}
-        <UsersTable activeTab={activeTab} searchQuery={searchQuery} />
+        <UsersTable
+          activeTab={activeTab}
+          searchQuery={searchQuery}
+          users={users}
+        />
 
         {/* Pagination */}
         <Pagination
           current={currentPage}
-          total={TOTAL_PAGES}
+          total={totalPages}
           onChange={setCurrentPage}
         />
       </div>

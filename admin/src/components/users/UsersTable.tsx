@@ -1,79 +1,18 @@
+import { useMemo } from "react";
 import type { CategoryType, StatusType } from "./UserBadges";
 import { CategoryBadge, StatusBadge } from "./UserBadges";
 
 export interface User {
-  id: string;
+  id: string | number;
+  userId: string;
   name: string;
   avatar: string | null;
-  category: CategoryType;
+  category: CategoryType | string;
   dateJoined: string;
-  status: StatusType;
+  status: StatusType | string;
+  type?: string;
+  email?: string;
 }
-
-const ALL_USERS: User[] = [
-  {
-    id: "0927727637",
-    name: "Mike Afolarin",
-    avatar:
-      "https://api.builder.io/api/v1/image/assets/TEMP/ba4f3dbab08420c243a5dc5f35ebd981621a8de1?width=80",
-    category: "Artist",
-    dateJoined: "1/1/2025",
-    status: "Active",
-  },
-  {
-    id: "0927727641",
-    name: "Sofia Torres",
-    avatar:
-      "https://api.builder.io/api/v1/image/assets/TEMP/d9a729b6c4d03758f843179883abfa05de062bcf?width=80",
-    category: "Collector",
-    dateJoined: "4/1/2025",
-    status: "Active",
-  },
-  {
-    id: "0927727639",
-    name: "Rahul Patel",
-    avatar:
-      "https://api.builder.io/api/v1/image/assets/TEMP/05ce864eedecb94eceacbce304f8eb72f810346d?width=80",
-    category: "Art Gallery",
-    dateJoined: "3/1/2025",
-    status: "Active",
-  },
-  {
-    id: "0927727638",
-    name: "Ethan Kim",
-    avatar: null,
-    category: "Viewer",
-    dateJoined: "5/1/2025",
-    status: "Active",
-  },
-  {
-    id: "0927727640",
-    name: "Jessica Lin",
-    avatar:
-      "https://api.builder.io/api/v1/image/assets/TEMP/c286fd6d07687217fd1dc98f5b481857accfdafa?width=80",
-    category: "Artist",
-    dateJoined: "2/1/2025",
-    status: "Suspended",
-  },
-  {
-    id: "0927727642",
-    name: "Leila Ali",
-    avatar:
-      "https://api.builder.io/api/v1/image/assets/TEMP/5daeee9cf51cda5e2f80a6725fd781747382d618?width=80",
-    category: "Art Gallery",
-    dateJoined: "6/1/2025",
-    status: "Banned",
-  },
-  {
-    id: "0927727637",
-    name: "Gbemidele Aderigbe",
-    avatar:
-      "https://api.builder.io/api/v1/image/assets/TEMP/6a5ea1ec74b12650c787925bdd352b67c92aed7d?width=80",
-    category: "Collector",
-    dateJoined: "1/1/2025",
-    status: "Suspended",
-  },
-];
 
 function UserAvatar({ name, avatar }: { name: string; avatar: string | null }) {
   if (avatar) {
@@ -92,7 +31,7 @@ function UserAvatar({ name, avatar }: { name: string; avatar: string | null }) {
     .slice(0, 2)
     .toUpperCase();
   return (
-    <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0">
+    <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-[#F3F4F6]">
       <span className="text-sm font-semibold text-[#444CE7]">{initials}</span>
     </div>
   );
@@ -101,6 +40,8 @@ function UserAvatar({ name, avatar }: { name: string; avatar: string | null }) {
 interface UsersTableProps {
   activeTab: string;
   searchQuery: string;
+  users: User[];
+  isLoading?: boolean;
 }
 
 const TABLE_HEADERS = [
@@ -114,15 +55,38 @@ const TABLE_HEADERS = [
 export default function UsersTable({
   activeTab,
   searchQuery,
+  users,
+  isLoading = false,
 }: UsersTableProps) {
-  const filtered = ALL_USERS.filter((u) => {
-    const matchesTab = activeTab === "All users" || u.category === activeTab;
-    const matchesSearch =
-      !searchQuery ||
-      u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.id.includes(searchQuery);
-    return matchesTab && matchesSearch;
-  });
+  const filtered = useMemo(() => {
+    let result = users || [];
+
+    // Filter by tab
+    if (activeTab !== "All users") {
+      result = result.filter((u) => {
+        const userCategory = String(u.category).toLowerCase();
+        const tabCategory = activeTab.toLowerCase();
+
+        if (tabCategory === "artist") return userCategory === "artist";
+        if (tabCategory === "art gallery") return userCategory === "gallery";
+        if (tabCategory === "collector") return userCategory === "collector";
+        if (tabCategory === "viewer") return userCategory === "viewer";
+        return false;
+      });
+    }
+
+    // Filter by search
+    if (searchQuery) {
+      result = result.filter(
+        (u) =>
+          u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          u.userId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (u.email && u.email.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+    }
+
+    return result;
+  }, [users, activeTab, searchQuery]);
 
   return (
     <div className="overflow-x-auto rounded-none">
@@ -140,7 +104,16 @@ export default function UsersTable({
           </tr>
         </thead>
         <tbody>
-          {filtered.length === 0 ? (
+          {isLoading ? (
+            <tr>
+              <td
+                colSpan={5}
+                className="px-6 py-10 text-center text-[#94969C] text-sm"
+              >
+                Loading users...
+              </td>
+            </tr>
+          ) : filtered.length === 0 ? (
             <tr>
               <td
                 colSpan={5}
@@ -150,7 +123,7 @@ export default function UsersTable({
               </td>
             </tr>
           ) : (
-            filtered.map((user, idx) => (
+            filtered.map((user: User, idx: number) => (
               <tr
                 key={`${user.id}-${idx}`}
                 className=" border-b border-[#1F242F] hover:bg-[#161B26] transition-colors"
@@ -167,12 +140,12 @@ export default function UsersTable({
                 {/* User ID */}
                 <td className="px-6 py-4">
                   <span className="text-sm font-semibold text-[#D2D6DB] leading-5">
-                    {user.id}
+                    {user.userId}
                   </span>
                 </td>
                 {/* User Category */}
                 <td className="px-6 py-4">
-                  <CategoryBadge category={user.category} />
+                  <CategoryBadge category={user.category as CategoryType} />
                 </td>
                 {/* Date Joined */}
                 <td className="px-6 py-4">
@@ -182,7 +155,7 @@ export default function UsersTable({
                 </td>
                 {/* Account Status */}
                 <td className="px-6 py-4">
-                  <StatusBadge status={user.status} />
+                  <StatusBadge status={user.status as StatusType} />
                 </td>
               </tr>
             ))

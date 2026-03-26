@@ -8,6 +8,7 @@ const adminController = require('../../controllers/admins/adminController');
 const roleController = require('../../controllers/admins/roleController');
 const privilegeController = require('../../controllers/admins/privilegeController');
 const activityLogController = require('../../controllers/admins/activityLogController');
+const usersController = require('../../controllers/admins/usersController');
 
 /**
  * @route   POST /api/admin/auth/register
@@ -289,5 +290,31 @@ router.get('/activity-logs/:id', verifyToken, activityLogController.getActivityL
  */
 router.get('/:id', verifyToken, adminController.getAdmin);
 
+/**
+ * ==========================================
+ * USERS MANAGEMENT ROUTES
+ * ==========================================
+ */
+
+/**
+ * @route   GET /api/admin/users/all
+ * @desc    Get all users (Publishers and Viewers combined)
+ * @access  Private
+ */
+router.get('/users/all', verifyToken, usersController.getAllUsers);
+
+/**
+ * @route   GET /api/admin/users/statistics
+ * @desc    Get user statistics (count by category and status)
+ * @access  Private
+ */
+router.get('/users/statistics', verifyToken, usersController.getUsersStatistics);
+
+/**
+ * @route   GET /api/admin/users/monthly-growth
+ * @desc    Get monthly user growth data for the last 12 months
+ * @access  Private
+ */
+router.get('/users/monthly-growth', verifyToken, usersController.getMonthlyUserGrowth);
 
 module.exports = router;

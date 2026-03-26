@@ -1,17 +1,24 @@
 import { Cell, Pie, PieChart } from "recharts";
 
-const DONUT_DATA = [
-  { name: "Artists", value: 25100, color: "#475467" },
-  { name: "Art Galleries", value: 7200, color: "#D8522E" },
-  { name: "Collectors", value: 16250, color: "#BA24D5" },
-  { name: "Viewers", value: 56800, color: "#444CE7" },
+export interface CategoryData {
+  name: string;
+  value: number;
+  color: string;
+}
+
+interface UserCategoryCardProps {
+  data?: CategoryData[];
+  totalUsers?: number;
+}
+
+const DEFAULT_DONUT_DATA: CategoryData[] = [
+  { name: "Artists", value: 0, color: "#475467" },
+  { name: "Art Galleries", value: 0, color: "#D8522E" },
+  { name: "Collectors", value: 0, color: "#BA24D5" },
+  { name: "Viewers", value: 0, color: "#444CE7" },
 ];
 
-function LegendItem({
-  item,
-}: {
-  item: { name: string; value: number; color: string };
-}) {
+function LegendItem({ item }: { item: CategoryData }) {
   return (
     <div className="flex items-start gap-2">
       <span
@@ -26,7 +33,14 @@ function LegendItem({
   );
 }
 
-export default function UserCategoryCard() {
+export default function UserCategoryCard({
+  data,
+  totalUsers,
+}: UserCategoryCardProps) {
+  const DONUT_DATA = data || DEFAULT_DONUT_DATA;
+  const TOTAL =
+    totalUsers || DONUT_DATA.reduce((sum, item) => sum + item.value, 0);
+
   return (
     <div className="flex flex-col rounded-xl border border-[#1F242F] overflow-hidden w-full lg:w-[360px] lg:shrink-0">
       {/* Card content */}
@@ -81,7 +95,7 @@ export default function UserCategoryCard() {
             Total Active Users
           </span>
           <span className="text-xl font-semibold text-[#F5F5F6] leading-6">
-            140,900
+            {TOTAL.toLocaleString()}
           </span>
         </div>
       </div>
