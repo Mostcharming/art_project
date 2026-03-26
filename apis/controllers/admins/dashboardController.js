@@ -296,7 +296,7 @@ exports.getTopCarousels = async (req, res) => {
         // Transform the data
         const transformedCarousels = carousels.map(carousel => {
             // Count active artworks
-            const activeArtworks = carousel.artworks?.filter(a => a.isDeleted === false) || [];
+            const activeArtworks = carousel.artworks || [];
 
             return {
                 id: carousel.id,
