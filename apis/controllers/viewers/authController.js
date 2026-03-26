@@ -4,6 +4,44 @@ const { generateToken } = require('../../utils/tokenGenerator');
 const { verifyCode } = require('../../utils/verificationCode');
 const crypto = require('crypto');
 
+// Helper function to check viewer status
+const checkViewerStatus = async (viewer) => {
+    if (viewer.status === 'banned') {
+        return {
+            isBlocked: true,
+            statusCode: 403,
+            message: `Your account has been banned${viewer.reasonForBan ? ': ' + viewer.reasonForBan : ''}`,
+        };
+    }
+
+    if (viewer.status === 'suspended') {
+        const now = new Date();
+        const suspensionEndDate = viewer.suspensionEndDate;
+
+        // Check if suspension period has ended
+        if (suspensionEndDate && suspensionEndDate < now) {
+            // Reactivate the account
+            await viewer.update({ status: 'active' });
+            return {
+                isBlocked: false,
+            };
+        }
+
+        // Still within suspension period
+        if (suspensionEndDate && suspensionEndDate >= now) {
+            return {
+                isBlocked: true,
+                statusCode: 403,
+                message: `Your account is suspended until ${suspensionEndDate.toISOString()}${viewer.reasonForSuspension ? ': ' + viewer.reasonForSuspension : ''}`,
+            };
+        }
+    }
+
+    return {
+        isBlocked: false,
+    };
+};
+
 exports.register = async (req, res, next) => {
     try {
         const { email, password, firstName, lastName, vibePreference, appUsage, styles } = req.body;
@@ -72,6 +110,12 @@ exports.login = async (req, res, next) => {
         const isPasswordValid = await comparePassword(password, viewer.password);
         if (!isPasswordValid) {
             return res.status(401).json({ error: 'Invalid email or password' });
+        }
+
+        // Check viewer status
+        const statusCheck = await checkViewerStatus(viewer);
+        if (statusCheck.isBlocked) {
+            return res.status(statusCheck.statusCode).json({ error: statusCheck.message });
         }
 
         const token = generateToken({

@@ -212,11 +212,55 @@ exports.getProfile = async (req, res, next) => {
             return res.status(404).json({ error: 'Publisher not found' });
         }
 
+        // Check publisher status
+        const statusCheck = await checkPublisherStatus(publisher);
+        if (statusCheck.isBlocked) {
+            return res.status(statusCheck.statusCode).json({ error: statusCheck.message });
+        }
+
         res.json(publisher);
     } catch (error) {
         console.error('Get profile error:', error);
         next(error);
     }
+};
+
+// Helper function to check publisher status
+const checkPublisherStatus = async (publisher) => {
+    if (publisher.status === 'banned') {
+        return {
+            isBlocked: true,
+            statusCode: 403,
+            message: `Your account has been banned${publisher.reasonForBan ? ': ' + publisher.reasonForBan : ''}`,
+        };
+    }
+
+    if (publisher.status === 'suspended') {
+        const now = new Date();
+        const suspensionEndDate = publisher.suspensionEndDate;
+
+        // Check if suspension period has ended
+        if (suspensionEndDate && suspensionEndDate < now) {
+            // Reactivate the account
+            await publisher.update({ status: 'active' });
+            return {
+                isBlocked: false,
+            };
+        }
+
+        // Still within suspension period
+        if (suspensionEndDate && suspensionEndDate >= now) {
+            return {
+                isBlocked: true,
+                statusCode: 403,
+                message: `Your account is suspended until ${suspensionEndDate.toISOString()}${publisher.reasonForSuspension ? ': ' + publisher.reasonForSuspension : ''}`,
+            };
+        }
+    }
+
+    return {
+        isBlocked: false,
+    };
 };
 
 exports.login = async (req, res, next) => {
@@ -242,7 +286,11 @@ exports.login = async (req, res, next) => {
             return res.status(403).json({ error: 'Please verify your email before logging in' });
         }
 
-
+        // Check publisher status
+        const statusCheck = await checkPublisherStatus(publisher);
+        if (statusCheck.isBlocked) {
+            return res.status(statusCheck.statusCode).json({ error: statusCheck.message });
+        }
 
         const token = generateToken({
             id: publisher.id,
@@ -394,6 +442,12 @@ exports.updateProfile = async (req, res, next) => {
         const publisher = await Publisher.findByPk(publisherId);
         if (!publisher) {
             return res.status(404).json({ error: 'Publisher not found' });
+        }
+
+        // Check publisher status
+        const statusCheck = await checkPublisherStatus(publisher);
+        if (statusCheck.isBlocked) {
+            return res.status(statusCheck.statusCode).json({ error: statusCheck.message });
         }
 
         const updateData = {

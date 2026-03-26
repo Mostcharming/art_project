@@ -1,40 +1,14 @@
+import { useParams } from "react-router-dom";
 import ProjectsSection from "../components/user/ProjectsSection";
 import UserAboutSection from "../components/user/UserAboutSection";
 import UserInfoSection from "../components/user/UserInfoSection";
 import UserProfileHeader from "../components/user/UserProfileHeader";
-
-const USER_DATA = {
-  name: "Darasimi Oguntegbe",
-  carousels: 24,
-  views: "220K",
-  userId: "0927727638",
-  avatarUrl:
-    "https://api.builder.io/api/v1/image/assets/TEMP/12189cfa02e4ea3e5bdb56858c992d3c6d1aea45?width=320",
-  category: "Artist",
-  accountStatus: "Suspended" as const,
-  timeframeStart: "12/1/26",
-  timeframeEnd: "28/12/26",
-  bio: "Darasimi Oguntegbe is a contemporary artist whose work explores everyday emotions, shared experiences, and the quiet beauty found in movement and connection. Through bold color, expressive composition, and subtle storytelling, his pieces capture moments that feel both personal and familiar, inviting viewers to pause, reflect, and find meaning in the ordinary.",
-  suspensionReasons: [
-    "The artwork closely resembles an existing, copyrighted work by another artist without clear attribution or permission.",
-    "The uploader is unable to demonstrate ownership or licensing rights for the artwork.",
-    "The artwork appears to be reproduced from a protected source (e.g. another artist's portfolio, gallery archive, book, or online platform).",
-  ],
-  region: "Nigeria",
-  dateJoined: "12/10/2023",
-  website: "darasimi.com",
-  email: "hello@darasimi.com",
-};
-
-const PROJECTS: Array<{
-  id: string;
-  title: string;
-  imageUrl?: string;
-  views: string;
-  likes: string;
-}> = [];
+import { useFetchUserDetails } from "../hooks/useFetchUserDetails";
 
 export default function Index() {
+  const { userId } = useParams<{ userId: string }>();
+  const { userDetails, isLoading, error } = useFetchUserDetails(userId);
+
   const handleReactivate = () => {
     console.log("Reactivate user");
   };
@@ -43,6 +17,28 @@ export default function Index() {
     console.log("Ban user");
   };
 
+  const handleSuspend = () => {
+    console.log("Suspend user");
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen w-full font-sans flex items-center justify-center">
+        <div className="text-white text-lg">Loading user details...</div>
+      </div>
+    );
+  }
+
+  if (error || !userDetails) {
+    return (
+      <div className="min-h-screen w-full font-sans flex items-center justify-center">
+        <div className="text-red-500 text-lg">{error || "User not found"}</div>
+      </div>
+    );
+  }
+
+  const USER_DATA = userDetails;
+
   return (
     <div className="min-h-screen w-full font-sans">
       <div className="max-w-[1280px] mx-auto py-8 pb-16 flex flex-col gap-12">
@@ -50,11 +46,24 @@ export default function Index() {
         <UserProfileHeader
           name={USER_DATA.name}
           carousels={USER_DATA.carousels}
-          views={USER_DATA.views}
+          // views={undefined}
+          views={
+            USER_DATA.type === "Publisher"
+              ? `${
+                  USER_DATA.projects?.reduce(
+                    (sum, p) => sum + parseInt(p.views),
+                    0
+                  ) || 0
+                }`
+              : undefined
+          }
           userId={USER_DATA.userId}
-          avatarUrl={USER_DATA.avatarUrl}
+          avatarUrl={USER_DATA.avatarUrl || ""}
+          accountStatus={USER_DATA.accountStatus}
+          userType={USER_DATA.type}
           onReactivate={handleReactivate}
           onBan={handleBan}
+          onSuspend={handleSuspend}
         />
 
         {/* Divider */}
@@ -66,13 +75,17 @@ export default function Index() {
         <UserInfoSection
           category={USER_DATA.category}
           accountStatus={USER_DATA.accountStatus}
-          timeframeStart={USER_DATA.timeframeStart}
-          timeframeEnd={USER_DATA.timeframeEnd}
+          suspensionStartDate={USER_DATA.suspensionStartDate}
+          suspensionEndDate={USER_DATA.suspensionEndDate}
         />
 
         {/* About Creator + Details + Suspension Reasons */}
         <UserAboutSection
-          bio={USER_DATA.bio}
+          userType={USER_DATA.type}
+          bio={USER_DATA.type === "Publisher" ? USER_DATA.bio : undefined}
+          interests={
+            USER_DATA.type === "Viewer" ? USER_DATA.interests : undefined
+          }
           suspensionReasons={USER_DATA.suspensionReasons}
           region={USER_DATA.region}
           dateJoined={USER_DATA.dateJoined}
@@ -85,8 +98,13 @@ export default function Index() {
           <div className="h-px bg-ds-border" />
         </div>
 
-        {/* Projects Section */}
-        <ProjectsSection projects={PROJECTS} />
+        {/* Projects Section - Only for Publishers */}
+        {USER_DATA.type === "Publisher" && (
+          <ProjectsSection
+            projects={USER_DATA.projects || []}
+            userType="Publisher"
+          />
+        )}
       </div>
     </div>
   );

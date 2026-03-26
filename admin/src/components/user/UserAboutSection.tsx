@@ -1,9 +1,15 @@
 interface UserAboutSectionProps {
-  bio: string;
+  userType: "Publisher" | "Viewer";
+  bio?: string;
+  interests?: Array<{
+    id: number;
+    name: string;
+    description?: string;
+  }>;
   suspensionReasons: string[];
   region: string;
   dateJoined: string;
-  website: string;
+  website?: string;
   email: string;
 }
 
@@ -48,7 +54,9 @@ function ExternalLinkIcon({ color = "#D8522E" }: { color?: string }) {
 }
 
 export default function UserAboutSection({
+  userType,
   bio,
+  interests,
   suspensionReasons,
   region,
   dateJoined,
@@ -59,14 +67,35 @@ export default function UserAboutSection({
     <div className="px-8 flex flex-col gap-6">
       {/* About + Details row */}
       <div className="flex flex-wrap items-start gap-6 xl:gap-16">
-        {/* About Creator */}
+        {/* About Creator / Interests Section */}
         <div className="flex flex-col gap-2 min-w-[300px] max-w-[640px] flex-1">
           <h2 className="text-white font-medium text-base leading-6">
-            About Creator
+            {userType === "Viewer" ? "Interests" : "About Creator"}
           </h2>
-          <p className="text-[#94969c] text-base font-normal leading-6">
-            {bio}
-          </p>
+          {userType === "Publisher" ? (
+            <p className="text-[#94969c] text-base font-normal leading-6">
+              {bio}
+            </p>
+          ) : (
+            <div className="flex flex-wrap gap-3">
+              {interests && interests.length > 0 ? (
+                interests.map((interest) => (
+                  <div
+                    key={interest.id}
+                    className="inline-flex items-center px-3 py-2 rounded-lg border border-[#333741] bg-[#333741]"
+                  >
+                    <span className="text-white text-sm font-medium leading-5">
+                      {interest.name}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-[#94969c] text-sm font-normal leading-5">
+                  No interests added yet
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Details grid */}

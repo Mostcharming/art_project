@@ -1,15 +1,15 @@
 interface UserInfoSectionProps {
   category: string;
   accountStatus: "Active" | "Suspended" | "Banned";
-  timeframeStart: string;
-  timeframeEnd: string;
+  suspensionStartDate?: string;
+  suspensionEndDate?: string;
 }
 
 export default function UserInfoSection({
   category,
   accountStatus,
-  timeframeStart,
-  timeframeEnd,
+  suspensionStartDate,
+  suspensionEndDate,
 }: UserInfoSectionProps) {
   return (
     <div className="px-8">
@@ -61,15 +61,19 @@ export default function UserInfoSection({
           )}
         </div>
 
-        {/* Timeframe */}
-        <div className="flex flex-col gap-1 min-w-[140px]">
-          <span className="text-white font-semibold text-lg leading-7">
-            Timeframe
-          </span>
-          <span className="text-white font-semibold text-lg leading-7">
-            {timeframeStart} -{timeframeEnd}
-          </span>
-        </div>
+        {/* Suspension Timeframe */}
+        {accountStatus === "Suspended" &&
+          suspensionStartDate &&
+          suspensionEndDate && (
+            <div className="flex flex-col gap-1 min-w-[140px]">
+              <span className="text-white font-semibold text-lg leading-7">
+                Timeframe
+              </span>
+              <span className="text-white font-semibold text-lg leading-7">
+                {suspensionStartDate} - {suspensionEndDate}
+              </span>
+            </div>
+          )}
       </div>
     </div>
   );

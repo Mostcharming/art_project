@@ -306,3 +306,169 @@ exports.getMonthlyUserGrowth = async (req, res) => {
         });
     }
 };
+
+/**
+ * Get individual user details (Publisher or Viewer)
+ */
+exports.getUserDetailsById = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        // Parse the userId to determine type - format: "PUB-{id}" or "VIE-{id}"
+        let userType = null;
+        let actualId = null;
+
+        if (userId.startsWith('PUB-')) {
+            userType = 'publisher';
+            actualId = userId.replace('PUB-', '');
+        } else if (userId.startsWith('VIE-')) {
+            userType = 'viewer';
+            actualId = userId.replace('VIE-', '');
+        } else {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid user ID format. Must start with PUB- or VIE-'
+            });
+        }
+
+        let userData = null;
+
+        if (userType === 'publisher') {
+            // Fetch Publisher with carousels and their artworks
+            userData = await db.Publisher.findByPk(actualId, {
+                include: [
+                    {
+                        model: db.Carousel,
+                        as: 'carousels',
+                        attributes: ['id', 'name', 'status', 'views', 'numberOfFavorites'],
+                        include: [
+                            {
+                                model: db.Artwork,
+                                as: 'artworks',
+                                attributes: ['id', 'title', 'imageUrl'],
+                                limit: 1
+                            }
+                        ]
+                    }
+                ],
+                attributes: [
+                    'id', 'name', 'email', 'personaType', 'bio', 'country',
+                    'status', 'suspensionStartDate', 'suspensionEndDate',
+                    'reasonForSuspension', 'reasonForBan', 'profilePicture',
+                    'website', 'createdAt'
+                ]
+            });
+
+            if (!userData) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Publisher not found'
+                });
+            }
+
+            const carousels = userData.carousels || [];
+            const activeCarousels = carousels.filter(c => c.status === 'active');
+
+            const response = {
+                success: true,
+                data: {
+                    id: userData.id,
+                    userId: `PUB-${userData.id}`,
+                    name: userData.name,
+                    email: userData.email,
+                    type: 'Publisher',
+                    category: userData.personaType,
+                    accountStatus: userData.status === 'active' ? 'Active' : userData.status === 'suspended' ? 'Suspended' : 'Banned',
+                    avatarUrl: getCompleteImageUrl(userData.profilePicture) || null,
+                    bio: userData.bio,
+                    region: userData.country,
+                    dateJoined: userData.createdAt ? new Date(userData.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit'
+                    }) : 'N/A',
+                    website: userData.website,
+                    carousels: activeCarousels.length,
+                    projects: activeCarousels.map(c => {
+                        const firstArtwork = c.artworks && c.artworks.length > 0 ? c.artworks[0] : null;
+                        return {
+                            id: c.id,
+                            views: c.views,
+                            likes: c.numberOfFavorites,
+                            title: firstArtwork ? firstArtwork.title : c.name,
+                            imageUrl: firstArtwork ? getCompleteImageUrl(firstArtwork.imageUrl) : null
+                        };
+                    }),
+                    suspensionReasons: userData.reasonForSuspension ? [userData.reasonForSuspension] : [],
+                    suspensionStartDate: userData.suspensionStartDate,
+                    suspensionEndDate: userData.suspensionEndDate,
+                    reasonForBan: userData.reasonForBan
+                }
+            };
+
+            return res.json(response);
+
+        } else if (userType === 'viewer') {
+            // Fetch Viewer with styles
+            userData = await db.Viewer.findByPk(actualId, {
+                include: [
+                    {
+                        model: db.Style,
+                        as: 'styles',
+                        attributes: ['id', 'name', 'description'],
+                        through: { attributes: [] }
+                    }
+                ],
+                attributes: [
+                    'id', 'firstName', 'lastName', 'email', 'status',
+                    'suspensionStartDate', 'suspensionEndDate',
+                    'reasonForSuspension', 'reasonForBan', 'profilePicture',
+                    'website', 'createdAt'
+                ]
+            });
+
+            if (!userData) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Viewer not found'
+                });
+            }
+
+            const response = {
+                success: true,
+                data: {
+                    id: userData.id,
+                    userId: `VIE-${userData.id}`,
+                    name: `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || userData.email,
+                    email: userData.email,
+                    type: 'Viewer',
+                    category: 'Viewer',
+                    accountStatus: userData.status === 'active' ? 'Active' : userData.status === 'suspended' ? 'Suspended' : 'Banned',
+                    avatarUrl: getCompleteImageUrl(userData.profilePicture) || null,
+                    interests: userData.styles || [],
+                    region: 'N/A',
+                    dateJoined: userData.createdAt ? new Date(userData.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit'
+                    }) : 'N/A',
+                    website: userData.website,
+                    suspensionReasons: userData.reasonForSuspension ? [userData.reasonForSuspension] : [],
+                    suspensionStartDate: userData.suspensionStartDate,
+                    suspensionEndDate: userData.suspensionEndDate,
+                    reasonForBan: userData.reasonForBan
+                }
+            };
+
+            return res.json(response);
+        }
+
+    } catch (error) {
+        console.error('Error fetching user details:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching user details',
+            error: error.message
+        });
+    }
+};

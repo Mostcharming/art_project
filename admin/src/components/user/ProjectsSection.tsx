@@ -3,13 +3,13 @@ import { useState } from "react";
 interface Project {
   id: string;
   title: string;
-  imageUrl?: string;
-  views: string;
-  likes: string;
+  imageUrl?: string | null;
+  views?: string;
 }
 
 interface ProjectsSectionProps {
   projects: Project[];
+  userType?: "Publisher" | "Viewer";
 }
 
 function CarouselArrow({
@@ -54,7 +54,7 @@ function ProjectCard({ project }: { project: Project }) {
   return (
     <div className="flex-shrink-0 w-56 sm:w-64 rounded-xl overflow-hidden bg-ds-surface border border-ds-border">
       {/* Image placeholder */}
-      <div className="w-full h-36 bg-[#1D2434] flex items-center justify-center">
+      <div className="w-full h-60 bg-[#1D2434] flex items-center justify-center">
         {project.imageUrl ? (
           <img
             src={project.imageUrl}
@@ -67,21 +67,28 @@ function ProjectCard({ project }: { project: Project }) {
       </div>
       {/* Card content */}
       <div className="p-3 flex flex-col gap-1">
-        <h3 className="text-white font-semibold text-sm leading-5 truncate">
+        <h3
+          className="text-white font-semibold text-sm leading-5 truncate"
+          style={{ fontFamily: "BankGothicBold" }}
+        >
           {project.title}
         </h3>
-        <div className="flex items-center gap-3 text-white text-xs">
-          <span>{project.views} views</span>
-          <span>{project.likes} likes</span>
-        </div>
       </div>
     </div>
   );
 }
 
-export default function ProjectsSection({ projects }: ProjectsSectionProps) {
+export default function ProjectsSection({
+  projects,
+  userType = "Publisher",
+}: ProjectsSectionProps) {
   const [scrollIndex, setScrollIndex] = useState(0);
   const visibleCount = 4;
+
+  // Don't show projects section for viewers
+  if (userType === "Viewer") {
+    return null;
+  }
 
   const handlePrev = () => {
     setScrollIndex((prev) => Math.max(0, prev - 1));

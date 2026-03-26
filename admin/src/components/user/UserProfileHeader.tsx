@@ -3,12 +3,15 @@ import { Link } from "react-router-dom";
 
 interface UserProfileHeaderProps {
   name: string;
-  carousels: number;
-  views: string;
+  carousels?: number;
+  views?: string;
   userId: string;
   avatarUrl: string;
+  accountStatus: "Active" | "Suspended" | "Banned";
+  userType: "Publisher" | "Viewer";
   onReactivate?: () => void;
   onBan?: () => void;
+  onSuspend?: () => void;
 }
 
 export default function UserProfileHeader({
@@ -17,8 +20,11 @@ export default function UserProfileHeader({
   views,
   userId,
   avatarUrl,
+  accountStatus,
+  userType,
   onReactivate,
   onBan,
+  onSuspend,
 }: UserProfileHeaderProps) {
   const [copied, setCopied] = useState(false);
 
@@ -74,9 +80,13 @@ export default function UserProfileHeader({
                   {name}
                 </h1>
                 <div className="flex items-center gap-1 flex-wrap">
-                  <span className="text-[#475467] text-base font-normal">
-                    {carousels} Carousels • {views} Views •
-                  </span>
+                  {userType === "Publisher" &&
+                    carousels !== undefined &&
+                    views !== undefined && (
+                      <span className="text-[#475467] text-base font-normal">
+                        {carousels} Carousels • {views} Views •
+                      </span>
+                    )}
                   <div className="flex items-center gap-1">
                     <span className="text-[#475467] text-sm font-medium">
                       User Id: {userId}
@@ -114,18 +124,30 @@ export default function UserProfileHeader({
 
               {/* Action buttons */}
               <div className="flex items-center gap-4">
-                <button
-                  onClick={onReactivate}
-                  className="flex items-center justify-center px-3 py-2 rounded-lg border border-[#333741] bg-[#333741] text-white text-sm font-semibold leading-5 hover:bg-ds-border/50 transition-colors"
-                >
-                  Reactivate user
-                </button>
-                <button
-                  onClick={onBan}
-                  className="flex items-center justify-center px-3 py-2 rounded-lg bg-red-500 text-white text-sm font-semibold leading-5 hover:opacity-90 transition-opacity"
-                >
-                  Ban User
-                </button>
+                {accountStatus === "Suspended" && (
+                  <button
+                    onClick={onReactivate}
+                    className="flex items-center justify-center px-3 py-2 rounded-lg border border-[#333741] bg-[#333741] text-white text-sm font-semibold leading-5 hover:bg-ds-border/50 transition-colors"
+                  >
+                    Reactivate user
+                  </button>
+                )}
+                {accountStatus === "Active" && (
+                  <button
+                    onClick={onSuspend}
+                    className="flex items-center justify-center px-3 py-2 rounded-lg border border-[#333741] bg-[#333741] text-white text-sm font-semibold leading-5 hover:bg-ds-border/50 transition-colors"
+                  >
+                    Suspend User
+                  </button>
+                )}
+                {accountStatus !== "Banned" && (
+                  <button
+                    onClick={onBan}
+                    className="flex items-center justify-center px-3 py-2 rounded-lg bg-red-500 text-white text-sm font-semibold leading-5 hover:opacity-90 transition-opacity"
+                  >
+                    Ban User
+                  </button>
+                )}
               </div>
             </div>
           </div>

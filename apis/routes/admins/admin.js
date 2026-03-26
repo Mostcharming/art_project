@@ -317,4 +317,11 @@ router.get('/users/statistics', verifyToken, usersController.getUsersStatistics)
  */
 router.get('/users/monthly-growth', verifyToken, usersController.getMonthlyUserGrowth);
 
+/**
+ * @route   GET /api/admin/users/:userId
+ * @desc    Get individual user (Publisher or Viewer) details by ID
+ * @access  Private
+ */
+router.get('/users/:userId', verifyToken, usersController.getUserDetailsById);
+
 module.exports = router;
