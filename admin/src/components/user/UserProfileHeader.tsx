@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 
 interface UserProfileHeaderProps {
   name: string;
@@ -39,8 +38,8 @@ export default function UserProfileHeader({
     <div className="w-full">
       {/* Go Back */}
       <div className="px-8 mb-6">
-        <Link
-          to="/"
+        <button
+          onClick={() => window.history.back()}
           className="inline-flex items-center gap-2 text-white font-medium text-base hover:opacity-80 transition-opacity"
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -53,7 +52,7 @@ export default function UserProfileHeader({
             />
           </svg>
           Go Back
-        </Link>
+        </button>
       </div>
 
       {/* Profile header */}
