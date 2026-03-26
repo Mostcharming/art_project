@@ -56,9 +56,16 @@ function PaginationButton({
   );
 }
 
-export default function CarouselTable() {
-  const { carousels, currentPage, setCurrentPage, totalCarousels, pageSize } =
-    useContentStore();
+interface CarouselTableProps {
+  currentPage: number;
+  onPageChange: (page: number) => void;
+}
+
+export default function CarouselTable({
+  currentPage,
+  onPageChange,
+}: CarouselTableProps) {
+  const { carousels, totalCarousels, pageSize } = useContentStore();
 
   return (
     <div className="flex flex-col gap-6">
@@ -167,7 +174,7 @@ export default function CarouselTable() {
       {/* Pagination */}
       <div className="flex items-center justify-between px-6 py-3">
         <button
-          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+          onClick={() => onPageChange(Math.max(1, currentPage - 1))}
           disabled={currentPage === 1}
           className="flex items-center gap-2 text-gray-500 text-sm font-semibold hover:text-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
@@ -195,7 +202,7 @@ export default function CarouselTable() {
               <PaginationButton
                 key={idx + 1}
                 active={idx + 1 === currentPage}
-                onClick={() => setCurrentPage(idx + 1)}
+                onClick={() => onPageChange(idx + 1)}
               >
                 {idx + 1}
               </PaginationButton>
@@ -205,7 +212,7 @@ export default function CarouselTable() {
 
         <button
           onClick={() =>
-            setCurrentPage(
+            onPageChange(
               Math.min(Math.ceil(totalCarousels / pageSize), currentPage + 1)
             )
           }

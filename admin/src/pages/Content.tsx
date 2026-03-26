@@ -32,15 +32,21 @@ export default function Index() {
   const [searchValue, setSearchValue] = useState("");
   const activePeriod = "12 months";
 
-  // Build filter parameters
+  // Get pagination state from store
+  const { stats, carousels, currentPage, pageSize, setCurrentPage } =
+    useContentStore();
+
+  // Build filter parameters with pagination
   const filters = useMemo(() => {
-    return { period: activePeriod };
-  }, [activePeriod]);
+    return {
+      period: activePeriod,
+      page: currentPage,
+      limit: pageSize,
+    };
+  }, [activePeriod, currentPage, pageSize]);
 
   // Fetch content data
   useContentData(filters);
-
-  const { stats, carousels } = useContentStore();
 
   // Handle CSV export
   const handleExportCSV = () => {
@@ -198,7 +204,10 @@ export default function Index() {
 
             {/* Table Section */}
             <div className="flex flex-col gap-6">
-              <CarouselTable />
+              <CarouselTable
+                currentPage={currentPage}
+                onPageChange={setCurrentPage}
+              />
             </div>
           </>
         )}
