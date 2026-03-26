@@ -79,7 +79,7 @@ export default function TagDetail() {
             <Pressable
               className={`w-10 h-10 rounded-lg justify-center items-center ${
                 viewMode === "list"
-                  ? "bg-neutral-800 border border-orange-500"
+                  ? "bg-neutral-800 border border-[#D8522E]"
                   : "bg-transparent"
               }`}
               onPress={() => setViewMode("list")}
@@ -93,7 +93,7 @@ export default function TagDetail() {
             <Pressable
               className={`w-10 h-10 rounded-lg justify-center items-center ${
                 viewMode === "grid"
-                  ? "bg-neutral-800 border border-orange-500"
+                  ? "bg-neutral-800 border border-[#D8522E]"
                   : "bg-transparent"
               }`}
               onPress={() => setViewMode("grid")}

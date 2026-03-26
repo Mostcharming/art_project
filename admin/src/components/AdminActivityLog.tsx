@@ -138,15 +138,15 @@ function ActivityFeedItem({ item }: { item: ActivityItem; isLast?: boolean }) {
         <p className="text-sm leading-5">
           <span className="text-white font-normal">{actionText} </span>
           {invitedEmail && (
-            <span className="text-orange-500 font-medium">{invitedEmail}</span>
+            <span className="text-[#D8522E] font-medium">{invitedEmail}</span>
           )}
           {deletedAdminName && (
-            <span className="text-orange-500 font-medium">
+            <span className="text-[#D8522E] font-medium">
               {deletedAdminName}
             </span>
           )}
           {item.highlightName && (
-            <span className="text-orange-500 font-medium">
+            <span className="text-[#D8522E] font-medium">
               {item.highlightName}
             </span>
           )}

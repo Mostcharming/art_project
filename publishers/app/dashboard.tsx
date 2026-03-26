@@ -123,14 +123,14 @@ export default function Dashboard() {
                 >
                   <Text
                     className={`text-base capitalize ${
-                      activeTab === tab ? "text-orange-500" : "text-gray-400"
+                      activeTab === tab ? "text-[#D8522E]" : "text-gray-400"
                     }`}
                   >
                     {tab}
                   </Text>
                   {activeTab === tab && (
                     <View
-                      className="h-0.5 bg-orange-500 mt-2 rounded-full"
+                      className="h-0.5 bg-[#D8522E] mt-2 rounded-full"
                       style={{ width: "100%" }}
                     />
                   )}
@@ -144,7 +144,7 @@ export default function Dashboard() {
                 <Pressable
                   className={`w-10 h-10 rounded-lg justify-center items-center ${
                     viewMode === "list"
-                      ? "bg-neutral-800 border border-orange-500"
+                      ? "bg-neutral-800 border border-[#D8522E]"
                       : "bg-transparent"
                   }`}
                   onPress={() => setViewMode("list")}
@@ -158,7 +158,7 @@ export default function Dashboard() {
                 <Pressable
                   className={`w-10 h-10 rounded-lg justify-center items-center ${
                     viewMode === "grid"
-                      ? "bg-neutral-800 border border-orange-500"
+                      ? "bg-neutral-800 border border-[#D8522E]"
                       : "bg-transparent"
                   }`}
                   onPress={() => setViewMode("grid")}

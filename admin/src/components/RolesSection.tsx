@@ -128,7 +128,7 @@ export default function RolesSection({ admin }: RolesSectionProps) {
             </span>
             <a
               href={`mailto:${email}`}
-              className="flex items-center gap-2 text-orange-500 text-base font-semibold leading-6 hover:opacity-80 transition-opacity"
+              className="flex items-center gap-2 text-[#D8522E] text-base font-semibold leading-6 hover:opacity-80 transition-opacity"
             >
               {email}
               <ArrowUpRightIcon />

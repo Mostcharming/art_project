@@ -664,7 +664,7 @@ export default function CarouselPreview() {
                               isSelected
                                 ? "text-white"
                                 : isToday
-                                  ? "text-orange-500"
+                                  ? "text-[#D8522E]"
                                   : "text-white"
                             }`}
                           >

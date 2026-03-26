@@ -116,6 +116,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true,
       comment: 'URL to viewer profile picture'
+    },
+    website: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Viewer website URL'
     }
   }, {
     sequelize,
