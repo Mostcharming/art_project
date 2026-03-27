@@ -159,7 +159,7 @@ export default function Index() {
                 )} */}
 
                 {/* Smaller thumbnails grid */}
-                {allImages.length > 1 && (
+                {allImages.length > 0 && (
                   <div className="grid grid-cols-3 gap-3 sm:gap-4">
                     {allImages.map((img, i) => (
                       <div
