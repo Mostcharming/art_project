@@ -36,7 +36,7 @@ export default function Index() {
   const carousel = carouselDetails;
   const mainImage = carousel.artworks?.[selectedImageIndex];
   const allImages = carousel.artworks || [];
-  const isFlaggedCarousel = isFlagged || carousel.status === 'flagged';
+  const isFlaggedCarousel = isFlagged || carousel.status === "flagged";
 
   return (
     <div className="min-h-screen ">

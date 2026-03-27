@@ -45,12 +45,12 @@ export default function FlagContentModal({
       // Reset form on success
       setSelected("Mature Content");
       setAdditionalInfo("");
-      
+
       // Call the success callback
       if (onFlagSuccess) {
         onFlagSuccess();
       }
-      
+
       onClose();
     } catch (error) {
       console.error("Error flagging content:", error);
