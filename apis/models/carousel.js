@@ -129,6 +129,11 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             defaultValue: 0,
             comment: 'Number of times this carousel has been shared'
+        },
+        flaggedCount: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0,
+            comment: 'Number of times this carousel has been flagged'
         }
     }, {
         sequelize,

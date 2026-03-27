@@ -381,4 +381,11 @@ router.get('/dashboard/top-carousels', verifyToken, dashboardController.getTopCa
  */
 router.get('/carousels/:carouselId', verifyToken, carouselController.getCarouselDetails);
 
+/**
+ * @route   POST /api/admin/carousels/:carouselId/flag
+ * @desc    Flag a carousel as inappropriate
+ * @access  Private
+ */
+router.post('/carousels/:carouselId/flag', verifyToken, carouselController.flagCarousel);
+
 module.exports = router;

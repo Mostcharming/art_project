@@ -50,7 +50,7 @@ exports.getCarouselDetails = async (req, res) => {
 
         // Calculate completion rate based on status
         const completionRate = carousel.status === 'scheduled' ? 70 : 100;
-        
+
         // Calculate average view duration (views * frameTimingSeconds)
         const totalViews = carousel.views || 0;
         const averageViewDuration = Math.round((totalViews * carousel.frameTimingSeconds) / 60); // Convert to minutes
@@ -102,6 +102,87 @@ exports.getCarouselDetails = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error fetching carousel details',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Flag a carousel as inappropriate
+ */
+exports.flagCarousel = async (req, res) => {
+    try {
+        const { carouselId } = req.params;
+        const { status, reason, additionalInfo } = req.body;
+        const adminId = req.user?.id; // Assuming admin info is in req.user from auth middleware
+
+        // Validate required fields
+        if (!status || !reason) {
+            return res.status(400).json({
+                success: false,
+                message: 'Status and reason are required'
+            });
+        }
+
+        // Find the carousel
+        const carousel = await db.Carousel.findOne({
+            where: {
+                id: carouselId,
+                isDeleted: false
+            }
+        });
+
+        if (!carousel) {
+            return res.status(404).json({
+                success: false,
+                message: 'Carousel not found'
+            });
+        }
+
+        // Update carousel with flag status and increment flagged count
+        await carousel.update({
+            status: status,
+            isFlagged: true,
+            flaggedCount: carousel.flaggedCount + 1
+        });
+
+        // Log the flag action (create activity log if CarouselFlag model exists)
+        if (db.CarouselFlag) {
+            await db.CarouselFlag.create({
+                carouselId: carouselId,
+                adminId: adminId,
+                reason: reason,
+                additionalInfo: additionalInfo || null,
+                status: status
+            });
+        }
+
+        // Set up admin activity logging via middleware
+        req.adminActivity = {
+            action: 'FLAG_CAROUSEL',
+            entityType: 'Carousel',
+            entityId: carouselId,
+            details: {
+                reason: reason,
+                status: status,
+                additionalInfo: additionalInfo || null
+            }
+        };
+
+        res.json({
+            success: true,
+            message: 'Carousel flagged successfully',
+            carousel: {
+                id: carousel.id,
+                status: carousel.status,
+                isFlagged: true
+            }
+        });
+    } catch (error) {
+        console.error('Error flagging carousel:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error flagging carousel',
             error: error.message
         });
     }

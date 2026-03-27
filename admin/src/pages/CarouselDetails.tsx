@@ -1,6 +1,7 @@
 import { ArrowLeft, MapPin } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import FlagContentModal from "../components/FlagContentModal";
 import { useFetchCarouselDetails } from "../hooks";
 
 export default function Index() {
@@ -9,6 +10,8 @@ export default function Index() {
   const { carouselDetails, isLoading, error } =
     useFetchCarouselDetails(carouselId);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isFlagged, setIsFlagged] = useState(false);
 
   // Loading state
   if (isLoading) {
@@ -33,6 +36,7 @@ export default function Index() {
   const carousel = carouselDetails;
   const mainImage = carousel.artworks?.[selectedImageIndex];
   const allImages = carousel.artworks || [];
+  const isFlaggedCarousel = isFlagged || carousel.status === 'flagged';
 
   return (
     <div className="min-h-screen ">
@@ -69,9 +73,31 @@ export default function Index() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-1 px-[14px] py-[10px] rounded-lg border border-gray-500 bg-gray-800 text-gray-300 text-sm font-semibold leading-5 hover:opacity-80 transition-opacity shadow-[0_1px_2px_0_rgba(255,255,255,0)]">
-              Flag Content
-            </button>
+            {!isFlaggedCarousel && (
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="flex items-center gap-1 px-[14px] py-[10px] rounded-lg border border-gray-500 bg-gray-800 text-gray-300 text-sm font-semibold leading-5 hover:opacity-80 transition-opacity shadow-[0_1px_2px_0_rgba(255,255,255,0)]"
+              >
+                Flag Content
+              </button>
+            )}
+            {isFlaggedCarousel && (
+              <div className="flex items-center gap-2 px-[14px] py-[10px] rounded-lg border border-orange-500/50 bg-orange-500/10 text-orange-500 text-sm font-semibold leading-5">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M12 2L15.09 8.26H22L17.18 12.46L19.64 18.71L12 14.12L4.36 18.71L6.82 12.46L2 8.26H8.91L12 2Z"
+                    fill="currentColor"
+                  />
+                </svg>
+                Flagged
+              </div>
+            )}
           </div>
         </div>
 
@@ -245,6 +271,16 @@ export default function Index() {
           </aside>
         </div>
       </div>
+
+      {/* Flag Content Modal */}
+      <FlagContentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        carouselId={carouselId || ""}
+        onFlagSuccess={() => {
+          setIsFlagged(true);
+        }}
+      />
     </div>
   );
 }
