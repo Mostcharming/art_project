@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { useModeration } from "../../../contexts/useModeration";
 import { useApiMutation } from "../../../hooks/useApiMutation";
 import { usePendingApprovalData } from "../../../hooks/usePendingApprovalData";
@@ -74,10 +75,19 @@ export default function PendingApprovalSection() {
     async (carouselId: number) => {
       try {
         setLoadingId(carouselId);
+        const loadingToast = toast.loading("Approving carousel...");
+        
         await approveMutation.mutateAsync({ carouselId, action: "approve" });
+        
+        toast.dismiss(loadingToast);
+        toast.success("Carousel approved successfully!");
         // Refetch both tables after successful approval
         moderation.refetchAll();
       } catch (error) {
+        toast.dismiss();
+        toast.error(
+          error instanceof Error ? error.message : "Failed to approve carousel"
+        );
         console.error("Error approving carousel:", error);
       } finally {
         setLoadingId(null);
@@ -90,10 +100,19 @@ export default function PendingApprovalSection() {
     async (carouselId: number) => {
       try {
         setLoadingId(carouselId);
+        const loadingToast = toast.loading("Rejecting carousel...");
+        
         await rejectMutation.mutateAsync({ carouselId, action: "reject" });
+        
+        toast.dismiss(loadingToast);
+        toast.success("Carousel rejected successfully!");
         // Refetch both tables after successful rejection
         moderation.refetchAll();
       } catch (error) {
+        toast.dismiss();
+        toast.error(
+          error instanceof Error ? error.message : "Failed to reject carousel"
+        );
         console.error("Error rejecting carousel:", error);
       } finally {
         setLoadingId(null);

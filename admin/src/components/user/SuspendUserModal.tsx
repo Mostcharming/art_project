@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface SuspendUserModalProps {
   onClose?: () => void;
@@ -20,8 +21,23 @@ export default function SuspendUserModal({
   const [reason, setReason] = useState("");
 
   const handleProceed = async () => {
+    if (!startDate || !endDate || !reason.trim()) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
     if (onProceed) {
-      await onProceed({ startDate, endDate, reason });
+      try {
+        const loadingToast = toast.loading("Suspending user...");
+        await onProceed({ startDate, endDate, reason });
+        toast.dismiss(loadingToast);
+        toast.success("User suspended successfully!");
+      } catch (error) {
+        toast.dismiss();
+        toast.error(
+          error instanceof Error ? error.message : "Failed to suspend user"
+        );
+      }
     }
   };
 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import ActivityLog from "../components/ActivityLog";
 import InviteModal from "../components/InviteModal";
 import RoleSection from "../components/members/RoleSection";
@@ -119,7 +120,15 @@ export default function Index() {
 
             <div className="flex items-center gap-4">
               <button
-                onClick={() => exportMembersAsCSV(roles)}
+                onClick={() => {
+                  try {
+                    exportMembersAsCSV(roles);
+                    toast.success("Members exported as CSV successfully!");
+                  } catch (error) {
+                    toast.error("Failed to export members as CSV");
+                    console.error("CSV export error:", error);
+                  }
+                }}
                 disabled={roles.length === 0}
                 className="px-3.5 py-2.5 rounded-lg bg-[#363b45] hover:bg-[#1e2538] disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
               >
@@ -188,6 +197,7 @@ export default function Index() {
             onClose={() => setShowInviteModal(false)}
             onSuccess={() => {
               setShowInviteModal(false);
+              toast.success("Team member invited successfully!");
               // Optionally refetch members data
               // useFetchMembersPageData();
             }}

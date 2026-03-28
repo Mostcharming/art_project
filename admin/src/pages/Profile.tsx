@@ -183,6 +183,9 @@ export default function Index() {
     }
 
     try {
+      // Show loading toast
+      const loadingToast = toast.loading("Uploading profile picture...");
+
       // Create FormData with the file
       const formData = new FormData();
       formData.append("profilePicture", file);
@@ -190,6 +193,9 @@ export default function Index() {
       // Call API to upload profile picture
       uploadProfilePicture.mutate(formData, {
         onSuccess: (response) => {
+          // Dismiss loading toast
+          toast.dismiss(loadingToast);
+
           // Update the user store with new profile picture URL
           if (user && response.data?.profilePicture) {
             setUser({
@@ -200,6 +206,9 @@ export default function Index() {
           }
         },
         onError: (error) => {
+          // Dismiss loading toast
+          toast.dismiss(loadingToast);
+
           toast.error(error.message || "Failed to upload profile picture");
           console.error("Profile picture upload error:", error);
         },
@@ -216,10 +225,16 @@ export default function Index() {
     const firstName = parts[0];
     const lastName = parts.slice(1).join(" ") || "";
 
+    // Show loading toast
+    const loadingToast = toast.loading("Updating name...");
+
     updateProfile.mutate(
       { firstName, lastName },
       {
         onSuccess: (response) => {
+          // Dismiss loading toast
+          toast.dismiss(loadingToast);
+
           // Update the user store with new names
           if (user) {
             setUser({
@@ -231,6 +246,9 @@ export default function Index() {
           }
         },
         onError: (error) => {
+          // Dismiss loading toast
+          toast.dismiss(loadingToast);
+
           toast.error(error.message || "Failed to update profile");
           console.error("Profile update error:", error);
         },

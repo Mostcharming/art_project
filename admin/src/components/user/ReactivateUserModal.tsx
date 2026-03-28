@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface ReactivateUserModalProps {
   onClose?: () => void;
@@ -14,8 +15,23 @@ export default function ReactivateUserModal({
   const [reason, setReason] = useState("");
 
   const handleProceed = async () => {
+    if (!reason.trim()) {
+      toast.error("Please provide a reason for reactivation");
+      return;
+    }
+
     if (onProceed) {
-      await onProceed({ reason });
+      try {
+        const loadingToast = toast.loading("Reactivating user...");
+        await onProceed({ reason });
+        toast.dismiss(loadingToast);
+        toast.success("User reactivated successfully!");
+      } catch (error) {
+        toast.dismiss();
+        toast.error(
+          error instanceof Error ? error.message : "Failed to reactivate user"
+        );
+      }
     }
   };
   return (

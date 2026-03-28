@@ -1,6 +1,7 @@
 import { ArrowLeft, MapPin } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 import { useModeration } from "../contexts/useModeration";
 import { useApiMutation } from "../hooks/useApiMutation";
 import { useFetchCarouselDetails } from "../hooks/useFetchCarouselDetails";
@@ -52,13 +53,22 @@ export default function PendingApprovalDetailsPage() {
   const handleApprove = async () => {
     try {
       setApproveLoading(true);
+      const loadingToast = toast.loading("Approving carousel...");
+
       await approveMutation.mutateAsync({
         carouselId: carouselId || "",
         action: "approve",
       });
+
+      toast.dismiss(loadingToast);
+      toast.success("Carousel approved successfully!");
       moderation.refetchAll();
       navigate("/content");
     } catch (error) {
+      toast.dismiss();
+      toast.error(
+        error instanceof Error ? error.message : "Failed to approve carousel"
+      );
       console.error("Error approving carousel:", error);
     } finally {
       setApproveLoading(false);
@@ -68,13 +78,22 @@ export default function PendingApprovalDetailsPage() {
   const handleReject = async () => {
     try {
       setRejectLoading(true);
+      const loadingToast = toast.loading("Rejecting carousel...");
+
       await rejectMutation.mutateAsync({
         carouselId: carouselId || "",
         action: "reject",
       });
+
+      toast.dismiss(loadingToast);
+      toast.success("Carousel rejected successfully!");
       moderation.refetchAll();
       navigate("/content");
     } catch (error) {
+      toast.dismiss();
+      toast.error(
+        error instanceof Error ? error.message : "Failed to reject carousel"
+      );
       console.error("Error rejecting carousel:", error);
     } finally {
       setRejectLoading(false);
