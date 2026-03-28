@@ -3,7 +3,11 @@
  * Handles D-Pad, arrow keys, and remote control input
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+
+declare global {
+  var window: any;
+}
 
 interface RemoteNavigationConfig {
   onUp?: () => void;
@@ -15,55 +19,66 @@ interface RemoteNavigationConfig {
 }
 
 export const useTVRemote = (config: RemoteNavigationConfig) => {
-  const handleKeyDown = (event: KeyboardEvent & { preventDefault(): void }) => {
-    const key = event.key;
+  const configRef = useRef(config);
 
-    switch (key) {
-      case 'ArrowUp':
-      case 'w':
-      case 'W':
-        event.preventDefault();
-        config.onUp?.();
-        break;
-      case 'ArrowDown':
-      case 's':
-      case 'S':
-        event.preventDefault();
-        config.onDown?.();
-        break;
-      case 'ArrowLeft':
-      case 'a':
-      case 'A':
-        event.preventDefault();
-        config.onLeft?.();
-        break;
-      case 'ArrowRight':
-      case 'd':
-      case 'D':
-        event.preventDefault();
-        config.onRight?.();
-        break;
-      case 'Enter':
-      case ' ':
-        event.preventDefault();
-        config.onEnter?.();
-        break;
-      case 'Escape':
-      case 'Backspace':
-        event.preventDefault();
-        config.onBack?.();
-        break;
-      default:
-        break;
-    }
-  };
+  // Update ref when config changes
+  useEffect(() => {
+    configRef.current = config;
+  }, [config]);
 
   useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+    const handleKeyDown = (
+      event: KeyboardEvent & { preventDefault(): void },
+    ) => {
+      const key = event.key;
+
+      switch (key) {
+        case 'ArrowUp':
+        case 'w':
+        case 'W':
+          event.preventDefault();
+          configRef.current.onUp?.();
+          break;
+        case 'ArrowDown':
+        case 's':
+        case 'S':
+          event.preventDefault();
+          configRef.current.onDown?.();
+          break;
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+          event.preventDefault();
+          configRef.current.onLeft?.();
+          break;
+        case 'ArrowRight':
+        case 'd':
+        case 'D':
+          event.preventDefault();
+          configRef.current.onRight?.();
+          break;
+        case 'Enter':
+        case ' ':
+          event.preventDefault();
+          configRef.current.onEnter?.();
+          break;
+        case 'Escape':
+        case 'Backspace':
+          event.preventDefault();
+          configRef.current.onBack?.();
+          break;
+        default:
+          break;
+      }
     };
-  }, [config]);
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, []);
 };
 
 export default useTVRemote;

@@ -16,15 +16,16 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.(js|jsx|ts|tsx)$/,
-        exclude: /node_modules/,
+        test: /\.(js|jsx|ts|tsx|mjs)$/,
+        exclude: /node_modules\/(?!(react-native-css-interop|nativewind|react-native-web)\/).*/,
         use: {
           loader: 'babel-loader',
           options: {
             presets: [
-              '@babel/preset-env',
-              '@babel/preset-react',
+              ['@babel/preset-env', { loose: true }],
+              ['@babel/preset-react', { runtime: 'automatic', importSource: 'nativewind' }],
               '@babel/preset-typescript',
+              'nativewind/babel',
             ],
           },
         },
@@ -36,9 +37,16 @@ module.exports = {
     ],
   },
   resolve: {
-    extensions: ['.web.js', '.web.ts', '.web.tsx', '.js', '.ts', '.tsx'],
+    extensions: ['.web.js', '.web.ts', '.web.tsx', '.js', '.ts', '.tsx', '.mjs'],
     alias: {
       'react-native': 'react-native-web',
+    },
+    extensionAlias: {
+      '.js': ['.ts', '.tsx', '.js', '.jsx'],
+    },
+    fallback: {
+      path: false,
+      fs: false,
     },
   },
   plugins: [
