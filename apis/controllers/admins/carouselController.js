@@ -1,4 +1,5 @@
 const db = require('../../models');
+const { logActivity } = require('../../utils/adminActivityService');
 const { getCompleteImageUrl } = require('../../utils/imageUrlHelper');
 
 /**
@@ -148,11 +149,7 @@ exports.flagCarousel = async (req, res) => {
             flaggedCount: carousel.flaggedCount + 1
         });
 
-
-
-        // Set up admin activity logging via middleware
-        req.adminActivity = {
-            action: 'FLAG_CAROUSEL',
+        await logActivity(req.user.id, 'FLAG_CAROUSEL', {
             entityType: 'Carousel',
             entityId: carouselId,
             details: {
@@ -160,7 +157,9 @@ exports.flagCarousel = async (req, res) => {
                 status: status,
                 additionalInfo: additionalInfo || null
             }
-        };
+        });
+
+
 
         res.json({
             success: true,
