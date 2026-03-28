@@ -11,7 +11,48 @@ export default function Pagination({
   totalPages,
   onPageChange,
 }: PaginationProps) {
-  const pages = [1, 2, 3, "...", 8, 9, 10];
+  // Generate page numbers dynamically based on totalPages
+  const getPages = (): (number | string)[] => {
+    if (totalPages <= 5) {
+      // If 5 or fewer pages, show all
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const pages: (number | string)[] = [];
+    const leftSiblings = 1;
+    const rightSiblings = 1;
+
+    // Always show first page
+    pages.push(1);
+
+    // Calculate range around current page
+    const leftRange = Math.max(2, currentPage - leftSiblings);
+    const rightRange = Math.min(totalPages - 1, currentPage + rightSiblings);
+
+    // Add left ellipsis if needed
+    if (leftRange > 2) {
+      pages.push("...");
+    }
+
+    // Add pages around current page
+    for (let i = leftRange; i <= rightRange; i++) {
+      pages.push(i);
+    }
+
+    // Add right ellipsis if needed
+    if (rightRange < totalPages - 1) {
+      pages.push("...");
+    }
+
+    // Always show last page
+    if (totalPages > 1) {
+      pages.push(totalPages);
+    }
+
+    return pages;
+  };
+
+  const pages = getPages();
 
   return (
     <div className="flex items-center justify-between pt-3 pb-1">
