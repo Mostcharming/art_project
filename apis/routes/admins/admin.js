@@ -285,12 +285,7 @@ router.get('/activity-logs/stats', verifyToken, activityLogController.getAllActi
  */
 router.get('/activity-logs/:id', verifyToken, activityLogController.getActivityLogDetail);
 
-/**
- * @route   GET /api/admin/:id
- * @desc    Get admin by id with role and privileges
- * @access  Private
- */
-router.get('/:id', verifyToken, adminController.getAdmin);
+
 
 /**
  * ==========================================
@@ -374,6 +369,29 @@ router.get('/dashboard/monthly-data', verifyToken, dashboardController.getMonthl
  */
 router.get('/dashboard/top-carousels', verifyToken, dashboardController.getTopCarousels);
 
+
+
+/**
+ * @route   POST /api/admin/carousels/:carouselId/flag
+ * @desc    Flag a carousel as inappropriate
+ * @access  Private
+ */
+router.post('/carousels/:carouselId/flag', verifyToken, carouselController.flagCarousel);
+
+/**
+ * @route   GET /api/admin/carousels/pending-approval
+ * @desc    Get pending approval carousels (adminApproved = false and status = active)
+ * @access  Private
+ */
+router.get('/carousels/pending-approval', verifyToken, carouselController.getPendingApprovalCarousels);
+
+/**
+ * @route   GET /api/admin/carousels/flagged
+ * @desc    Get flagged/reported carousels (status = flagged)
+ * @access  Private
+ */
+router.get('/carousels/flagged', verifyToken, carouselController.getFlaggedCarousels);
+
 /**
  * @route   GET /api/admin/carousels/:carouselId
  * @desc    Get single carousel details with publisher and artworks
@@ -382,10 +400,10 @@ router.get('/dashboard/top-carousels', verifyToken, dashboardController.getTopCa
 router.get('/carousels/:carouselId', verifyToken, carouselController.getCarouselDetails);
 
 /**
- * @route   POST /api/admin/carousels/:carouselId/flag
- * @desc    Flag a carousel as inappropriate
+ * @route   GET /api/admin/:id
+ * @desc    Get admin by id with role and privileges
  * @access  Private
  */
-router.post('/carousels/:carouselId/flag', verifyToken, carouselController.flagCarousel);
+router.get('/:id', verifyToken, adminController.getAdmin);
 
 module.exports = router;

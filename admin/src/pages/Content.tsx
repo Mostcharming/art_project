@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import CarouselTable from "../components/content/CarouselTable";
 import MetricCard from "../components/content/MetricCard";
+import ModerationPanel from "../components/content/ModerationPanel";
 import { useContentData } from "../hooks/useContentData";
 import { useContentStore } from "../store/contentStore";
 import { exportCarouselsAsCSV } from "../utils/csvExport";
@@ -213,43 +214,7 @@ export default function Index() {
         )}
 
         {/* Content Moderation Tab */}
-        {activeTab === "moderation" && (
-          <div className="px-8 flex items-center justify-center py-24">
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-surface border border-gray-400 flex items-center justify-center mx-auto mb-4">
-                <svg
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="#94969C"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M12 8V12M12 16H12.01"
-                    stroke="#94969C"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-white text-lg font-semibold mb-2">
-                Content Moderation
-              </h3>
-              <p className="text-gray-400 text-sm max-w-sm">
-                This section is under development. Continue prompting to build
-                out this page's content.
-              </p>
-            </div>
-          </div>
-        )}
+        {activeTab === "moderation" && <ModerationPanel />}
       </div>
     </div>
   );

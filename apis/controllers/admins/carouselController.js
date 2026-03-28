@@ -143,19 +143,12 @@ exports.flagCarousel = async (req, res) => {
         await carousel.update({
             status: status,
             isFlagged: true,
+            flaggedReason: reason,
+            additionalReason: additionalInfo || null,
             flaggedCount: carousel.flaggedCount + 1
         });
 
-        // Log the flag action (create activity log if CarouselFlag model exists)
-        if (db.CarouselFlag) {
-            await db.CarouselFlag.create({
-                carouselId: carouselId,
-                adminId: adminId,
-                reason: reason,
-                additionalInfo: additionalInfo || null,
-                status: status
-            });
-        }
+
 
         // Set up admin activity logging via middleware
         req.adminActivity = {
@@ -183,6 +176,154 @@ exports.flagCarousel = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error flagging carousel',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Get pending approval carousels (adminApproved = false and status = active/published)
+ */
+exports.getPendingApprovalCarousels = async (req, res) => {
+    try {
+        const { startDate, endDate } = req.query;
+
+        // Build where clause
+        const whereClause = {
+            adminApproved: false,
+            status: 'active',
+            isDeleted: false
+        };
+
+        // Add date range filter if provided
+        if (startDate || endDate) {
+            whereClause.createdAt = {};
+            if (startDate) {
+                whereClause.createdAt[db.Sequelize.Op.gte] = new Date(startDate);
+            }
+            if (endDate) {
+                whereClause.createdAt[db.Sequelize.Op.lte] = new Date(endDate);
+            }
+        }
+
+        const rows = await db.Carousel.findAll({
+            where: whereClause,
+            include: [
+                {
+                    model: db.Publisher,
+                    as: 'publisher',
+                    attributes: ['id', 'name', 'personaType', 'profilePicture']
+                },
+                {
+                    model: db.Artwork,
+                    as: 'artworks',
+                    where: { isDeleted: false },
+                    required: false,
+                    attributes: ['id', 'imageUrl']
+                }
+            ],
+            order: [['createdAt', 'DESC']],
+            raw: false,
+            subQuery: false
+        });
+
+        const formattedCarousels = rows.map(carousel => ({
+            id: carousel.id,
+            title: carousel.name,
+            img: carousel.artworks && carousel.artworks.length > 0
+                ? getCompleteImageUrl(carousel.artworks[0].imageUrl)
+                : null,
+            creator: carousel.publisher?.name || 'Unknown',
+            creatorType: carousel.publisher?.personaType || 'Artist',
+            length: carousel.artworks?.length || 0,
+            category: carousel.tag || 'Uncategorized',
+            date: new Date(carousel.createdAt).toLocaleDateString('en-US'),
+            status: carousel.status,
+            adminApproved: carousel.adminApproved
+        }));
+
+        res.json({
+            success: true,
+            data: formattedCarousels
+        });
+    } catch (error) {
+        console.error('Error fetching pending approval carousels:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching pending approval carousels',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Get flagged/reported carousels (status = flagged)
+ */
+exports.getFlaggedCarousels = async (req, res) => {
+    try {
+        const { startDate, endDate } = req.query;
+
+        // Build where clause
+        const whereClause = {
+            status: 'flagged',
+            isDeleted: false
+        };
+
+        // Add date range filter if provided
+        if (startDate || endDate) {
+            whereClause.createdAt = {};
+            if (startDate) {
+                whereClause.createdAt[db.Sequelize.Op.gte] = new Date(startDate);
+            }
+            if (endDate) {
+                whereClause.createdAt[db.Sequelize.Op.lte] = new Date(endDate);
+            }
+        }
+
+        const rows = await db.Carousel.findAll({
+            where: whereClause,
+            include: [
+                {
+                    model: db.Publisher,
+                    as: 'publisher',
+                    attributes: ['id', 'name', 'personaType', 'profilePicture']
+                },
+                {
+                    model: db.Artwork,
+                    as: 'artworks',
+                    where: { isDeleted: false },
+                    required: false,
+                    attributes: ['id', 'imageUrl']
+                }
+            ],
+            order: [['createdAt', 'DESC']],
+            raw: false,
+            subQuery: false
+        });
+
+        const formattedCarousels = rows.map(carousel => ({
+            id: carousel.id,
+            title: carousel.name,
+            img: carousel.artworks && carousel.artworks.length > 0
+                ? getCompleteImageUrl(carousel.artworks[0].imageUrl)
+                : null,
+            creator: carousel.publisher?.name || 'Unknown',
+            creatorType: carousel.publisher?.personaType || 'Artist',
+            reportCount: carousel.flaggedCount || 0,
+            dateReported: new Date(carousel.createdAt).toLocaleDateString('en-US'),
+            reason: carousel.flaggedReason || 'Not specified',
+            status: carousel.status
+        }));
+
+        res.json({
+            success: true,
+            data: formattedCarousels
+        });
+    } catch (error) {
+        console.error('Error fetching flagged carousels:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching flagged carousels',
             error: error.message
         });
     }
