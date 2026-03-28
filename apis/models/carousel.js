@@ -134,6 +134,11 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             defaultValue: 0,
             comment: 'Number of times this carousel has been flagged'
+        },
+        unflaggedReason: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+            comment: 'Reason for removing flagged status'
         }
     }, {
         sequelize,

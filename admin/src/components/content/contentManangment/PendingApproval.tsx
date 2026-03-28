@@ -1,16 +1,31 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useModeration } from "../../../contexts/useModeration";
+import { useApiMutation } from "../../../hooks/useApiMutation";
 import { usePendingApprovalData } from "../../../hooks/usePendingApprovalData";
 import { DatePicker } from "../../dashboard/DatePicker";
 import Pagination from "./Pagination";
 
 export default function PendingApprovalSection() {
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [dateRange, setDateRange] = useState<{
     start: Date | null;
     end: Date | null;
   } | null>(null);
+  const [loadingId, setLoadingId] = useState<number | null>(null);
   const pageSize = 10;
+
+  const approveMutation = useApiMutation({
+    endpoint: "/admins/carousels/",
+    method: "POST",
+  });
+
+  const rejectMutation = useApiMutation({
+    endpoint: "/admins/carousels/",
+    method: "POST",
+  });
 
   const filters = useMemo(
     () => ({
@@ -24,9 +39,18 @@ export default function PendingApprovalSection() {
     [dateRange]
   );
 
-  const { data: allItems, isLoading } = usePendingApprovalData(filters);
+  const {
+    data: allItems,
+    isLoading,
+    refetch,
+  } = usePendingApprovalData(filters);
 
-  // Paginate items on the frontend
+  const moderation = useModeration();
+
+  // Register refetch function with context
+  useEffect(() => {
+    moderation.registerPendingApprovalRefetch(refetch);
+  }, [refetch, moderation]);
   const items = useMemo(() => {
     const startIndex = (currentPage - 1) * pageSize;
     return allItems.slice(startIndex, startIndex + pageSize);
@@ -46,15 +70,37 @@ export default function PendingApprovalSection() {
     setCurrentPage(1);
   };
 
-  const handleApprove = (id: number) => {
-    // TODO: Implement approve action with API call
-    console.log("Approve carousel:", id);
-  };
+  const handleApprove = useCallback(
+    async (carouselId: number) => {
+      try {
+        setLoadingId(carouselId);
+        await approveMutation.mutateAsync({ carouselId, action: "approve" });
+        // Refetch both tables after successful approval
+        moderation.refetchAll();
+      } catch (error) {
+        console.error("Error approving carousel:", error);
+      } finally {
+        setLoadingId(null);
+      }
+    },
+    [approveMutation, moderation]
+  );
 
-  const handleReject = (id: number) => {
-    // TODO: Implement reject action with API call
-    console.log("Reject carousel:", id);
-  };
+  const handleReject = useCallback(
+    async (carouselId: number) => {
+      try {
+        setLoadingId(carouselId);
+        await rejectMutation.mutateAsync({ carouselId, action: "reject" });
+        // Refetch both tables after successful rejection
+        moderation.refetchAll();
+      } catch (error) {
+        console.error("Error rejecting carousel:", error);
+      } finally {
+        setLoadingId(null);
+      }
+    },
+    [rejectMutation, moderation]
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -136,56 +182,68 @@ export default function PendingApprovalSection() {
                 </td>
               </tr>
             ) : items.length > 0 ? (
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              items.map((item: any) => (
-                <tr
-                  key={item.id}
-                  className={`border-b border-[#1F242F] last:border-b-0 hover:bg-[#161B26] transition-colors`}
-                >
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      {item.img && (
-                        <img
-                          src={item.img}
-                          alt={item.title}
-                          className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
-                        />
-                      )}
-                      <span className="text-sm font-medium text-[#F5F5F6]">
-                        {item.title}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-[#94969C]">
-                    {item.creator}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-[#94969C]">
-                    {item.length}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-[#94969C]">
-                    {item.category}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-[#94969C]">
-                    {item.date}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleApprove(item.id)}
-                        className="px-3 py-1.5 rounded-lg bg-[#D8522E] text-white text-sm font-semibold hover:bg-[#C04520] transition-colors"
-                      >
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => handleReject(item.id)}
-                        className="px-3 py-1.5 rounded-lg bg-[#333741] text-[#CECFD2] text-sm font-semibold hover:bg-[#3d424f] transition-colors"
-                      >
-                        Reject
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+              items.map(
+                (item: {
+                  id: number;
+                  img?: string;
+                  title: string;
+                  creator: string;
+                  length: number;
+                  category: string;
+                  date: string;
+                }) => (
+                  <tr
+                    key={item.id}
+                    onClick={() => navigate(`/pending-approval/${item.id}`)}
+                    className={`border-b border-[#1F242F] last:border-b-0 hover:bg-[#161B26] transition-colors cursor-pointer`}
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        {item.img && (
+                          <img
+                            src={item.img}
+                            alt={item.title}
+                            className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+                          />
+                        )}
+                        <span className="text-sm font-medium text-[#F5F5F6]">
+                          {item.title}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-[#94969C]">
+                      {item.creator}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-[#94969C]">
+                      {item.length}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-[#94969C]">
+                      {item.category}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-[#94969C]">
+                      {item.date}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleApprove(item.id)}
+                          disabled={loadingId === item.id}
+                          className="px-3 py-1.5 rounded-lg bg-[#D8522E] text-white text-sm font-semibold hover:bg-[#C04520] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {loadingId === item.id ? "Approving..." : "Approve"}
+                        </button>
+                        <button
+                          onClick={() => handleReject(item.id)}
+                          disabled={loadingId === item.id}
+                          className="px-3 py-1.5 rounded-lg bg-[#333741] text-[#CECFD2] text-sm font-semibold hover:bg-[#3d424f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {loadingId === item.id ? "Rejecting..." : "Reject"}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              )
             ) : (
               <tr>
                 <td

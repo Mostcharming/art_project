@@ -15,5 +15,13 @@
   { "path": "/members", "element": "Members" },
   { "path": "/members/:id", "element": "AdminDetails" },
   { "path": "/content/:carouselId", "element": "CarouselDetails" },
+  {
+    "path": "/pending-approval/:carouselId",
+    "element": "PendingApprovalDetails"
+  },
+  {
+    "path": "/flagged-content/:carouselId",
+    "element": "FlaggedContentDetails"
+  },
   { "path": "/profile", "element": "Profile" }
 ]

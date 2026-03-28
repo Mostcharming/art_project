@@ -36,5 +36,6 @@ export function usePendingApprovalData(filters: PendingApprovalFilters = {}) {
     data: mutation.data?.data || [],
     isLoading: mutation.isLoading,
     error: mutation.error,
+    refetch: () => mutation.mutate(filters),
   };
 }

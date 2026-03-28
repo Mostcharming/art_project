@@ -71,6 +71,9 @@ exports.getCarouselDetails = async (req, res) => {
             status: carousel.status,
             createdAt: carousel.createdAt,
             frameTimingSeconds: carousel.frameTimingSeconds,
+            flaggedReason: carousel.flaggedReason || null,
+            additionalReason: carousel.additionalReason || null,
+            flaggedCount: carousel.flaggedCount || 0,
             publisher: {
                 id: carousel.publisher.id,
                 name: carousel.publisher.name,
@@ -323,6 +326,282 @@ exports.getFlaggedCarousels = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error fetching flagged carousels',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Approve a pending carousel (set adminApproved = true)
+ */
+exports.approveCarousel = async (req, res) => {
+    try {
+        const { carouselId } = req.params;
+        const adminId = req.user?.id;
+
+        // Validate admin ID
+        if (!adminId) {
+            return res.status(401).json({
+                success: false,
+                message: 'Unauthorized'
+            });
+        }
+
+        // Find the carousel
+        const carousel = await db.Carousel.findOne({
+            where: {
+                id: carouselId,
+                isDeleted: false
+            }
+        });
+
+        if (!carousel) {
+            return res.status(404).json({
+                success: false,
+                message: 'Carousel not found'
+            });
+        }
+
+        // Update carousel to approved
+        await carousel.update({
+            adminApproved: true
+        });
+
+        // Log the activity
+        await logActivity(adminId, 'APPROVE_CAROUSEL', {
+            entityType: 'Carousel',
+            entityId: carouselId,
+            details: {
+                action: 'approved',
+                previousStatus: carousel.adminApproved
+            }
+        });
+
+        res.json({
+            success: true,
+            message: 'Carousel approved successfully',
+            carousel: {
+                id: carousel.id,
+                adminApproved: true
+            }
+        });
+    } catch (error) {
+        console.error('Error approving carousel:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error approving carousel',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Reject a pending carousel (set status = flagged and reason = admin rejected)
+ */
+exports.rejectCarousel = async (req, res) => {
+    try {
+        const { carouselId } = req.params;
+        const adminId = req.user?.id;
+
+        // Validate admin ID
+        if (!adminId) {
+            return res.status(401).json({
+                success: false,
+                message: 'Unauthorized'
+            });
+        }
+
+        // Find the carousel
+        const carousel = await db.Carousel.findOne({
+            where: {
+                id: carouselId,
+                isDeleted: false
+            }
+        });
+
+        if (!carousel) {
+            return res.status(404).json({
+                success: false,
+                message: 'Carousel not found'
+            });
+        }
+
+        // Update carousel with rejected status
+        await carousel.update({
+            status: 'flagged',
+            isFlagged: true,
+            flaggedReason: 'Admin rejected',
+            flaggedCount: carousel.flaggedCount + 1
+        });
+
+        // Log the activity
+        await logActivity(adminId, 'REJECT_CAROUSEL', {
+            entityType: 'Carousel',
+            entityId: carouselId,
+            details: {
+                action: 'rejected',
+                reason: 'Admin rejected',
+                previousStatus: carousel.status
+            }
+        });
+
+        res.json({
+            success: true,
+            message: 'Carousel rejected successfully',
+            carousel: {
+                id: carousel.id,
+                status: 'flagged',
+                isFlagged: true
+            }
+        });
+    } catch (error) {
+        console.error('Error rejecting carousel:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error rejecting carousel',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Dismiss a flagged carousel report (set status = active)
+ */
+exports.dismissReport = async (req, res) => {
+    try {
+        const { carouselId } = req.params;
+        const { unflaggedReason } = req.body;
+        const adminId = req.user?.id;
+
+        // Validate admin ID
+        if (!adminId) {
+            return res.status(401).json({
+                success: false,
+                message: 'Unauthorized'
+            });
+        }
+
+        // Find the carousel
+        const carousel = await db.Carousel.findOne({
+            where: {
+                id: carouselId,
+                isDeleted: false
+            }
+        });
+
+        if (!carousel) {
+            return res.status(404).json({
+                success: false,
+                message: 'Carousel not found'
+            });
+        }
+
+        // Store previous status for logging
+        const previousStatus = carousel.status;
+
+        // Update carousel to active status and clear flag, save unflaggedReason
+        await carousel.update({
+            status: 'active',
+            isFlagged: false,
+            unflaggedReason: unflaggedReason || 'Report dismissed by admin'
+        });
+
+        // Log the activity
+        await logActivity(adminId, 'DISMISS_REPORT', {
+            entityType: 'Carousel',
+            entityId: carouselId,
+            details: {
+                action: 'dismissed',
+                previousStatus: previousStatus,
+                newStatus: 'active',
+                reason: unflaggedReason || 'Report dismissed by admin'
+            }
+        });
+
+        res.json({
+            success: true,
+            message: 'Report dismissed successfully',
+            carousel: {
+                id: carousel.id,
+                status: 'active',
+                isFlagged: false
+            }
+        });
+    } catch (error) {
+        console.error('Error dismissing report:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error dismissing report',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Remove a carousel content (set isDeleted = true)
+ */
+exports.removeCarousel = async (req, res) => {
+    try {
+        const { carouselId } = req.params;
+        const { removalReason } = req.body;
+        const adminId = req.user?.id;
+
+        // Validate admin ID
+        if (!adminId) {
+            return res.status(401).json({
+                success: false,
+                message: 'Unauthorized'
+            });
+        }
+
+        // Find the carousel
+        const carousel = await db.Carousel.findOne({
+            where: {
+                id: carouselId,
+                isDeleted: false
+            }
+        });
+
+        if (!carousel) {
+            return res.status(404).json({
+                success: false,
+                message: 'Carousel not found'
+            });
+        }
+
+        // Store previous status for logging
+        const previousStatus = carousel.status;
+
+        // Update carousel to deleted with removalReason
+        await carousel.update({
+            isDeleted: true,
+            removalReason: removalReason || 'Content removed by admin'
+        });
+
+        // Log the activity
+        await logActivity(adminId, 'REMOVE_CAROUSEL', {
+            entityType: 'Carousel',
+            entityId: carouselId,
+            details: {
+                action: 'removed',
+                previousStatus: previousStatus,
+                reason: removalReason || 'Content removed by admin'
+            }
+        });
+
+        res.json({
+            success: true,
+            message: 'Carousel removed successfully',
+            carousel: {
+                id: carousel.id,
+                isDeleted: true
+            }
+        });
+    } catch (error) {
+        console.error('Error removing carousel:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error removing carousel',
             error: error.message
         });
     }

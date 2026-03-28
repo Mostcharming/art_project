@@ -379,6 +379,20 @@ router.get('/dashboard/top-carousels', verifyToken, dashboardController.getTopCa
 router.post('/carousels/:carouselId/flag', verifyToken, carouselController.flagCarousel);
 
 /**
+ * @route   POST /api/admin/carousels/:carouselId/approve
+ * @desc    Approve a pending carousel (set adminApproved = true)
+ * @access  Private
+ */
+router.post('/carousels/:carouselId/approve', verifyToken, carouselController.approveCarousel);
+
+/**
+ * @route   POST /api/admin/carousels/:carouselId/reject
+ * @desc    Reject a pending carousel (set status = flagged)
+ * @access  Private
+ */
+router.post('/carousels/:carouselId/reject', verifyToken, carouselController.rejectCarousel);
+
+/**
  * @route   GET /api/admin/carousels/pending-approval
  * @desc    Get pending approval carousels (adminApproved = false and status = active)
  * @access  Private
@@ -391,6 +405,20 @@ router.get('/carousels/pending-approval', verifyToken, carouselController.getPen
  * @access  Private
  */
 router.get('/carousels/flagged', verifyToken, carouselController.getFlaggedCarousels);
+
+/**
+ * @route   POST /api/admin/carousels/:carouselId/dismiss
+ * @desc    Dismiss a flagged carousel report (set status = active)
+ * @access  Private
+ */
+router.post('/carousels/:carouselId/dismiss', verifyToken, carouselController.dismissReport);
+
+/**
+ * @route   POST /api/admin/carousels/:carouselId/remove
+ * @desc    Remove a carousel content (set isDeleted = true)
+ * @access  Private
+ */
+router.post('/carousels/:carouselId/remove', verifyToken, carouselController.removeCarousel);
 
 /**
  * @route   GET /api/admin/carousels/:carouselId

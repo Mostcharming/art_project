@@ -37,7 +37,12 @@ export interface CarouselDetails {
   averageViewDuration: number;
   status: string;
   createdAt: string;
+  updatedAt?: string;
   frameTimingSeconds: number;
+  isFlagged?: boolean;
+  flaggedReason?: string;
+  additionalReason?: string;
+  flaggedCount?: number;
   publisher: Publisher;
   artworks: Artwork[];
 }

@@ -10,9 +10,11 @@ import TokenPage from "./pages/auth/TokenPage";
 import CarouselDetails from "./pages/CarouselDetails";
 import Content from "./pages/Content";
 import Dashboard from "./pages/Dashboard";
+import FlaggedContentDetails from "./pages/FlaggedContentDetails";
 import Home from "./pages/Home";
 import Members from "./pages/Members";
 import NotFound from "./pages/NotFound";
+import PendingApprovalDetails from "./pages/PendingApprovalDetails";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./pages/ProtectedRoute";
 import ResetPassword from "./pages/ResetPassword";
@@ -30,6 +32,8 @@ const routeComponents: Record<string, React.FC> = {
   AdminDetails,
   CarouselDetails,
   Content,
+  FlaggedContentDetails,
+  PendingApprovalDetails,
   Users,
   Members,
   Profile,
@@ -51,6 +55,8 @@ function App({ routes }: AppProps) {
     "Dashboard",
     "Content",
     "CarouselDetails",
+    "FlaggedContentDetails",
+    "PendingApprovalDetails",
     "Users",
     "Members",
     "AdminDetails",

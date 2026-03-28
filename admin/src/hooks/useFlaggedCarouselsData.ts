@@ -25,6 +25,7 @@ export function useFlaggedCarouselsData(
   isLoading: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error: any;
+  refetch: () => void;
 } {
   const filterString = useMemo(() => JSON.stringify(filters), [filters]);
 
@@ -42,5 +43,6 @@ export function useFlaggedCarouselsData(
     data: mutation.data?.data || [],
     isLoading: mutation.isLoading,
     error: mutation.error,
+    refetch: () => mutation.mutate(filters),
   };
 }

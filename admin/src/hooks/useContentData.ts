@@ -62,10 +62,10 @@ export function useContentData(filters: ContentFilters = {}) {
       setStats({
         totalViews: data.totalViews || 0,
         totalViewsPercentage: data.totalViewsPercentage || 0,
-        averageWatchTime: 70, // This would need to come from API
+        averageWatchTime: data.totalViews * 5 || 0, // This would need to come from API
         averageWatchTimePercentage: data.averageWatchTimePercentage || 0,
-        engagementRate: 54, // This would need to come from API
-        engagementRatePercentage: data.engagementRatePercentage || 0,
+        engagementRate: data.totalViews || 0,
+        engagementRatePercentage: data.totalFavoritesPercentage || 0,
       });
     }
     setIsLoadingStats(statsMutation.isLoading);

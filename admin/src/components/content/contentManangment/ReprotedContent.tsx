@@ -1,4 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useModeration } from "../../../contexts/useModeration";
 import { useFlaggedCarouselsData } from "../../../hooks/useFlaggedCarouselsData";
 import { DatePicker } from "../../dashboard/DatePicker";
 import Pagination from "./Pagination";
@@ -17,6 +19,7 @@ const creatorTypeBadge: Record<string, string> = {
 };
 
 export default function ReportedContentSection() {
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [dateRange, setDateRange] = useState<{
@@ -37,10 +40,18 @@ export default function ReportedContentSection() {
     [dateRange]
   );
 
-  const { data: allReportedItems, isLoading } =
-    useFlaggedCarouselsData(filters);
+  const {
+    data: allReportedItems,
+    isLoading,
+    refetch,
+  } = useFlaggedCarouselsData(filters);
 
-  // Paginate items on the frontend
+  const moderation = useModeration();
+
+  // Register refetch function with context
+  useEffect(() => {
+    moderation.registerFlaggedContentRefetch(refetch);
+  }, [refetch, moderation]);
   const reportedItems = useMemo(() => {
     const startIndex = (currentPage - 1) * pageSize;
     return allReportedItems.slice(startIndex, startIndex + pageSize);
@@ -146,7 +157,8 @@ export default function ReportedContentSection() {
               reportedItems.map((item: any) => (
                 <tr
                   key={item.id}
-                  className="border-b border-[#1F242F] last:border-b-0 hover:bg-[#161B26] transition-colors"
+                  onClick={() => navigate(`/flagged-content/${item.id}`)}
+                  className="border-b border-[#1F242F] last:border-b-0 hover:bg-[#161B26] transition-colors cursor-pointer"
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -194,7 +206,8 @@ export default function ReportedContentSection() {
                         "bg-[#161B26] text-[#CECFD2] border border-[#333741]"
                       }`}
                     >
-                      {item.reason}
+                      {item.reason.charAt(0).toUpperCase() +
+                        item.reason.slice(1)}
                     </span>
                   </td>
                 </tr>

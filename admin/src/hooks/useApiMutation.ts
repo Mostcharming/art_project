@@ -43,10 +43,21 @@ export function useApiMutation<T = any>(
     mutationFn: async (payload: any) => {
       try {
         const token = user?.token;
+
+        // Support dynamic endpoints by handling carouselId and action
+        let finalEndpoint = endpoint;
+        if (payload?.carouselId) {
+          if (payload?.action) {
+            finalEndpoint = `${endpoint}${payload.carouselId}/${payload.action}`;
+          } else {
+            finalEndpoint = `${endpoint}${payload.carouselId}`;
+          }
+        }
+
         const axiosConfig: AxiosRequestConfig = {
           baseURL,
           method,
-          url: endpoint,
+          url: finalEndpoint,
           headers: {
             ...customHeaders,
             ...(token && { Authorization: `Bearer ${token}` }),
