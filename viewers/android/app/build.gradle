@@ -52,6 +52,9 @@ react {
 
     /* Autolinking */
     autolinkLibrariesWithApp()
+    project.ext.react = [
+    bundleInRelease: true, 
+]
 }
 
 /**
