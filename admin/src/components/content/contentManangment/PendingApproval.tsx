@@ -76,9 +76,9 @@ export default function PendingApprovalSection() {
       try {
         setLoadingId(carouselId);
         const loadingToast = toast.loading("Approving carousel...");
-        
+
         await approveMutation.mutateAsync({ carouselId, action: "approve" });
-        
+
         toast.dismiss(loadingToast);
         toast.success("Carousel approved successfully!");
         // Refetch both tables after successful approval
@@ -101,9 +101,9 @@ export default function PendingApprovalSection() {
       try {
         setLoadingId(carouselId);
         const loadingToast = toast.loading("Rejecting carousel...");
-        
+
         await rejectMutation.mutateAsync({ carouselId, action: "reject" });
-        
+
         toast.dismiss(loadingToast);
         toast.success("Carousel rejected successfully!");
         // Refetch both tables after successful rejection

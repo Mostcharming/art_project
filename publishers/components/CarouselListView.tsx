@@ -280,7 +280,7 @@ export const CarouselListView: React.FC<CarouselListProps> = ({
                   )}
 
                   {/* Engagement Metrics - Only for publishers */}
-                  {carouselType === "publishers" && (
+                  {carouselType === "published" && (
                     <View className="flex-row gap-4 items-center">
                       <View className="flex-row items-center gap-1">
                         <MaterialIcons
@@ -607,7 +607,7 @@ export const CarouselListView: React.FC<CarouselListProps> = ({
               </Text>
 
               {/* Engagement Metrics - Only for publishers */}
-              {carouselType === "publishers" && (
+              {carouselType === "published" && (
                 <View className="flex-row gap-3 items-center">
                   <View className="flex-row items-center gap-1">
                     <MaterialIcons name="favorite" size={12} color="#EF4444" />
