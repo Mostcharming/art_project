@@ -4,7 +4,7 @@ import { HeroGallery } from './screenComponents/landing/HeroGallery';
 
 export function LandingScreen() {
   return (
-    <View className="flex-1 bg-black">
+    <View className="mt-4 flex-1">
       <HeroGallery />
     </View>
   );

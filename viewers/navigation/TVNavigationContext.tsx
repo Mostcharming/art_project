@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useState } from 'react';
 
-export type ScreenName = 'Landing' | 'Home2';
+export type ScreenName = 'Landing' | 'Home2' | 'Guest' | 'SignUp' | 'SignIn';
 
 /** Total number of gallery cards that can receive focus (non-partial cards: indices 1-5) */
 export const FOCUSABLE_CARD_COUNT = 5;

@@ -142,10 +142,12 @@ export default function Home2Screen() {
     onEnter: () => {
       if (focusedElement === 'buttons') {
         if (selectedButtonId === 'guest') {
-          navigate('Landing');
+          navigate('Guest');
+        } else if (selectedButtonId === 'signin') {
+          navigate('SignUp');
         }
       } else if (focusedElement === 'signin') {
-        navigate('Landing');
+        navigate('SignIn');
       }
     },
     onUp: () => {
@@ -171,7 +173,7 @@ export default function Home2Screen() {
   });
 
   return (
-    <View className="bg-black">
+    <View>
       {/* Header with logo */}
       <View className="pt-8 pb-6 items-center">
         <CarslLogo />

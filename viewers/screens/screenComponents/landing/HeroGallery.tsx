@@ -35,14 +35,14 @@ const CARDS = [
     pos: 'left-[22.2%] top-[21.9%] w-[17.7%] h-[46.5%]',
     partial: false,
   },
-  // 4 — CENTER (tallest, slightly overflows above)
+  // 4 — CENTER (tallest)
   {
     src: 'https://joincarsl.com/api/uploads/artworks/1.png',
     alt: 'Carsl',
     title: 'Carsl',
     artist: 'Carsl',
     bg: 'bg-[#6b1a1a]',
-    pos: 'left-[38.3%] top-[-4.2%] w-[23.4%] h-[54.2%]',
+    pos: 'left-[38.3%] top-[0%] w-[23.4%] h-[54.2%]',
     partial: false,
     isCenter: true,
   },

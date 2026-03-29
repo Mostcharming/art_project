@@ -3,18 +3,19 @@ import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useTVNavigation } from '../navigation/TVNavigationContext';
 import useTVRemote from '../useTVRemote';
 
-export function SignInScreen() {
+export function SignUpScreen() {
   const { navigate, goBack } = useTVNavigation();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const menuItems = [
     {
-      label: 'Sign In',
-      action: () => console.log('Sign in with:', { email, password }),
+      label: 'Sign Up',
+      action: () => console.log('Sign up with:', { email, password }),
     },
-    { label: 'Create Account', action: () => navigate('SignUp') },
+    { label: 'Sign In Instead', action: () => navigate('SignIn') },
     { label: 'Back', action: () => goBack() },
   ];
 
@@ -34,14 +35,15 @@ export function SignInScreen() {
           className="text-white text-4xl font-bold"
           style={{ fontFamily: 'BankGothicBold' }}
         >
-          Sign In
+          Create Account
         </Text>
       </View>
 
       {/* Main Content */}
       <ScrollView className="flex-1 px-8 py-12">
         <Text className="text-white/80 text-lg leading-7 mb-8">
-          Welcome back! Sign in to access your account and saved favorites.
+          Join us to save your favorite artworks and get personalized
+          recommendations.
         </Text>
 
         {/* Form Fields */}
@@ -70,11 +72,24 @@ export function SignInScreen() {
               className="bg-white/10 text-white px-4 py-3 rounded-lg border border-white/20"
             />
           </View>
+
+          {/* Confirm Password Field */}
+          <View>
+            <Text className="text-white/60 text-sm mb-2">Confirm Password</Text>
+            <TextInput
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholder="••••••••"
+              placeholderTextColor="rgba(255,255,255,0.3)"
+              secureTextEntry
+              className="bg-white/10 text-white px-4 py-3 rounded-lg border border-white/20"
+            />
+          </View>
         </View>
 
-        <Pressable className="mb-8">
-          <Text className="text-[#D8522E] text-sm">Forgot your password?</Text>
-        </Pressable>
+        <Text className="text-white/60 text-xs">
+          By signing up, you agree to our Terms of Service and Privacy Policy.
+        </Text>
       </ScrollView>
 
       {/* Menu Items */}
