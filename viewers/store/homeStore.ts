@@ -1,5 +1,5 @@
-import { useApiMutate } from '@/utils/useApiMutate';
 import { create } from 'zustand';
+import { apiMutate } from '../utils/useApiMutate';
 
 export interface Artwork {
   id: string;
@@ -46,8 +46,6 @@ interface HomeStore {
 }
 
 export const useHomeStore = create<HomeStore>((set: any) => {
-  const { mutate } = useApiMutate();
-
   return {
     homeData: {
       featuredCarousel: null,
@@ -61,7 +59,7 @@ export const useHomeStore = create<HomeStore>((set: any) => {
       set({ isLoading: true, error: null });
       try {
         // Fetch featured carousel and trending carousels
-        const carouselResponse = await mutate('/home/carousels', {
+        const carouselResponse = await apiMutate('/home/carousels', {
           method: 'GET',
         });
 
@@ -71,7 +69,7 @@ export const useHomeStore = create<HomeStore>((set: any) => {
         }
 
         // Fetch publishers with their top carousel
-        const publishersResponse = await mutate('/home/publishers', {
+        const publishersResponse = await apiMutate('/home/publishers', {
           method: 'GET',
         });
 

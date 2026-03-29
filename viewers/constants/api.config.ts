@@ -1,5 +1,8 @@
 // API Configuration for different environments
-const ENV = process.env.EXPO_PUBLIC_ENV || 'production';
+const ENV =
+  (typeof process !== 'undefined' && process.env.EXPO_PUBLIC_ENV) ||
+  (typeof process !== 'undefined' && process.env.NODE_ENV) ||
+  'production';
 
 export const API_CONFIG = {
   development: {

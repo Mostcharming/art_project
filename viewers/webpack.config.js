@@ -2,7 +2,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
-  entry: './index.web.js',
+  entry: ['core-js/stable', './index.web.js'],
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js',
@@ -26,6 +26,9 @@ module.exports = {
               ['@babel/preset-react', { runtime: 'automatic', importSource: 'nativewind' }],
               '@babel/preset-typescript',
               'nativewind/babel',
+            ],
+            plugins: [
+              ['@babel/plugin-transform-runtime', { regenerator: true }],
             ],
           },
         },
