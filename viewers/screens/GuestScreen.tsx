@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ImageBackground,
   Pressable,
@@ -7,6 +7,7 @@ import {
   View,
 } from 'react-native';
 import { useTVNavigation } from '../navigation/TVNavigationContext';
+import { useHomeStore } from '../store/homeStore';
 import useTVRemote from '../useTVRemote';
 
 interface ContentItem {
@@ -26,94 +27,6 @@ interface ContentRowProps {
   onCardSelect?: (id: string) => void;
   selectedCardId?: string;
 }
-const FEATURED_ARTISTS: ContentItem[] = [
-  {
-    id: 'a1',
-    src: 'https://images.pexels.com/photos/10226305/pexels-photo-10226305.jpeg?auto=compress&cs=tinysrgb&w=400',
-    alt: 'Woman in blue turban',
-    title: 'Kelechi Amadi-Obi',
-    subtitle: 'Lagos · Photography',
-    tag: 'Featured',
-    bg: 'bg-[#1a237e]',
-  },
-  {
-    id: 'a2',
-    src: 'https://images.pexels.com/photos/31861101/pexels-photo-31861101.jpeg?auto=compress&cs=tinysrgb&w=400',
-    alt: 'Woman in red headwrap',
-    title: 'Namsa Leuba',
-    subtitle: 'Geneva · Mixed Media',
-    bg: 'bg-[#7a2800]',
-  },
-  {
-    id: 'a3',
-    src: 'https://images.pexels.com/photos/32703124/pexels-photo-32703124.jpeg?auto=compress&cs=tinysrgb&w=400',
-    alt: 'Woman in Nigerian traditional attire',
-    title: 'Uche Okpa-Iroha',
-    subtitle: 'Enugu · Documentary',
-    tag: 'New',
-    bg: 'bg-[#6b1a1a]',
-  },
-  {
-    id: 'a4',
-    src: 'https://images.pexels.com/photos/11688047/pexels-photo-11688047.jpeg?auto=compress&cs=tinysrgb&w=400',
-    alt: 'Artistic B&W portrait',
-    title: 'Seun Akisanmi',
-    subtitle: 'Ibadan · Conceptual',
-    bg: 'bg-[#111111]',
-  },
-  {
-    id: 'a5',
-    src: 'https://images.pexels.com/photos/29750490/pexels-photo-29750490.jpeg?auto=compress&cs=tinysrgb&w=400',
-    alt: 'Portrait in shadows',
-    title: 'Lakin Ogunbanwo',
-    subtitle: 'Lagos · Fashion',
-    bg: 'bg-[#1a0a2e]',
-  },
-];
-
-const TRENDING: ContentItem[] = [
-  {
-    id: 't1',
-    src: 'https://images.pexels.com/photos/3995807/pexels-photo-3995807.jpeg?auto=compress&cs=tinysrgb&w=400',
-    alt: 'Collage portrait',
-    title: 'Dollar & Identity',
-    subtitle: 'Conceptual · Trending',
-    tag: '🔥',
-    bg: 'bg-[#d4d0c8]',
-  },
-  {
-    id: 't2',
-    src: 'https://images.pexels.com/photos/31861101/pexels-photo-31861101.jpeg?auto=compress&cs=tinysrgb&w=400',
-    alt: 'Red headwrap',
-    title: 'Gele Chronicles',
-    subtitle: 'Photography · 2024',
-    bg: 'bg-[#7a2800]',
-  },
-  {
-    id: 't3',
-    src: 'https://images.pexels.com/photos/34584326/pexels-photo-34584326.jpeg?auto=compress&cs=tinysrgb&w=400',
-    alt: 'Vibrant attire',
-    title: 'Kente Variations',
-    subtitle: 'Exhibition · Ghana',
-    bg: 'bg-[#2d1a00]',
-  },
-  {
-    id: 't4',
-    src: 'https://images.pexels.com/photos/10226305/pexels-photo-10226305.jpeg?auto=compress&cs=tinysrgb&w=400',
-    alt: 'Blue turban',
-    title: 'Lagos Portraits',
-    subtitle: 'Documentary · Nigeria',
-    bg: 'bg-[#1a237e]',
-  },
-  {
-    id: 't5',
-    src: 'https://images.pexels.com/photos/32703124/pexels-photo-32703124.jpeg?auto=compress&cs=tinysrgb&w=400',
-    alt: 'Traditional attire',
-    title: 'Aso-Oke II',
-    subtitle: 'Photography · 2025',
-    bg: 'bg-[#6b1a1a]',
-  },
-];
 function ContentRow({
   title,
   items,
@@ -127,9 +40,9 @@ function ContentRow({
   const rowRef = useRef<ScrollView>(null);
 
   return (
-    <View className="px-10 py-6">
+    <View className="px-10 py-8">
       {/* Row header */}
-      <View className=" mb-4">
+      <View className=" mb-6">
         <View className="flex flex-row items-center gap-3">
           {accent && (
             <View className="w-1 h-5 rounded-full bg-[hsl(25,95%,53%)]" />
@@ -152,7 +65,7 @@ function ContentRow({
             <Pressable
               key={item.id}
               onPress={() => onCardSelect?.(item.id)}
-              className={`flex-none w-[14vw] min-w-[160px] aspect-[2/3] rounded-xl overflow-hidden cursor-pointer group/card relative transition-all duration-200 ${
+              className={`flex-none w-[14vw] ml-10 min-w-[160px] aspect-[2/3] rounded-xl overflow-hidden cursor-pointer group/card relative transition-all duration-200 ${
                 selectedCardId === item.id
                   ? 'ring-2 ring-orange-500 scale-105'
                   : ''
@@ -178,7 +91,12 @@ function ContentRow({
 
               {/* Info overlay */}
               <View className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-3 z-10">
-                <Text className="text-white text-xs font-semibold leading-tight line-clamp-1">
+                <Text
+                  className="text-white text-xs font-semibold leading-tight line-clamp-1"
+                  style={{
+                    fontFamily: 'BankGothicBold',
+                  }}
+                >
                   {item.title}
                 </Text>
                 <Text className="text-white/50 text-[0.65rem] leading-tight mt-0.5 line-clamp-1">
@@ -379,6 +297,47 @@ export function GuestScreen() {
     string | undefined
   >();
 
+  // Fetch home data from store
+  const homeStore = useHomeStore();
+  const { featuredCarousel, trendingCarousels, publishers } =
+    homeStore.homeData;
+
+  // Fetch data on component mount
+  useEffect(() => {
+    homeStore.fetchHomeData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Convert API data to ContentItem format for trending carousels
+  const trendingItems: ContentItem[] = trendingCarousels.map(
+    (carousel: any) => ({
+      id: carousel.id,
+      src: carousel.imageUrl || 'https://via.placeholder.com/160x240',
+      alt: carousel.name,
+      title: carousel.name,
+      subtitle: `${carousel.publisher?.name || 'Artist'} • ${
+        carousel.views || 0
+      } views`,
+      tag: carousel.tag,
+      bg: 'bg-[#1a1a1a]',
+    }),
+  );
+
+  // Convert API data to ContentItem format for artist carousels
+  const artistItems: ContentItem[] = publishers
+    .filter((pub: any) => pub.topCarousel)
+    .map((pub: any) => ({
+      id: pub.id,
+      src:
+        pub.topCarousel?.imageUrl ||
+        pub.profilePicture ||
+        'https://via.placeholder.com/160x240',
+      alt: pub.name,
+      title: pub.name,
+      subtitle: pub.personaType || 'Artist',
+      bg: 'bg-[#1a1a1a]',
+    }));
+
   // Navigation structure:
   // 0-4: Navbar (Home, New arrival, My favorites, Search, Sign up)
   // 5-6: Hero buttons (Play carousel, Add to favorites)
@@ -388,8 +347,8 @@ export function GuestScreen() {
   const totalNavItems =
     5 + // navbar items
     2 + // hero buttons
-    TRENDING.length +
-    FEATURED_ARTISTS.length;
+    trendingItems.length +
+    artistItems.length;
 
   useTVRemote({
     onUp: () => {
@@ -401,49 +360,49 @@ export function GuestScreen() {
     onLeft: () => {
       // Handle left navigation for cards
       const trendingStart = 7;
-      const artistStart = trendingStart + TRENDING.length;
+      const artistStart = trendingStart + trendingItems.length;
 
       if (selectedIndex >= trendingStart && selectedIndex < artistStart) {
         const cardIndex = selectedIndex - trendingStart;
         if (cardIndex > 0) {
           const newIndex = selectedIndex - 1;
           setSelectedIndex(newIndex);
-          setSelectedTrendingCard(TRENDING[cardIndex - 1].id);
+          setSelectedTrendingCard(trendingItems[cardIndex - 1].id);
         }
       } else if (selectedIndex >= artistStart) {
         const cardIndex = selectedIndex - artistStart;
         if (cardIndex > 0) {
           const newIndex = selectedIndex - 1;
           setSelectedIndex(newIndex);
-          setSelectedArtistCard(FEATURED_ARTISTS[cardIndex - 1].id);
+          setSelectedArtistCard(artistItems[cardIndex - 1].id);
         }
       }
     },
     onRight: () => {
       // Handle right navigation for cards
       const trendingStart = 7;
-      const artistStart = trendingStart + TRENDING.length;
+      const artistStart = trendingStart + trendingItems.length;
 
       if (selectedIndex >= trendingStart && selectedIndex < artistStart) {
         const cardIndex = selectedIndex - trendingStart;
-        if (cardIndex < TRENDING.length - 1) {
+        if (cardIndex < trendingItems.length - 1) {
           const newIndex = selectedIndex + 1;
           setSelectedIndex(newIndex);
-          setSelectedTrendingCard(TRENDING[cardIndex + 1].id);
+          setSelectedTrendingCard(trendingItems[cardIndex + 1].id);
         }
       } else if (selectedIndex >= artistStart) {
         const cardIndex = selectedIndex - artistStart;
-        if (cardIndex < FEATURED_ARTISTS.length - 1) {
+        if (cardIndex < artistItems.length - 1) {
           const newIndex = selectedIndex + 1;
           setSelectedIndex(newIndex);
-          setSelectedArtistCard(FEATURED_ARTISTS[cardIndex + 1].id);
+          setSelectedArtistCard(artistItems[cardIndex + 1].id);
         }
       }
     },
     onEnter: () => {
       const heroStart = 5;
       const trendingStart = 7;
-      const artistStart = trendingStart + TRENDING.length;
+      const artistStart = trendingStart + trendingItems.length;
 
       if (selectedIndex < heroStart) {
         // Navbar items
@@ -470,11 +429,11 @@ export function GuestScreen() {
       } else if (selectedIndex < artistStart) {
         // Trending cards
         const cardIndex = selectedIndex - trendingStart;
-        setSelectedTrendingCard(TRENDING[cardIndex].id);
+        setSelectedTrendingCard(trendingItems[cardIndex].id);
       } else {
         // Artist cards
         const cardIndex = selectedIndex - artistStart;
-        setSelectedArtistCard(FEATURED_ARTISTS[cardIndex].id);
+        setSelectedArtistCard(artistItems[cardIndex].id);
       }
     },
   });
@@ -484,7 +443,9 @@ export function GuestScreen() {
       {/* Hero Section */}
       <ImageBackground
         source={{
-          uri: 'https://joincarsl.com/api/uploads/artworks/12.png',
+          uri:
+            featuredCarousel?.imageUrl ||
+            'https://joincarsl.com/api/uploads/artworks/12.png',
         }}
         className="relative w-full bg-black overflow-hidden"
         style={{ minHeight: 600 }}
@@ -518,19 +479,18 @@ export function GuestScreen() {
                 {/* Title and Description */}
                 <View className="flex flex-col gap-4">
                   <Text className="text-white text-3xl md:text-4xl font-bold leading-tight">
-                    Little Miss Sunshine
+                    {featuredCarousel?.name || 'Featured Carousel'}
                   </Text>
                   <Text className="text-gray-300 text-base font-normal leading-6">
-                    Captures a chaotic burst of movement and togetherness, set
-                    against a bold yellow backdrop. The piece highlights a
-                    family in motion—imperfect, frantic, yet united—pushing
-                    forward in their quirky van.
+                    {featuredCarousel?.description ||
+                      'Explore the latest in contemporary art'}
                   </Text>
                 </View>
 
                 {/* Artist Info */}
                 <Text className="text-white text-base font-medium">
-                  Adebimpe Folarin • 30 artworks
+                  {featuredCarousel?.publisher?.name || 'Featured Artist'} •{' '}
+                  {featuredCarousel?.views || 0} views
                 </Text>
               </View>
 
@@ -575,7 +535,7 @@ export function GuestScreen() {
       <View className="">
         <ContentRow
           title="Trending now"
-          items={TRENDING}
+          items={trendingItems}
           accent
           selectedCardId={selectedTrendingCard}
           onCardSelect={setSelectedTrendingCard}
@@ -583,7 +543,7 @@ export function GuestScreen() {
 
         <ContentRow
           title="Artists"
-          items={FEATURED_ARTISTS}
+          items={artistItems}
           accent
           selectedCardId={selectedArtistCard}
           onCardSelect={setSelectedArtistCard}

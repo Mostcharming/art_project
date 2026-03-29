@@ -6,11 +6,13 @@ const authRoutes = require('./auth');
 const profileRoutes = require('./profile');
 const favoritesRoutes = require('./favorites');
 const stylesRoutes = require('./styles');
+const homeRoutes = require('./home');
 
 // Register sub-routes
 router.use('/auth', authRoutes);
 router.use('/profile', profileRoutes);
 router.use('/favorites', favoritesRoutes);
 router.use('/styles', stylesRoutes);
+router.use('/home', homeRoutes);
 
 module.exports = router;
