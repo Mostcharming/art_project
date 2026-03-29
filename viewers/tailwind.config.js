@@ -12,6 +12,13 @@ module.exports = {
     ],
     presets: [require("nativewind/preset")],
     theme: {
-        extend: {},
+        extend: {
+
+            fontFamily: {
+                "bank-gothic-bold": ["BankGothicBold"],
+                "bank-gothic-medium": ["BankGothicMediumBT"],
+                "bank-gothic-light": ["BankGothicLightRegular"],
+            },
+        },
     },
 };
