@@ -134,19 +134,39 @@ const BUTTONS = [
 export default function Home2Screen() {
   const { navigate } = useTVNavigation();
   const [selectedButtonId, setSelectedButtonId] = useState('guest');
+  const [focusedElement, setFocusedElement] = useState<'buttons' | 'signin'>(
+    'buttons',
+  );
 
   useTVRemote({
     onEnter: () => {
-      if (selectedButtonId === 'guest') {
+      if (focusedElement === 'buttons') {
+        if (selectedButtonId === 'guest') {
+          navigate('Landing');
+        }
+      } else if (focusedElement === 'signin') {
         navigate('Landing');
       }
-      // Add more navigation logic as needed
+    },
+    onUp: () => {
+      if (focusedElement === 'signin') {
+        setFocusedElement('buttons');
+      }
+    },
+    onDown: () => {
+      if (focusedElement === 'buttons') {
+        setFocusedElement('signin');
+      }
     },
     onLeft: () => {
-      setSelectedButtonId('guest');
+      if (focusedElement === 'buttons') {
+        setSelectedButtonId('guest');
+      }
     },
     onRight: () => {
-      setSelectedButtonId('signin');
+      if (focusedElement === 'buttons') {
+        setSelectedButtonId('signin');
+      }
     },
   });
 
@@ -204,12 +224,28 @@ export default function Home2Screen() {
             </View>
 
             {/* Sign in link */}
-            <View className="mt-4 mb-4 ">
+            <Pressable
+              onPress={() => {
+                setFocusedElement('signin');
+              }}
+              className={[
+                'mt-4 mb-10 px-3 py-1 rounded',
+                focusedElement === 'signin'
+                  ? 'bg-[#D8522E]/20 ring-2 ring-[#D8522E]'
+                  : '',
+              ].join(' ')}
+              style={{
+                transform:
+                  focusedElement === 'signin'
+                    ? [{ scale: 1.05 }]
+                    : [{ scale: 1 }],
+              }}
+            >
               <Text className="text-center text-[#D2D6DB] text-base">
                 Already have an account?{' '}
                 <Text className="text-[#D8522E] font-semibold">Sign in</Text>
               </Text>
-            </View>
+            </Pressable>
           </View>
         </View>
       </View>
@@ -250,7 +286,10 @@ export default function Home2Screen() {
           })}
           {/* </div> */}
         </section>
-        <View className="absolute bottom-6 self-center left-0 right-0 items-center z-50">
+        <View
+          className="absolute left-0 right-0 items-center z-50"
+          style={{ top: '55%' }}
+        >
           <View className="bg-black/80 rounded-full px-4 py-2">
             <Text className="text-white text-sm font-medium text-center">
               ⇅ Navigate | ←→ Scroll | Enter to select

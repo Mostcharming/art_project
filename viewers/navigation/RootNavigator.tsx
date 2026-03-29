@@ -1,6 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import Home2Screen from '../screens/Home2Screen';
+import { LandingScreen } from '../screens/LandingScreen';
 import { TVNavigationProvider, useTVNavigation } from './TVNavigationContext';
 
 export type RootStackParamList = {
@@ -13,9 +14,7 @@ function NavigationContent() {
 
   return (
     <View className="flex-1">
-      {/* {currentScreen === 'Landing' && <LandingScreen />}
-      {currentScreen === 'Home2' && <Home2Screen />} */}
-      {currentScreen === 'Landing' && <Home2Screen />}
+      {currentScreen === 'Landing' && <LandingScreen />}
       {currentScreen === 'Home2' && <Home2Screen />}
     </View>
   );
