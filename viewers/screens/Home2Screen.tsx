@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Image, Pressable, Text, View } from 'react-native';
 import { useTVNavigation } from '../navigation/TVNavigationContext';
 import useTVRemote from '../useTVRemote';
 
@@ -251,43 +251,38 @@ export default function Home2Screen() {
           </View>
         </View>
       </View>
-      <View className="relative">
-        <section className=" w-full h-[90vh] overflow-hidden">
+      <View className="relative flex-1">
+        <View className="w-full h-[90vh] overflow-hidden">
           {/* Cards */}
           {CARDS.map((card, index) => {
             const isFocused = !card.partial && index === 7;
 
             return (
-              <div
+              <View
                 key={card.src}
                 className={[
-                  'absolute overflow-hidden rounded-xl cursor-pointer group transition-all duration-300',
+                  'absolute overflow-hidden rounded-xl',
                   card.bg,
                   card.pos,
-                  card.isCenter ? 'rounded-[10px]' : '',
                   isFocused
                     ? 'scale-[1.05] z-30 ring-4 ring-white/80 shadow-2xl'
                     : card.isCenter
                     ? 'z-10'
                     : 'z-0',
-                  !isFocused && !card.partial
-                    ? 'hover:scale-[1.02] hover:z-20'
-                    : '',
                 ].join(' ')}
               >
-                <img
-                  src={card.src}
-                  alt={card.alt}
-                  className={[
-                    'w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105',
-                  ].join(' ')}
-                  loading="lazy"
+                <Image
+                  source={{ uri: card.src }}
+                  className="w-full h-full"
+                  style={{
+                    resizeMode: 'cover',
+                    transform: isFocused ? [{ scale: 1.05 }] : undefined,
+                  }}
                 />
-              </div>
+              </View>
             );
           })}
-          {/* </div> */}
-        </section>
+        </View>
         <View
           className="absolute left-0 right-0 items-center z-50"
           style={{ top: '55%' }}

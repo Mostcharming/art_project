@@ -18,7 +18,7 @@ interface RemoteNavigationConfig {
   onBack?: () => void;
 }
 
-export const useTVRemote = (config: RemoteNavigationConfig) => {
+const useTVRemote = (config: RemoteNavigationConfig) => {
   const configRef = useRef(config);
 
   // Update ref when config changes

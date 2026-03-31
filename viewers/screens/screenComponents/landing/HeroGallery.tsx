@@ -1,3 +1,5 @@
+import React from 'react';
+import { Image, Text, View } from 'react-native';
 import {
   focusableToCardIndex,
   useTVNavigation,
@@ -92,11 +94,11 @@ export function HeroGallery() {
   });
 
   return (
-    <section className="relative w-full aspect-video">
-      {/* 16:9 container — fills the viewport width, height = width × 9/16 */}
-      <div className="absolute inset-0 bg-black overflow-hidden">
+    <View className="relative w-full aspect-video flex-1">
+      {/* 16:9 container — fills the viewport width */}
+      <View className="absolute inset-0 bg-black overflow-hidden flex-1">
         {/* Background gradient overlay for depth */}
-        <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-black/60 z-10 pointer-events-none" />
+        <View className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 z-10" />
 
         {/* Cards */}
         {CARDS.map((card, index) => {
@@ -105,60 +107,57 @@ export function HeroGallery() {
             !card.partial && index === focusableToCardIndex(focusedCardIndex);
 
           return (
-            <div
+            <View
               key={card.src}
               className={[
-                'absolute overflow-hidden rounded-xl cursor-pointer group transition-all duration-300',
+                'absolute overflow-hidden rounded-xl',
                 card.bg,
                 card.pos,
-                card.isCenter ? 'rounded-[10px]' : '',
                 isFocused
                   ? 'scale-[1.05] z-30 ring-4 ring-white/80 shadow-2xl'
                   : card.isCenter
                   ? 'z-10'
                   : 'z-0',
-                !isFocused && !card.partial
-                  ? 'hover:scale-[1.02] hover:z-20'
-                  : '',
               ].join(' ')}
             >
-              <img
-                src={card.src}
-                alt={card.alt}
-                className={[
-                  'w-full h-full object-cover object-top transition-transform duration-500',
-                  isFocused ? 'scale-105' : 'group-hover:scale-105',
-                ].join(' ')}
-                loading="lazy"
+              <Image
+                source={{ uri: card.src }}
+                className="w-full h-full"
+                style={{
+                  resizeMode: 'cover',
+                  transform: isFocused ? [{ scale: 1.05 }] : undefined,
+                }}
               />
 
-              {/* Info overlay — always visible when focused, otherwise on hover */}
-              <div
-                className={[
-                  'absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent transition-opacity duration-300 flex flex-col justify-end p-3',
-                  isFocused
-                    ? 'opacity-100'
-                    : 'opacity-0 group-hover:opacity-100',
-                ].join(' ')}
-              >
-                <p className="text-white text-[0.65em] font-semibold leading-tight font-['Space_Grotesk'] truncate">
-                  {card.title}
-                </p>
-                <p className="text-white/60 text-[0.55em] leading-tight truncate">
-                  {card.artist}
-                </p>
-              </div>
-            </div>
+              {/* Info overlay — always visible when focused */}
+              {isFocused && (
+                <View className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-3">
+                  <Text
+                    className="text-white font-semibold leading-tight"
+                    numberOfLines={1}
+                    style={{ fontFamily: 'Space_Grotesk' }}
+                  >
+                    {card.title}
+                  </Text>
+                  <Text
+                    className="text-white/60 text-sm leading-tight"
+                    numberOfLines={1}
+                  >
+                    {card.artist}
+                  </Text>
+                </View>
+              )}
+            </View>
           );
         })}
 
         {/* Bottom text prompt */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-center z-20">
-          <p className="text-white text-sm font-['Inter']">
+        <View className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-center z-20">
+          <Text className="text-white text-sm">
             Press Enter(ok) to continue
-          </p>
-        </div>
-      </div>
-    </section>
+          </Text>
+        </View>
+      </View>
+    </View>
   );
 }
