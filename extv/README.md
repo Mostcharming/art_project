@@ -1,50 +1,137 @@
-# Welcome to your Expo app 👋
+# CARSL TV - Android TV Application
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This is an [Expo](https://expo.dev) project optimized for **Android TV platforms** with remote control support.
 
-## Get started
+## Quick Start
 
-1. Install dependencies
+1. **Install dependencies**
 
    ```bash
    npm install
    ```
 
-2. Start the app
+2. **Start development server**
 
    ```bash
-   npx expo start
+   npm start
    ```
 
-In the output, you'll find options to open the app in a
+3. **Run on Android TV**
+   ```bash
+   npm run android
+   ```
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## What Changed for TV
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+This project has been converted from a mobile (iOS/Android) app to an **Android TV-only** application:
 
-## Get a fresh project
+### ✅ Changes Made
 
-When you're ready, run:
+- **Removed iOS, Web, and non-TV Android support**
+- **Removed all pages except Splash1** (main landing page)
+- **Landscape-only orientation** (TV standard)
+- **TV-optimized layouts** with proper safe zones
+- **Large typography** for 10+ foot viewing distance
+- **Focus-based navigation** with remote control support
+- **TV-specific color scheme** (high contrast, reduced burn-in)
+- **Custom TV components** (TVButton with focus states)
 
-```bash
-npm run reset-project
+### 📱 Pages
+
+- `app/(tabs)/index.tsx` - Loading screen (4-second splash)
+- `app/splash/splash1.tsx` - Main welcome screen
+- Removed: dashboard, profile, settings, tags, carousels, auth flows, etc.
+
+### 🎮 Remote Control Support
+
+- **D-Pad Navigation**: Up/Down/Left/Right to navigate
+- **Select/Enter**: Center button or Enter key to activate
+- **Back**: Go back or exit
+- **Home**: Return to home screen
+
+## Important Files
+
+- **TV_DEVELOPMENT_GUIDE.md** - Comprehensive guide for TV development
+- **constants/tv.ts** - TV layout, typography, spacing, and colors
+- **components/TVButton.tsx** - TV-optimized button component
+- **hooks/useTVRemote.ts** - Remote control handling
+
+## Configuration
+
+### Current Setup
+
+```json
+{
+  "orientation": "landscape",
+  "platforms": ["android"],
+  "isTV": true
+}
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### What Was Removed
 
-## Learn more
+- iOS configuration
+- Web configuration
+- Non-TV Android features
+- Bottom navigation
+- Mobile-specific components
+- All multi-page navigation flows
 
-To learn more about developing your project with Expo, look at the following resources:
+## Project Structure
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```
+extv/
+├── app/
+│   ├── (tabs)/
+│   │   ├── index.tsx       # Loading screen
+│   │   └── _layout.tsx     # Tab layout (TV)
+│   ├── splash/
+│   │   └── splash1.tsx     # Main splash screen
+│   └── _layout.tsx         # Root layout
+├── components/
+│   ├── TVButton.tsx        # TV button with focus
+│   └── ...
+├── constants/
+│   ├── tv.ts              # TV sizes, colors, spacing
+│   └── ...
+├── hooks/
+│   ├── useTVRemote.ts     # Remote control hook
+│   └── ...
+└── TV_DEVELOPMENT_GUIDE.md
+```
 
-## Join the community
+## Development
 
-Join our community of developers creating universal apps.
+### Start Dev Server
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```bash
+npm start
+```
+
+### Run on Android TV Emulator
+
+```bash
+npm run android
+```
+
+### Build APK for Deployment
+
+```bash
+eas build --platform android
+```
+
+## Resources
+
+- [TV_DEVELOPMENT_GUIDE.md](./TV_DEVELOPMENT_GUIDE.md) - Full TV development guide
+- [Expo Documentation](https://docs.expo.dev/)
+- [Android TV Design Guide](https://developer.android.com/training/tv/start)
+- [React Native TV OS](https://github.com/react-native-tvos/react-native-tvos)
+
+## Notes
+
+- **Landscape only**: All screens are landscape orientation
+- **Remote navigation**: Use D-Pad instead of touch
+- **No multi-page flows**: Only splash screen currently implemented
+- **Android TV only**: Not compatible with iOS or mobile Android
+
+For detailed TV development information, see [TV_DEVELOPMENT_GUIDE.md](./TV_DEVELOPMENT_GUIDE.md)
