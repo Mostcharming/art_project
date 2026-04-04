@@ -1,19 +1,49 @@
-import { TVNavigationProvider } from "@/contexts/TVNavigationContext";
-import { DarkTheme, ThemeProvider } from "@react-navigation/native";
+import { TVNavigationProvider, useTVNavigation } from "@/contexts/TVNavigationContext";
+import { useFullScreenMode } from "@/hooks/useFullScreenMode";
+import { isTV } from "@/utils/deviceUtils";
 import * as Font from "expo-font";
-import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import {
+  ActivityIndicator,
+  View,
+} from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "../globals.css";
+import GuestScreen from "./guest";
+import HomeScreen from "./home";
+import LandingScreen from "./landing";
+import SignInScreen from "./signin";
+import SignUpScreen from "./signup";
 
 export const unstable_settings = {
   anchor: "landing",
 };
 
+function ScreenRenderer() {
+  const { currentScreen } = useTVNavigation();
+
+  switch (currentScreen) {
+    case "Landing":
+      return <LandingScreen />;
+    case "Home":
+      return <HomeScreen />;
+    case "Guest":
+      return <GuestScreen />;
+    case "SignUp":
+      return <SignUpScreen />;
+    case "SignIn":
+      return <SignInScreen />;
+    default:
+      return <LandingScreen />;
+  }
+}
+
 export default function RootLayout() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
+
+  // Enable full screen mode for TV and phones
+  useFullScreenMode();
 
   useEffect(() => {
     async function loadFonts() {
@@ -21,7 +51,6 @@ export default function RootLayout() {
         await Font.loadAsync({
           BankGothicBold: require("@/assets/fonts/BankGothicBold.ttf"),
           BankGothicMediumBT: require("@/assets/fonts/BankGothicMediumBT.ttf"),
-          BankGothicMdBT: require("@/assets/fonts/BankGothicMdBT.ttf"),
           BankGothicLight: require("@/assets/fonts/BankGothicLightRegular.otf"),
         });
       } catch (error) {
@@ -44,20 +73,18 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={DarkTheme}>
-        <TVNavigationProvider>
-          <View style={{ flex: 1 }}>
-            <Stack>
-              <Stack.Screen name="landing" options={{ headerShown: false }} />
-            </Stack>
+      <TVNavigationProvider>
+        <View style={{ flex: 1 }}>
+          <ScreenRenderer />
+          {!isTV() && (
             <StatusBar
               style="light"
               translucent={true}
               backgroundColor="transparent"
             />
-          </View>
-        </TVNavigationProvider>
-      </ThemeProvider>
+          )}
+        </View>
+      </TVNavigationProvider>
     </GestureHandlerRootView>
   );
 }

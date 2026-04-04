@@ -20,9 +20,9 @@ module.exports = {
                 "error-light": "#A67C52",
             },
             fontFamily: {
-                "bank-gothic-bold": ["BankGothicBold"],
-                "bank-gothic-medium": ["BankGothicMediumBT"],
-                "bank-gothic-light": ["BankGothicLightRegular"],
+                "bank-gothic-bold": "BankGothicBold",
+                "bank-gothic-medium": "BankGothicMediumBT",
+                "bank-gothic-light": "BankGothicLight",
             },
         },
     },

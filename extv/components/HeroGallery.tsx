@@ -3,7 +3,7 @@ import {
   useTVNavigation,
 } from "@/contexts/TVNavigationContext";
 import { useTVRemote } from "@/hooks/useTVRemote";
-import { Image, Text, View } from "react-native";
+import { Image, Platform, Pressable, Text, View } from "react-native";
 
 const CARDS = [
   // 1 — Far left (partially off-screen)
@@ -92,8 +92,15 @@ export function HeroGallery() {
     },
   });
 
+  const handleTap = () => {
+    // Navigate to the next screen on tap (for Android phones/tablets)
+    if (Platform.OS === "android") {
+      navigate("Home");
+    }
+  };
+
   return (
-    <View className="relative w-full aspect-video flex-1">
+    <Pressable onPress={handleTap} className="relative w-full flex-1">
       {/* 16:9 container — fills the viewport width */}
       <View className="absolute inset-0 bg-black overflow-hidden flex-1">
         {/* Background gradient overlay for depth */}
@@ -115,8 +122,8 @@ export function HeroGallery() {
                 isFocused
                   ? "scale-[1.05] z-30 ring-4 ring-white/80 shadow-2xl"
                   : card.isCenter
-                    ? "z-10"
-                    : "z-0",
+                  ? "z-10"
+                  : "z-0",
               ].join(" ")}
             >
               <Image
@@ -157,6 +164,6 @@ export function HeroGallery() {
           </Text>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }

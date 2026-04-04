@@ -1,6 +1,5 @@
-import { getBaseUrl } from "@/constants/api.config";
 import { useUserStore } from "@/store/userStore";
-import axios, { isAxiosError } from "axios";
+import { apiService } from "@/utils/apiService";
 import { useState } from "react";
 
 export type ApiMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
@@ -19,6 +18,11 @@ interface RequestOptions {
   payload?: any;
 }
 
+/**
+ * React hook for making API mutations
+ * Wraps the apiService with React state management
+ * Automatically includes auth token from user store
+ */
 export const useApiMutate = () => {
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +32,7 @@ export const useApiMutate = () => {
 
   const mutate = async (
     subUrl: string,
-    options: RequestOptions
+    options: RequestOptions = {}
   ): Promise<ApiResponse> => {
     const {
       method = "GET",
@@ -41,48 +45,17 @@ export const useApiMutate = () => {
     setError(null);
 
     try {
-      const baseUrl = getBaseUrl();
-      const url = `${baseUrl}${subUrl}`;
-
-      const requestHeaders: Record<string, string> = {
-        ...headers,
-      };
-
-      // Add authorization token
-      if (token) {
-        requestHeaders.Authorization = `Bearer ${token}`;
-      }
-
-      const axiosConfig: any = {
+      const response = await apiService.request(subUrl, {
         method,
-        url,
-        // timeout: 30000,
-        headers: requestHeaders,
-      };
-      console.log("API Request Config:", {
-        method,
-        url,
-        headers: requestHeaders,
+        dataType,
+        headers,
         payload,
+        token: token || undefined,
       });
 
-      // Attach payload for POST/PUT/PATCH
-      if (
-        payload &&
-        (method === "POST" || method === "PUT" || method === "PATCH")
-      ) {
-        if (dataType === "json") {
-          requestHeaders["Content-Type"] = "application/json";
-          axiosConfig.data = payload;
-        }
-
-        if (dataType === "formdata") {
-          requestHeaders["Content-Type"] = "multipart/form-data";
-          axiosConfig.data = payload;
-        }
+      if (response.error) {
+        throw new Error(response.error);
       }
-
-      const response = await axios(axiosConfig);
 
       setData(response.data);
       setIsLoading(false);
@@ -95,23 +68,7 @@ export const useApiMutate = () => {
     } catch (err) {
       let errorMessage = "An unknown error occurred";
 
-      if (isAxiosError(err)) {
-        console.error("Axios error details:", {
-          message: err.message,
-        });
-
-        if (err.response) {
-          errorMessage =
-            err.response.data?.message ||
-            err.response.data?.error ||
-            `Error: ${err.response.status} ${err.response.statusText}`;
-        } else if (err.request) {
-          errorMessage =
-            "No response from server. Check if backend is running.";
-        } else {
-          errorMessage = err.message;
-        }
-      } else if (err instanceof Error) {
+      if (err instanceof Error) {
         errorMessage = err.message;
       }
 
