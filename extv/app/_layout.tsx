@@ -1,13 +1,14 @@
-import { TVNavigationProvider, useTVNavigation } from "@/contexts/TVNavigationContext";
+import {
+  TVNavigationProvider,
+  useTVNavigation,
+} from "@/contexts/TVNavigationContext";
 import { useFullScreenMode } from "@/hooks/useFullScreenMode";
+import { useUserStore } from "@/store/userStore";
 import { isTV } from "@/utils/deviceUtils";
 import * as Font from "expo-font";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  View,
-} from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "../globals.css";
 import GuestScreen from "./guest";
@@ -41,6 +42,7 @@ function ScreenRenderer() {
 
 export default function RootLayout() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
+  const { user } = useUserStore();
 
   // Enable full screen mode for TV and phones
   useFullScreenMode();
@@ -73,7 +75,7 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <TVNavigationProvider>
+      <TVNavigationProvider initialScreen={user ? "Home" : "Landing"}>
         <View style={{ flex: 1 }}>
           <ScreenRenderer />
           {!isTV() && (

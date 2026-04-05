@@ -89,6 +89,10 @@ class ApiService {
       }
 
       const response = await axios(axiosConfig);
+      console.log("API Response:", {
+        status: response.status,
+        data: response.data,
+      });
 
       return {
         data: response.data as T,

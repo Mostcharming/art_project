@@ -3,19 +3,14 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 export interface User {
-  id?: string;
+  id: string;
   email: string;
-  password?: string;
-  verificationToken?: string;
-  verificationTokenExpires?: string;
-  isEmailVerified: boolean;
-  accountSetupComplete: boolean;
-  personaType?: string;
-  name?: string;
-  country?: string;
-  bio?: string;
-  resetPasswordToken?: string;
-  resetPasswordTokenExpires?: string;
+  firstName?: string;
+  lastName?: string;
+  vibePreference?: number;
+  appUsage?: string;
+  isVerified: boolean;
+  status: "active" | "suspended" | "banned";
   createdAt?: string;
   updatedAt?: string;
 }
@@ -23,10 +18,9 @@ export interface User {
 export interface UserStore {
   user: User | null;
   token: string | null;
-  setUser: (user: User) => void;
-  setToken: (token: string) => void;
+  loginUser: (user: User, token: string) => void;
+  logout: () => void;
   updateUser: (updates: Partial<User>) => void;
-  clearUser: () => void;
   isAuthenticated: () => boolean;
 }
 
@@ -36,24 +30,22 @@ export const useUserStore = create<UserStore>()(
       user: null,
       token: null,
 
-      setUser: (user: User) => set({ user }),
+      loginUser: (user: User, token: string) => set({ user, token }),
 
-      setToken: (token: string) => set({ token }),
-
-      updateUser: (updates: Partial<User>) =>
-        set((state) => ({
-          user: state.user ? { ...state.user, ...updates } : (updates as User),
-        })),
-
-      clearUser: () =>
+      logout: () =>
         set({
           user: null,
           token: null,
         }),
 
+      updateUser: (updates: Partial<User>) =>
+        set((state) => ({
+          user: state.user ? { ...state.user, ...updates } : null,
+        })),
+
       isAuthenticated: () => {
         const { user, token } = get();
-        return !!user && !!token && user.isEmailVerified;
+        return !!user && !!token && user.isVerified && user.status === "active";
       },
     }),
     {

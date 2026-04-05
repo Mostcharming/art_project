@@ -28,10 +28,12 @@ const TVNavigationContext = createContext<TVNavigationContextType | undefined>(
 
 export function TVNavigationProvider({
   children,
+  initialScreen = "Landing",
 }: {
   children: React.ReactNode;
+  initialScreen?: ScreenName;
 }) {
-  const [screenStack, setScreenStack] = useState<ScreenName[]>(["Landing"]);
+  const [screenStack, setScreenStack] = useState<ScreenName[]>([initialScreen]);
   // Default focus on center card (focusable index 2 → CARDS[3], the center card)
   const [focusedCardIndex, setFocusedCardIndex] = useState(2);
 

@@ -1,18 +1,62 @@
 import { useTVNavigation } from "@/contexts/TVNavigationContext";
 import { useTVRemote } from "@/hooks/useTVRemote";
+import { useUserStore } from "@/store/userStore";
+import { apiService } from "@/utils/apiService";
 import { useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 export default function SignInScreen() {
   const { navigate, goBack } = useTVNavigation();
+  const { loginUser } = useUserStore();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSignIn = async () => {
+    if (!email || !password) {
+      setError("Please enter both email and password");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await apiService.post("/viewers/login", {
+        email,
+        password,
+      });
+
+      if (response.error) {
+        setError(response.error);
+        setIsLoading(false);
+        return;
+      }
+
+      // Save user and token to store - state persists until logout
+      loginUser(response.data.viewer, response.data.token);
+
+      // Navigate to home screen
+      navigate("Home");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Login failed");
+      setIsLoading(false);
+    }
+  };
 
   const menuItems = [
     {
       label: "Sign In",
-      action: () => console.log("Sign in with:", { email, password }),
+      action: handleSignIn,
     },
     { label: "Create Account", action: () => navigate("SignUp") },
     { label: "Back", action: () => goBack() },
@@ -72,6 +116,12 @@ export default function SignInScreen() {
           </View>
         </View>
 
+        {error && (
+          <View className="bg-red-900/50 border border-red-600 rounded-lg p-3 mb-6">
+            <Text className="text-red-200 text-sm">{error}</Text>
+          </View>
+        )}
+
         <Pressable className="mb-8">
           <Text className="text-[#D8522E] text-sm">Forgot your password?</Text>
         </Pressable>
@@ -82,22 +132,39 @@ export default function SignInScreen() {
         {menuItems.map((item, index) => (
           <Pressable
             key={item.label}
-            onPress={item.action}
+            onPress={() => {
+              if (!isLoading) {
+                item.action();
+              }
+            }}
+            disabled={isLoading}
             className={[
-              "h-14 rounded-lg items-center justify-center transition-all duration-200",
-              selectedIndex === index
+              "h-14 rounded-lg items-center justify-center transition-all duration-200 flex-row",
+              selectedIndex === index && !isLoading
                 ? "bg-[#D8522E] ring-2 ring-white"
                 : "bg-white/10 border border-white/20",
+              isLoading ? "opacity-60" : "",
             ].join(" ")}
             style={{
               transform:
-                selectedIndex === index ? [{ scale: 1.05 }] : [{ scale: 1 }],
+                selectedIndex === index && !isLoading
+                  ? [{ scale: 1.05 }]
+                  : [{ scale: 1 }],
             }}
           >
+            {isLoading && selectedIndex === index ? (
+              <ActivityIndicator
+                color="white"
+                size="small"
+                style={{ marginRight: 8 }}
+              />
+            ) : null}
             <Text
               className={[
                 "font-semibold text-lg",
-                selectedIndex === index ? "text-white" : "text-white/70",
+                selectedIndex === index && !isLoading
+                  ? "text-white"
+                  : "text-white/70",
               ].join(" ")}
             >
               {item.label}

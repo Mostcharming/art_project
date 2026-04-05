@@ -133,6 +133,11 @@ exports.login = async (req, res, next) => {
                 firstName: viewer.firstName,
                 lastName: viewer.lastName,
                 vibePreference: viewer.vibePreference,
+                appUsage: viewer.appUsage,
+                isVerified: viewer.isVerified,
+                status: viewer.status,
+                createdAt: viewer.createdAt,
+                updatedAt: viewer.updatedAt,
             },
         });
     } catch (error) {

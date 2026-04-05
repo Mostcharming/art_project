@@ -1,19 +1,86 @@
 import { useTVNavigation } from "@/contexts/TVNavigationContext";
 import { useTVRemote } from "@/hooks/useTVRemote";
+import { useUserStore } from "@/store/userStore";
+import { apiService } from "@/utils/apiService";
 import { useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 export default function SignUpScreen() {
   const { navigate, goBack } = useTVNavigation();
+  const { loginUser } = useUserStore();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSignUp = async () => {
+    if (!email || !password || !confirmPassword) {
+      setError("Please fill in all fields");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // First register the viewer
+      const registerResponse = await apiService.post("/viewers/register", {
+        email,
+        password,
+      });
+
+      if (registerResponse.error) {
+        setError(registerResponse.error);
+        setIsLoading(false);
+        return;
+      }
+
+      // Then automatically log them in
+      const loginResponse = await apiService.post("/viewers/login", {
+        email,
+        password,
+      });
+
+      if (loginResponse.error) {
+        setError(loginResponse.error);
+        setIsLoading(false);
+        return;
+      }
+
+      // Save user and token to store - state persists until logout
+      loginUser(loginResponse.data.viewer, loginResponse.data.token);
+
+      // Navigate to home screen
+      navigate("Home");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sign up failed");
+      setIsLoading(false);
+    }
+  };
 
   const menuItems = [
     {
       label: "Sign Up",
-      action: () => console.log("Sign up with:", { email, password }),
+      action: handleSignUp,
     },
     { label: "Sign In Instead", action: () => navigate("SignIn") },
     { label: "Back", action: () => goBack() },
@@ -45,6 +112,12 @@ export default function SignUpScreen() {
           Join us to save your favorite artworks and get personalized
           recommendations.
         </Text>
+
+        {error && (
+          <View className="bg-red-900/50 border border-red-600 rounded-lg p-3 mb-6">
+            <Text className="text-red-200 text-sm">{error}</Text>
+          </View>
+        )}
 
         {/* Form Fields */}
         <View className="gap-6 mb-8">
@@ -97,22 +170,39 @@ export default function SignUpScreen() {
         {menuItems.map((item, index) => (
           <Pressable
             key={item.label}
-            onPress={item.action}
+            onPress={() => {
+              if (!isLoading) {
+                item.action();
+              }
+            }}
+            disabled={isLoading}
             className={[
-              "h-14 rounded-lg items-center justify-center transition-all duration-200",
-              selectedIndex === index
+              "h-14 rounded-lg items-center justify-center transition-all duration-200 flex-row",
+              selectedIndex === index && !isLoading
                 ? "bg-[#D8522E] ring-2 ring-white"
                 : "bg-white/10 border border-white/20",
+              isLoading ? "opacity-60" : "",
             ].join(" ")}
             style={{
               transform:
-                selectedIndex === index ? [{ scale: 1.05 }] : [{ scale: 1 }],
+                selectedIndex === index && !isLoading
+                  ? [{ scale: 1.05 }]
+                  : [{ scale: 1 }],
             }}
           >
+            {isLoading && selectedIndex === index ? (
+              <ActivityIndicator
+                color="white"
+                size="small"
+                style={{ marginRight: 8 }}
+              />
+            ) : null}
             <Text
               className={[
                 "font-semibold text-lg",
-                selectedIndex === index ? "text-white" : "text-white/70",
+                selectedIndex === index && !isLoading
+                  ? "text-white"
+                  : "text-white/70",
               ].join(" ")}
             >
               {item.label}

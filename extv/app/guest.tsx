@@ -40,7 +40,6 @@ function ContentRow({
 
   return (
     <View className="px-10 py-8">
-      {/* Row header */}
       <View className="mb-6">
         <View className="flex flex-row items-center gap-3">
           {accent && (
@@ -52,9 +51,7 @@ function ContentRow({
         </View>
       </View>
 
-      {/* Scroll container */}
       <View className="relative">
-        {/* Cards */}
         <ScrollView
           ref={rowRef}
           horizontal
@@ -70,16 +67,13 @@ function ContentRow({
                   : ""
               }`}
             >
-              {/* Card background */}
               <View className={`absolute inset-0 ${item.bg}`} />
 
-              {/* Image */}
               <ImageBackground
                 source={{ uri: item.src }}
                 className="absolute inset-0 w-full h-full"
               />
 
-              {/* Tag */}
               {item.tag && (
                 <View className="absolute top-2 left-2 bg-[hsl(25,95%,53%)] rounded-full z-10 px-2 py-0.5">
                   <Text className="text-black text-[0.6rem] font-bold uppercase tracking-wider">
@@ -88,14 +82,19 @@ function ContentRow({
                 </View>
               )}
 
-              {/* Info overlay */}
-              <View className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-3 z-10">
-                <Text className="text-white text-xs font-semibold leading-tight line-clamp-1">
-                  {item.title}
-                </Text>
-                <Text className="text-white/50 text-[0.65rem] leading-tight mt-0.5 line-clamp-1">
-                  {item.subtitle}
-                </Text>
+              <View className="absolute inset-0  flex flex-col justify-end z-10">
+                <View className="absolute inset-0  rounded-xl" />
+                <View className="relative z-20 bg-black/70 backdrop-blur-sm px-2 py-1.5">
+                  <Text
+                    className="text-white text-xs font-semibold leading-tight line-clamp-1"
+                    style={{ fontFamily: "BankGothicBold" }}
+                  >
+                    {item.title}
+                  </Text>
+                  <Text className="text-white/50 text-[0.65rem] leading-tight mt-0.5 line-clamp-1">
+                    {item.subtitle}
+                  </Text>
+                </View>
               </View>
             </Pressable>
           ))}
@@ -200,12 +199,10 @@ function Navbar({ selectedNavIndex }: { selectedNavIndex?: number }) {
 
   return (
     <View className="flex flex-row items-center justify-between px-6 py-3.5">
-      {/* Logo */}
       <View className="flex-shrink">
         <LogoSVG />
       </View>
 
-      {/* Center navigation links */}
       <View className="flex flex-row items-center gap-4">
         {navItems.slice(0, 3).map((item, idx) => (
           <Pressable
@@ -225,9 +222,7 @@ function Navbar({ selectedNavIndex }: { selectedNavIndex?: number }) {
         ))}
       </View>
 
-      {/* Right side - Search and Sign up */}
       <View className="flex flex-row items-center gap-4 flex-shrink">
-        {/* Search button */}
         <Pressable
           className={`p-2 rounded transition-colors ${
             navItems[3].focused ? "bg-orange-600/30 ring-2 ring-orange-500" : ""
@@ -236,7 +231,6 @@ function Navbar({ selectedNavIndex }: { selectedNavIndex?: number }) {
           <SearchIcon />
         </Pressable>
 
-        {/* Sign up button */}
         <Pressable
           className={`flex items-center justify-center h-10 px-4 rounded-full border-2 transition-colors ${
             navItems[4].focused
@@ -261,18 +255,21 @@ export default function GuestScreen() {
     string | undefined
   >();
 
-  // Fetch home data from store
   const homeStore = useHomeStore();
   const { featuredCarousel, trendingCarousels, publishers } =
     homeStore.homeData;
 
-  // Fetch data on component mount
   useEffect(() => {
     homeStore.fetchHomeData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Convert API data to ContentItem format for trending carousels
+  // Log backend data to console for debugging
+  useEffect(() => {
+    console.log("🎨 Featured Carousel:", featuredCarousel);
+    console.log("📊 Trending Carousels:", trendingCarousels);
+    console.log("👥 Publishers Data:", publishers);
+  }, [featuredCarousel, trendingCarousels, publishers]);
+
   const trendingItems: ContentItem[] = trendingCarousels.map(
     (carousel: any) => ({
       id: carousel.id,
@@ -287,32 +284,48 @@ export default function GuestScreen() {
     })
   );
 
-  // Convert API data to ContentItem format for artist carousels
+  // Helper function to get the best image for a publisher
+  const getPublisherImage = (pub: any): string => {
+    // Try profile picture first
+    if (pub.profilePicture) {
+      return pub.profilePicture;
+    }
+
+    // Try first carousel's image
+    if (
+      pub.carousels &&
+      pub.carousels.length > 0 &&
+      pub.carousels[0].imageUrl
+    ) {
+      return pub.carousels[0].imageUrl;
+    }
+
+    // Try first artwork image from first carousel
+    if (
+      pub.carousels &&
+      pub.carousels.length > 0 &&
+      pub.carousels[0].artworks &&
+      pub.carousels[0].artworks.length > 0
+    ) {
+      return pub.carousels[0].artworks[0].imageUrl;
+    }
+
+    // Fallback to placeholder
+    return "https://via.placeholder.com/160x240";
+  };
+
   const artistItems: ContentItem[] = publishers
-    .filter((pub: any) => pub.topCarousel)
+    .filter((pub: any) => pub.carousels && pub.carousels.length > 0)
     .map((pub: any) => ({
       id: pub.id,
-      src:
-        pub.topCarousel?.imageUrl ||
-        pub.profilePicture ||
-        "https://via.placeholder.com/160x240",
+      src: getPublisherImage(pub),
       alt: pub.name,
       title: pub.name,
       subtitle: pub.personaType || "Artist",
       bg: "bg-[#1a1a1a]",
     }));
 
-  // Navigation structure:
-  // 0-4: Navbar (Home, New arrival, My favorites, Search, Sign up)
-  // 5-6: Hero buttons (Play carousel, Add to favorites)
-  // 7+: Trending cards
-  // Then: Artist cards
-
-  const totalNavItems =
-    5 + // navbar items
-    2 + // hero buttons
-    trendingItems.length +
-    artistItems.length;
+  const totalNavItems = 5 + 2 + trendingItems.length + artistItems.length;
 
   useTVRemote({
     onUp: () => {
@@ -322,7 +335,6 @@ export default function GuestScreen() {
       setSelectedIndex((prev) => (prev < totalNavItems - 1 ? prev + 1 : 0));
     },
     onLeft: () => {
-      // Handle left navigation for cards
       const trendingStart = 7;
       const artistStart = trendingStart + trendingItems.length;
 
@@ -343,7 +355,6 @@ export default function GuestScreen() {
       }
     },
     onRight: () => {
-      // Handle right navigation for cards
       const trendingStart = 7;
       const artistStart = trendingStart + trendingItems.length;
 
@@ -369,21 +380,14 @@ export default function GuestScreen() {
       const artistStart = trendingStart + trendingItems.length;
 
       if (selectedIndex < heroStart) {
-        // Navbar items
         const navIndex = selectedIndex;
         if (navIndex === 0) {
-          // Home
         } else if (navIndex === 1) {
-          // New arrival
         } else if (navIndex === 2) {
-          // My favorites
         } else if (navIndex === 3) {
-          // Search
         } else if (navIndex === 4) {
-          // Sign up
         }
       } else if (selectedIndex < trendingStart) {
-        // Hero buttons
         const buttonIndex = selectedIndex - heroStart;
         if (buttonIndex === 0) {
           navigate("Home");
@@ -391,11 +395,9 @@ export default function GuestScreen() {
           goBack();
         }
       } else if (selectedIndex < artistStart) {
-        // Trending cards
         const cardIndex = selectedIndex - trendingStart;
         setSelectedTrendingCard(trendingItems[cardIndex].id);
       } else {
-        // Artist cards
         const cardIndex = selectedIndex - artistStart;
         setSelectedArtistCard(artistItems[cardIndex].id);
       }
@@ -407,17 +409,11 @@ export default function GuestScreen() {
       {/* Hero Section */}
       <ImageBackground
         source={{
-          uri:
-            featuredCarousel?.imageUrl ||
-            "https://joincarsl.com/api/uploads/artworks/12.png",
+          uri: "https://joincarsl.com/api/uploads/artworks/12.png",
         }}
         className="relative bg-black h-[300px] md:h-[400px] w-full"
         resizeMode="cover"
       >
-        {/* Overlay */}
-        {/* <View className="absolute inset-0 bg-black/30" /> */}
-
-        {/* Content */}
         <View className="relative z-10 flex flex-col">
           <Navbar
             selectedNavIndex={
@@ -427,10 +423,8 @@ export default function GuestScreen() {
             }
           />
 
-          {/* Hero Content */}
           <View className="flex flex-col px-6 pt-8 pb-6 justify-start">
             <View className="w-full max-w-[532px]">
-              {/* Trending badge */}
               <View className="flex flex-row items-center gap-0.5 mb-6">
                 <TrendingIcon />
                 <Text className="text-white text-base font-medium ml-2">
@@ -438,9 +432,7 @@ export default function GuestScreen() {
                 </Text>
               </View>
 
-              {/* Content block */}
               <View className="flex flex-col gap-6 mb-8">
-                {/* Title and Description */}
                 <View className="flex flex-col gap-4">
                   <Text className="text-white text-3xl md:text-4xl font-bold leading-tight">
                     {featuredCarousel?.name || "Featured Carousel"}
@@ -451,16 +443,13 @@ export default function GuestScreen() {
                   </Text>
                 </View>
 
-                {/* Artist Info */}
                 <Text className="text-white text-base font-medium">
                   {featuredCarousel?.publisher?.name || "Featured Artist"} •{" "}
                   {featuredCarousel?.views || 0} views
                 </Text>
               </View>
 
-              {/* CTA Buttons */}
               <View className="flex flex-row gap-3 flex-wrap">
-                {/* Play Carousel Button */}
                 <Pressable
                   className={`flex flex-row items-center gap-2 h-10 px-5 rounded-full border-2 transition-colors ${
                     selectedIndex === 5
@@ -475,7 +464,6 @@ export default function GuestScreen() {
                   </Text>
                 </Pressable>
 
-                {/* Add to Favorites Button */}
                 <Pressable
                   className={`flex flex-row items-center gap-2 h-10 px-5 rounded-full border-2 transition-colors ${
                     selectedIndex === 6
@@ -495,7 +483,6 @@ export default function GuestScreen() {
         </View>
       </ImageBackground>
 
-      {/* Additional Content Section */}
       <View className="">
         <ContentRow
           title="Trending now"
@@ -506,7 +493,7 @@ export default function GuestScreen() {
         />
 
         <ContentRow
-          title="Artists"
+          title="African Artists"
           items={artistItems}
           accent
           selectedCardId={selectedArtistCard}
