@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "carsl",
     "userInterfaceStyle": "dark",
-    "platforms": ["android"],
+    "platforms": ["android", "web"],
     "android": {
       "icon": "./assets/images/icon.png",
       "adaptiveIcon": {
@@ -24,7 +24,6 @@
       ]
     },
     "plugins": [
-      "expo-router",
       [
         "expo-font",
         {

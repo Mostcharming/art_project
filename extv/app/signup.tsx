@@ -1,4 +1,4 @@
-import { useTVNavigation } from "@/contexts/TVNavigationContext";
+import { useScreenManager } from "@/contexts/TVNavigationContext";
 import { useTVRemote } from "@/hooks/useTVRemote";
 import { useUserStore } from "@/store/userStore";
 import { apiService } from "@/utils/apiService";
@@ -13,7 +13,7 @@ import {
 } from "react-native";
 
 export default function SignUpScreen() {
-  const { navigate, goBack } = useTVNavigation();
+  const { setCurrentScreen } = useScreenManager();
   const { loginUser } = useUserStore();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [email, setEmail] = useState("");
@@ -70,7 +70,7 @@ export default function SignUpScreen() {
       loginUser(loginResponse.data.viewer, loginResponse.data.token);
 
       // Navigate to home screen
-      navigate("Home");
+      setCurrentScreen("Home");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign up failed");
       setIsLoading(false);
@@ -82,8 +82,8 @@ export default function SignUpScreen() {
       label: "Sign Up",
       action: handleSignUp,
     },
-    { label: "Sign In Instead", action: () => navigate("SignIn") },
-    { label: "Back", action: () => goBack() },
+    { label: "Sign In Instead", action: () => setCurrentScreen("SignIn") },
+    { label: "Back", action: () => setCurrentScreen("Landing") },
   ];
 
   useTVRemote({

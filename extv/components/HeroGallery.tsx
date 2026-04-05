@@ -1,6 +1,6 @@
 import {
   focusableToCardIndex,
-  useTVNavigation,
+  useScreenManager,
 } from "@/contexts/TVNavigationContext";
 import { useTVRemote } from "@/hooks/useTVRemote";
 import { Image, Platform, Pressable, Text, View } from "react-native";
@@ -80,22 +80,22 @@ const CARDS = [
 ];
 
 export function HeroGallery() {
-  const { focusedCardIndex, focusLeft, focusRight, navigate } =
-    useTVNavigation();
+  const { focusedCardIndex, focusLeft, focusRight, setCurrentScreen } =
+    useScreenManager();
 
   useTVRemote({
     onLeft: focusLeft,
     onRight: focusRight,
     onSelect: () => {
       // Pressing enter on the focused card navigates to the next screen
-      navigate("Home");
+      setCurrentScreen("Home");
     },
   });
 
   const handleTap = () => {
     // Navigate to the next screen on tap (for Android phones/tablets)
     if (Platform.OS === "android") {
-      navigate("Home");
+      setCurrentScreen("Home");
     }
   };
 

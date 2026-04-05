@@ -7,11 +7,9 @@ export const FOCUSABLE_CARD_COUNT = 5;
 /** Maps a focusable index (0-4) → CARDS array index (1-5, skipping partial edge cards) */
 export const focusableToCardIndex = (focusable: number) => focusable + 1;
 
-interface TVNavigationContextType {
+interface ScreenManagerContextType {
   currentScreen: ScreenName;
-  navigate: (screen: ScreenName) => void;
-  goBack: () => void;
-  canGoBack: boolean;
+  setCurrentScreen: (screen: ScreenName) => void;
   /** Index of the currently focused gallery card (0 … FOCUSABLE_CARD_COUNT-1) */
   focusedCardIndex: number;
   /** Move focus one card to the left, wrapping around */
@@ -22,31 +20,20 @@ interface TVNavigationContextType {
   resetFocus: () => void;
 }
 
-const TVNavigationContext = createContext<TVNavigationContextType | undefined>(
-  undefined
-);
+const ScreenManagerContext = createContext<
+  ScreenManagerContextType | undefined
+>(undefined);
 
-export function TVNavigationProvider({
+export function ScreenManagerProvider({
   children,
   initialScreen = "Landing",
 }: {
   children: React.ReactNode;
   initialScreen?: ScreenName;
 }) {
-  const [screenStack, setScreenStack] = useState<ScreenName[]>([initialScreen]);
+  const [currentScreen, setCurrentScreen] = useState<ScreenName>(initialScreen);
   // Default focus on center card (focusable index 2 → CARDS[3], the center card)
   const [focusedCardIndex, setFocusedCardIndex] = useState(2);
-
-  const currentScreen = screenStack[screenStack.length - 1];
-  const canGoBack = screenStack.length > 1;
-
-  const navigate = useCallback((screen: ScreenName) => {
-    setScreenStack((prev) => [...prev, screen]);
-  }, []);
-
-  const goBack = useCallback(() => {
-    setScreenStack((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev));
-  }, []);
 
   const focusLeft = useCallback(() => {
     setFocusedCardIndex((prev) =>
@@ -65,12 +52,10 @@ export function TVNavigationProvider({
   }, []);
 
   return (
-    <TVNavigationContext.Provider
+    <ScreenManagerContext.Provider
       value={{
         currentScreen,
-        navigate,
-        goBack,
-        canGoBack,
+        setCurrentScreen,
         focusedCardIndex,
         focusLeft,
         focusRight,
@@ -78,14 +63,65 @@ export function TVNavigationProvider({
       }}
     >
       {children}
-    </TVNavigationContext.Provider>
+    </ScreenManagerContext.Provider>
   );
 }
 
-export function useTVNavigation() {
-  const context = useContext(TVNavigationContext);
+export function useScreenManager() {
+  const context = useContext(ScreenManagerContext);
   if (!context) {
-    throw new Error("useTVNavigation must be used within TVNavigationProvider");
+    throw new Error(
+      "useScreenManager must be used within ScreenManagerProvider"
+    );
   }
+  return context;
+}
+
+/**
+ * @deprecated Use useScreenManager instead. This hook is kept for backwards compatibility.
+ */
+export function useTVNavigation() {
+  const context = useContext(ScreenManagerContext);
+  if (!context) {
+    throw new Error(
+      "useTVNavigation must be used within ScreenManagerProvider"
+    );
+  }
+  return {
+    currentScreen: context.currentScreen,
+    navigate: (screen: ScreenName) => context.setCurrentScreen(screen),
+    goBack: () => {}, // No-op in manual screen management
+    canGoBack: false,
+    focusedCardIndex: context.focusedCardIndex,
+    focusLeft: context.focusLeft,
+    focusRight: context.focusRight,
+    resetFocus: context.resetFocus,
+  };
+}
+
+/**
+ * Safe version of useScreenManager that returns a default context if provider is missing
+ * @deprecated Use useScreenManager instead
+ */
+export function useTVNavigationSafe() {
+  const context = useContext(ScreenManagerContext);
+
+  if (!context) {
+    // Return a safe default implementation
+    return {
+      currentScreen: "Landing" as ScreenName,
+      setCurrentScreen: (screen: ScreenName) => {
+        console.warn(
+          "Screen change attempted without ScreenManagerProvider",
+          screen
+        );
+      },
+      focusedCardIndex: 2,
+      focusLeft: () => {},
+      focusRight: () => {},
+      resetFocus: () => {},
+    };
+  }
+
   return context;
 }

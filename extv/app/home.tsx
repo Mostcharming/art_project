@@ -1,4 +1,4 @@
-import { useTVNavigation } from "@/contexts/TVNavigationContext";
+import { useScreenManager } from "@/contexts/TVNavigationContext";
 import { useTVRemote } from "@/hooks/useTVRemote";
 import { useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
@@ -134,7 +134,7 @@ const CARDS = [
 ];
 
 export default function HomeScreen() {
-  const { navigate } = useTVNavigation();
+  const { setCurrentScreen } = useScreenManager();
   const [selectedButtonId, setSelectedButtonId] = useState("guest");
   const [focusedElement, setFocusedElement] = useState<"buttons" | "signin">(
     "buttons"
@@ -144,12 +144,12 @@ export default function HomeScreen() {
     onSelect: () => {
       if (focusedElement === "buttons") {
         if (selectedButtonId === "guest") {
-          navigate("Guest");
+          setCurrentScreen("Guest");
         } else if (selectedButtonId === "signin") {
-          navigate("SignUp");
+          setCurrentScreen("SignUp");
         }
       } else if (focusedElement === "signin") {
-        navigate("SignIn");
+        setCurrentScreen("SignIn");
       }
     },
     onUp: () => {
@@ -204,9 +204,9 @@ export default function HomeScreen() {
                     setFocusedElement("buttons");
                     // Navigate on press
                     if (button.id === "guest") {
-                      navigate("Guest");
+                      setCurrentScreen("Guest");
                     } else if (button.id === "signin") {
-                      navigate("SignUp");
+                      setCurrentScreen("SignUp");
                     }
                   }}
                   className={[
@@ -242,7 +242,7 @@ export default function HomeScreen() {
             {/* Sign in link */}
             <Pressable
               onPress={() => {
-                navigate("SignIn");
+                setCurrentScreen("SignIn");
               }}
               className={[
                 "mt-4 mb-10 px-3 py-1 rounded",

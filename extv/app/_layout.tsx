@@ -1,6 +1,6 @@
 import {
-  TVNavigationProvider,
-  useTVNavigation,
+  ScreenManagerProvider,
+  useScreenManager,
 } from "@/contexts/TVNavigationContext";
 import { useFullScreenMode } from "@/hooks/useFullScreenMode";
 import { useUserStore } from "@/store/userStore";
@@ -18,11 +18,11 @@ import SignInScreen from "./signin";
 import SignUpScreen from "./signup";
 
 export const unstable_settings = {
-  anchor: "landing",
+  initialRouteName: "index",
 };
 
 function ScreenRenderer() {
-  const { currentScreen } = useTVNavigation();
+  const { currentScreen } = useScreenManager();
 
   switch (currentScreen) {
     case "Landing":
@@ -75,7 +75,7 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <TVNavigationProvider initialScreen={user ? "Home" : "Landing"}>
+      <ScreenManagerProvider initialScreen={user ? "Home" : "Landing"}>
         <View style={{ flex: 1 }}>
           <ScreenRenderer />
           {!isTV() && (
@@ -86,7 +86,7 @@ export default function RootLayout() {
             />
           )}
         </View>
-      </TVNavigationProvider>
+      </ScreenManagerProvider>
     </GestureHandlerRootView>
   );
 }
