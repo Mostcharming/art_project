@@ -65,13 +65,6 @@ class ApiService {
         headers: requestHeaders,
       };
 
-      console.log("API Request Config:", {
-        method,
-        url,
-        headers: requestHeaders,
-        payload,
-      });
-
       // Attach payload for POST/PUT/PATCH
       if (
         payload &&
@@ -89,10 +82,6 @@ class ApiService {
       }
 
       const response = await axios(axiosConfig);
-      console.log("API Response:", {
-        status: response.status,
-        data: response.data,
-      });
 
       return {
         data: response.data as T,

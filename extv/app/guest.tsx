@@ -263,13 +263,6 @@ export default function GuestScreen() {
     homeStore.fetchHomeData();
   }, []);
 
-  // Log backend data to console for debugging
-  useEffect(() => {
-    console.log("🎨 Featured Carousel:", featuredCarousel);
-    console.log("📊 Trending Carousels:", trendingCarousels);
-    console.log("👥 Publishers Data:", publishers);
-  }, [featuredCarousel, trendingCarousels, publishers]);
-
   const trendingItems: ContentItem[] = trendingCarousels.map(
     (carousel: any) => ({
       id: carousel.id,
