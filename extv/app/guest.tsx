@@ -28,6 +28,7 @@ interface ContentRowProps {
   accent?: boolean;
   onCardSelect?: (id: string) => void;
   selectedCardId?: string;
+  onCardPress?: () => void;
 }
 
 function ContentRow({
@@ -36,6 +37,7 @@ function ContentRow({
   accent,
   onCardSelect,
   selectedCardId,
+  onCardPress,
 }: ContentRowProps) {
   const rowRef = useRef<ScrollView>(null);
 
@@ -61,7 +63,10 @@ function ContentRow({
           {items.map((item) => (
             <Pressable
               key={item.id}
-              onPress={() => onCardSelect?.(item.id)}
+              onPress={() => {
+                onCardSelect?.(item.id);
+                onCardPress?.();
+              }}
               className={`flex-none w-[14vw] ml-10 min-w-[160px] aspect-[2/3] rounded-xl overflow-hidden cursor-pointer group/card relative transition-all duration-200 ${
                 selectedCardId === item.id
                   ? "ring-2 ring-orange-500 scale-105"
@@ -192,9 +197,13 @@ function SearchIcon() {
 function Navbar({
   selectedNavIndex,
   onSignUpPress,
+  onNavItemPress,
+  onSearchPress,
 }: {
   selectedNavIndex?: number;
   onSignUpPress?: () => void;
+  onNavItemPress?: (index: number) => void;
+  onSearchPress?: () => void;
 }) {
   const navItems = [
     { label: "Home", focused: selectedNavIndex === 0 },
@@ -214,6 +223,7 @@ function Navbar({
         {navItems.slice(0, 3).map((item, idx) => (
           <Pressable
             key={idx}
+            onPress={() => onNavItemPress?.(idx)}
             className={`px-2 py-1 rounded transition-colors ${
               item.focused ? "bg-orange-600/30 ring-2 ring-orange-500" : ""
             }`}
@@ -231,6 +241,7 @@ function Navbar({
 
       <View className="flex flex-row items-center gap-4 flex-shrink">
         <Pressable
+          onPress={onSearchPress}
           className={`p-2 rounded transition-colors ${
             navItems[3].focused ? "bg-orange-600/30 ring-2 ring-orange-500" : ""
           }`}
@@ -253,7 +264,7 @@ function Navbar({
   );
 }
 
-export default function GuestScreen() {
+function GuestScreenContent() {
   const { navigate } = useTVNavigation();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [selectedTrendingCard, setSelectedTrendingCard] = useState<
@@ -270,9 +281,10 @@ export default function GuestScreen() {
 
   useEffect(() => {
     homeStore.fetchHomeData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const trendingItems: ContentItem[] = trendingCarousels.map(
+  const trendingItems: ContentItem[] = (trendingCarousels || []).map(
     (carousel: any) => ({
       id: carousel.id,
       src: carousel.imageUrl || "https://via.placeholder.com/160x240",
@@ -316,7 +328,7 @@ export default function GuestScreen() {
     return "https://via.placeholder.com/160x240";
   };
 
-  const artistItems: ContentItem[] = publishers
+  const artistItems: ContentItem[] = (publishers || [])
     .filter((pub: any) => pub.carousels && pub.carousels.length > 0)
     .map((pub: any) => ({
       id: pub.id,
@@ -328,6 +340,32 @@ export default function GuestScreen() {
     }));
 
   const totalNavItems = 5 + 2 + trendingItems.length + artistItems.length;
+
+  // Handle navigation item selection
+  const handleNavSelection = (navIndex: number) => {
+    switch (navIndex) {
+      case 0:
+        // Home - show sign in modal
+        setShowSignInModal(true);
+        break;
+      case 1:
+        // New arrival - show sign in modal
+        setShowSignInModal(true);
+        break;
+      case 2:
+        // My favorites - requires sign in
+        setShowSignInModal(true);
+        break;
+      case 3:
+        // Search - requires sign in
+        setShowSignInModal(true);
+        break;
+      case 4:
+        // Sign up button in navbar
+        navigate("SignUp");
+        break;
+    }
+  };
 
   useTVRemote({
     onUp: () => {
@@ -383,10 +421,7 @@ export default function GuestScreen() {
 
       if (selectedIndex < heroStart) {
         const navIndex = selectedIndex;
-        if (navIndex === 4) {
-          // Sign up button in navbar
-          navigate("SignUp");
-        }
+        handleNavSelection(navIndex);
       } else if (selectedIndex < trendingStart) {
         const buttonIndex = selectedIndex - heroStart;
         if (buttonIndex === 0) {
@@ -429,6 +464,14 @@ export default function GuestScreen() {
                   : undefined
               }
               onSignUpPress={() => navigate("SignUp")}
+              onNavItemPress={(index) => {
+                setSelectedIndex(index);
+                handleNavSelection(index);
+              }}
+              onSearchPress={() => {
+                setSelectedIndex(3);
+                handleNavSelection(3);
+              }}
             />
 
             <View className="flex flex-col px-6 pt-8 pb-6 justify-start">
@@ -498,6 +541,7 @@ export default function GuestScreen() {
             accent
             selectedCardId={selectedTrendingCard}
             onCardSelect={setSelectedTrendingCard}
+            onCardPress={() => setShowSignInModal(true)}
           />
 
           <ContentRow
@@ -506,6 +550,7 @@ export default function GuestScreen() {
             accent
             selectedCardId={selectedArtistCard}
             onCardSelect={setSelectedArtistCard}
+            onCardPress={() => setShowSignInModal(true)}
           />
         </View>
       </ScrollView>
@@ -526,4 +571,8 @@ export default function GuestScreen() {
       />
     </>
   );
+}
+
+export default function GuestScreen() {
+  return <GuestScreenContent />;
 }

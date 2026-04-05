@@ -45,7 +45,7 @@ export default function SignInModal({
           {/* Text content */}
           <View className="flex flex-col items-center gap-4 text-center w-full px-2 mt-4">
             <Text
-              className="text-white text-2xl font-bold tracking-widest uppercase w-full"
+              className="text-white text-2xl  tracking-widest uppercase w-full"
               style={{ fontFamily: "BankGothicBold", letterSpacing: 2 }}
             >
               Sign in to unlock feature

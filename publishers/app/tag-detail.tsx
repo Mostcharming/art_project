@@ -12,7 +12,7 @@ export default function TagDetail() {
   const router = useRouter();
   const { tag } = useLocalSearchParams();
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
-  const { carousels, isLoading, refetch } = useCarouselList("publishers");
+  const { carousels, isLoading, refetch } = useCarouselList("published");
 
   useFocusEffect(
     React.useCallback(() => {
@@ -128,7 +128,7 @@ export default function TagDetail() {
               carousels={filteredCarousels}
               isLoading={isLoading}
               viewMode={viewMode}
-              carouselType="publishers"
+              carouselType="published"
               onSelectCarousel={(carousel) => {
                 console.log("Selected carousel:", carousel.id);
               }}
