@@ -1,3 +1,4 @@
+import SignInModal from "@/components/SignInModal";
 import { useTVNavigation } from "@/contexts/TVNavigationContext";
 import { useTVRemote } from "@/hooks/useTVRemote";
 import { useHomeStore } from "@/store";
@@ -188,7 +189,13 @@ function SearchIcon() {
   );
 }
 
-function Navbar({ selectedNavIndex }: { selectedNavIndex?: number }) {
+function Navbar({
+  selectedNavIndex,
+  onSignUpPress,
+}: {
+  selectedNavIndex?: number;
+  onSignUpPress?: () => void;
+}) {
   const navItems = [
     { label: "Home", focused: selectedNavIndex === 0 },
     { label: "New arrival", focused: selectedNavIndex === 1 },
@@ -232,6 +239,7 @@ function Navbar({ selectedNavIndex }: { selectedNavIndex?: number }) {
         </Pressable>
 
         <Pressable
+          onPress={onSignUpPress}
           className={`flex items-center justify-center h-10 px-4 rounded-full border-2 transition-colors ${
             navItems[4].focused
               ? "border-orange-500 bg-orange-700 ring-2 ring-orange-500"
@@ -246,7 +254,7 @@ function Navbar({ selectedNavIndex }: { selectedNavIndex?: number }) {
 }
 
 export default function GuestScreen() {
-  const { navigate, goBack } = useTVNavigation();
+  const { navigate } = useTVNavigation();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [selectedTrendingCard, setSelectedTrendingCard] = useState<
     string | undefined
@@ -254,6 +262,7 @@ export default function GuestScreen() {
   const [selectedArtistCard, setSelectedArtistCard] = useState<
     string | undefined
   >();
+  const [showSignInModal, setShowSignInModal] = useState(false);
 
   const homeStore = useHomeStore();
   const { featuredCarousel, trendingCarousels, publishers } =
@@ -374,125 +383,147 @@ export default function GuestScreen() {
 
       if (selectedIndex < heroStart) {
         const navIndex = selectedIndex;
-        if (navIndex === 0) {
-        } else if (navIndex === 1) {
-        } else if (navIndex === 2) {
-        } else if (navIndex === 3) {
-        } else if (navIndex === 4) {
+        if (navIndex === 4) {
+          // Sign up button in navbar
+          navigate("SignUp");
         }
       } else if (selectedIndex < trendingStart) {
         const buttonIndex = selectedIndex - heroStart;
         if (buttonIndex === 0) {
-          navigate("Home");
+          // Play carousel button
+          setShowSignInModal(true);
         } else if (buttonIndex === 1) {
-          goBack();
+          // Add to favorites button
+          setShowSignInModal(true);
         }
       } else if (selectedIndex < artistStart) {
         const cardIndex = selectedIndex - trendingStart;
         setSelectedTrendingCard(trendingItems[cardIndex].id);
+        // Show modal when selecting a card
+        setShowSignInModal(true);
       } else {
         const cardIndex = selectedIndex - artistStart;
         setSelectedArtistCard(artistItems[cardIndex].id);
+        // Show modal when selecting a card
+        setShowSignInModal(true);
       }
     },
   });
 
   return (
-    <ScrollView className="flex-1 bg-black">
-      {/* Hero Section */}
-      <ImageBackground
-        source={{
-          uri: "https://joincarsl.com/api/uploads/artworks/12.png",
-        }}
-        className="relative bg-black h-[300px] md:h-[400px] w-full"
-        resizeMode="cover"
-      >
-        <View className="relative z-10 flex flex-col">
-          <Navbar
-            selectedNavIndex={
-              selectedIndex >= 0 && selectedIndex < 5
-                ? selectedIndex
-                : undefined
-            }
-          />
+    <>
+      <ScrollView className="flex-1 bg-black">
+        {/* Hero Section */}
+        <ImageBackground
+          source={{
+            uri: "https://joincarsl.com/api/uploads/artworks/12.png",
+          }}
+          className="relative bg-black h-[300px] md:h-[400px] w-full"
+          resizeMode="cover"
+        >
+          <View className="relative z-10 flex flex-col">
+            <Navbar
+              selectedNavIndex={
+                selectedIndex >= 0 && selectedIndex < 5
+                  ? selectedIndex
+                  : undefined
+              }
+              onSignUpPress={() => navigate("SignUp")}
+            />
 
-          <View className="flex flex-col px-6 pt-8 pb-6 justify-start">
-            <View className="w-full max-w-[532px]">
-              <View className="flex flex-row items-center gap-0.5 mb-6">
-                <TrendingIcon />
-                <Text className="text-white text-base font-medium ml-2">
-                  Trending now
-                </Text>
-              </View>
-
-              <View className="flex flex-col gap-6 mb-8">
-                <View className="flex flex-col gap-4">
-                  <Text className="text-white text-3xl md:text-4xl font-bold leading-tight">
-                    {featuredCarousel?.name || "Featured Carousel"}
-                  </Text>
-                  <Text className="text-gray-300 text-base font-normal leading-6">
-                    {featuredCarousel?.description ||
-                      "Explore the latest in contemporary art"}
+            <View className="flex flex-col px-6 pt-8 pb-6 justify-start">
+              <View className="w-full max-w-[532px]">
+                <View className="flex flex-row items-center gap-0.5 mb-6">
+                  <TrendingIcon />
+                  <Text className="text-white text-base font-medium ml-2">
+                    Trending now
                   </Text>
                 </View>
 
-                <Text className="text-white text-base font-medium">
-                  {featuredCarousel?.publisher?.name || "Featured Artist"} •{" "}
-                  {featuredCarousel?.views || 0} views
-                </Text>
-              </View>
+                <View className="flex flex-col gap-6 mb-8">
+                  <View className="flex flex-col gap-4">
+                    <Text className="text-white text-3xl md:text-4xl font-bold leading-tight">
+                      {featuredCarousel?.name || "Featured Carousel"}
+                    </Text>
+                    <Text className="text-gray-300 text-base font-normal leading-6">
+                      {featuredCarousel?.description ||
+                        "Explore the latest in contemporary art"}
+                    </Text>
+                  </View>
 
-              <View className="flex flex-row gap-3 flex-wrap">
-                <Pressable
-                  className={`flex flex-row items-center gap-2 h-10 px-5 rounded-full border-2 transition-colors ${
-                    selectedIndex === 5
-                      ? "border-orange-500 bg-orange-700 ring-2 ring-orange-500"
-                      : "border-white/[0.12] bg-orange-600"
-                  }`}
-                  onPress={() => navigate("Home")}
-                >
-                  <PlayIcon />
                   <Text className="text-white text-base font-medium">
-                    Play carousel
+                    {featuredCarousel?.publisher?.name || "Featured Artist"} •{" "}
+                    {featuredCarousel?.views || 0} views
                   </Text>
-                </Pressable>
+                </View>
 
-                <Pressable
-                  className={`flex flex-row items-center gap-2 h-10 px-5 rounded-full border-2 transition-colors ${
-                    selectedIndex === 6
-                      ? "border-white/30 bg-white/30 ring-2 ring-white"
-                      : "border-white/[0.12] bg-black/30"
-                  }`}
-                  onPress={() => goBack()}
-                >
-                  <FavoriteIcon />
-                  <Text className="text-white text-base font-medium">
-                    Add to favorites
-                  </Text>
-                </Pressable>
+                <View className="flex flex-row gap-3 flex-wrap">
+                  <Pressable
+                    className={`flex flex-row items-center gap-2 h-10 px-5 rounded-full border-2 transition-colors ${
+                      selectedIndex === 5
+                        ? "border-orange-500 bg-orange-700 ring-2 ring-orange-500"
+                        : "border-white/[0.12] bg-orange-600"
+                    }`}
+                    onPress={() => setShowSignInModal(true)}
+                  >
+                    <PlayIcon />
+                    <Text className="text-white text-base font-medium">
+                      Play carousel
+                    </Text>
+                  </Pressable>
+
+                  <Pressable
+                    className={`flex flex-row items-center gap-2 h-10 px-5 rounded-full border-2 transition-colors ${
+                      selectedIndex === 6
+                        ? "border-white/30 bg-white/30 ring-2 ring-white"
+                        : "border-white/[0.12] bg-black/30"
+                    }`}
+                    onPress={() => setShowSignInModal(true)}
+                  >
+                    <FavoriteIcon />
+                    <Text className="text-white text-base font-medium">
+                      Add to favorites
+                    </Text>
+                  </Pressable>
+                </View>
               </View>
             </View>
           </View>
+        </ImageBackground>
+
+        <View className="">
+          <ContentRow
+            title="Trending now"
+            items={trendingItems}
+            accent
+            selectedCardId={selectedTrendingCard}
+            onCardSelect={setSelectedTrendingCard}
+          />
+
+          <ContentRow
+            title="African Artists"
+            items={artistItems}
+            accent
+            selectedCardId={selectedArtistCard}
+            onCardSelect={setSelectedArtistCard}
+          />
         </View>
-      </ImageBackground>
+      </ScrollView>
 
-      <View className="">
-        <ContentRow
-          title="Trending now"
-          items={trendingItems}
-          accent
-          selectedCardId={selectedTrendingCard}
-          onCardSelect={setSelectedTrendingCard}
-        />
-
-        <ContentRow
-          title="African Artists"
-          items={artistItems}
-          accent
-          selectedCardId={selectedArtistCard}
-          onCardSelect={setSelectedArtistCard}
-        />
-      </View>
-    </ScrollView>
+      {/* Sign In Modal */}
+      <SignInModal
+        visible={showSignInModal}
+        onSignUp={() => {
+          setShowSignInModal(false);
+          navigate("SignUp");
+        }}
+        onContinueAsGuest={() => {
+          setShowSignInModal(false);
+        }}
+        onClose={() => {
+          setShowSignInModal(false);
+        }}
+      />
+    </>
   );
 }
