@@ -64,6 +64,10 @@ class ApiService {
         url,
         headers: requestHeaders,
       };
+      console.log(`Making ${method} request to ${url} with options:`, {
+        headers: requestHeaders,
+        payload,
+      });
 
       // Attach payload for POST/PUT/PATCH
       if (

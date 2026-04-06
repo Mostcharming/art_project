@@ -3,7 +3,7 @@ import { useTVRemote } from "@/hooks/use-tv-remote";
 import { useUserStore } from "@/store/userStore";
 import { apiService } from "@/utils/apiService";
 import { useRouter } from "expo-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -47,13 +47,23 @@ export default function SignupPage() {
 
   const isFormValid = email.length > 0 && password.length >= 8;
 
+  // Blur keyboard when navigating away from text inputs
+  useEffect(() => {
+    if (focusedField !== "email" && emailInputRef.current) {
+      emailInputRef.current.blur();
+    }
+    if (focusedField !== "password" && passwordInputRef.current) {
+      passwordInputRef.current.blur();
+    }
+  }, [focusedField]);
+
   // Handle TV remote navigation
   useTVRemote({
     onSelect: () => {
-      if (focusedField === "email" && emailInputRef.current) {
-        emailInputRef.current.focus();
-      } else if (focusedField === "password" && passwordInputRef.current) {
-        passwordInputRef.current.focus();
+      if (focusedField === "email") {
+        emailInputRef.current?.focus();
+      } else if (focusedField === "password") {
+        passwordInputRef.current?.focus();
       } else if (focusedField === "showPassword") {
         setShowPassword(!showPassword);
       } else if (focusedField === "button" && isFormValid) {
@@ -88,7 +98,7 @@ export default function SignupPage() {
 
     setIsLoading(true);
     try {
-      const response = await apiService.post("/register", {
+      const response = await apiService.post("/auth/register", {
         email,
         password,
       });
@@ -217,9 +227,9 @@ export default function SignupPage() {
                   ref={emailInputRef}
                   value={email}
                   onChangeText={setEmail}
+                  onFocus={() => setFocusedField("email")}
                   placeholder="Example@gmail.com"
                   placeholderTextColor={tvColors.textTertiary}
-                  editable={focusedField === "email"}
                   style={{
                     flex: 1,
                     color: tvColors.textPrimary,
@@ -262,10 +272,10 @@ export default function SignupPage() {
                   ref={passwordInputRef}
                   value={password}
                   onChangeText={setPassword}
+                  onFocus={() => setFocusedField("password")}
                   placeholder="***********"
                   placeholderTextColor={tvColors.textTertiary}
                   secureTextEntry={!showPassword}
-                  editable={focusedField === "password"}
                   style={{
                     flex: 1,
                     color: tvColors.textPrimary,
@@ -275,7 +285,10 @@ export default function SignupPage() {
                   }}
                 />
                 <TouchableOpacity
-                  onPress={() => setShowPassword(!showPassword)}
+                  onPress={() => {
+                    setFocusedField("showPassword");
+                    setShowPassword(!showPassword);
+                  }}
                   disabled={focusedField !== "showPassword"}
                   style={[
                     { padding: 4 },
@@ -306,7 +319,10 @@ export default function SignupPage() {
           {/* CTA Section */}
           <View style={{ gap: 20, alignItems: "center", width: "100%" }}>
             <TouchableOpacity
-              onPress={handleCreateAccount}
+              onPress={() => {
+                setFocusedField("button");
+                handleCreateAccount();
+              }}
               disabled={!isFormValid || isLoading}
               activeOpacity={0.8}
               style={{

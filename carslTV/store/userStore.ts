@@ -10,6 +10,8 @@ export interface User {
   vibePreference?: number;
   appUsage?: string;
   isVerified: boolean;
+  emailVerifiedAt?: string;
+  setupCompleted: boolean;
   status: "active" | "suspended" | "banned";
   createdAt?: string;
   updatedAt?: string;
@@ -45,7 +47,13 @@ export const useUserStore = create<UserStore>()(
 
       isAuthenticated: () => {
         const { user, token } = get();
-        return !!user && !!token && user.isVerified && user.status === "active";
+        return (
+          !!user &&
+          !!token &&
+          user.isVerified &&
+          user.setupCompleted &&
+          user.status === "active"
+        );
       },
     }),
     {

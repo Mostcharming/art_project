@@ -62,7 +62,7 @@ export default function SignInModal({
             >
               <Image
                 source={{
-                  uri: "https://joincarsl.com/api/uploads/artworks/41.png",
+                  uri: "https://joincarsl.com/api/uploads/artworks/61.png",
                 }}
                 style={{ width: 50, height: 63 }}
               />
@@ -83,7 +83,7 @@ export default function SignInModal({
             >
               <Image
                 source={{
-                  uri: "https://joincarsl.com/api/uploads/artworks/51.png",
+                  uri: "https://joincarsl.com/api/uploads/artworks/141.png",
                 }}
                 style={{ width: 50, height: 63 }}
               />
@@ -103,7 +103,7 @@ export default function SignInModal({
             >
               <Image
                 source={{
-                  uri: "https://joincarsl.com/api/uploads/artworks/61.png",
+                  uri: "https://joincarsl.com/api/uploads/artworks/51.png",
                 }}
                 style={{ width: 50, height: 63 }}
               />

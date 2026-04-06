@@ -73,6 +73,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: false
     },
+    emailVerifiedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: 'Timestamp when email was verified'
+    },
     setupCompleted: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,

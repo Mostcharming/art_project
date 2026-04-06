@@ -104,9 +104,10 @@ exports.verifyEmailAndIssueToken = async (req, res, next) => {
             return res.status(400).json({ error: 'Invalid verification code' });
         }
 
-        // Mark as verified
+        // Mark as verified and record verification timestamp
         await viewer.update({
             isVerified: true,
+            emailVerifiedAt: new Date(),
             verificationToken: null,
             verificationTokenExpires: null,
         });
@@ -124,6 +125,7 @@ exports.verifyEmailAndIssueToken = async (req, res, next) => {
             viewer: {
                 id: viewer.id,
                 email: viewer.email,
+                emailVerifiedAt: viewer.emailVerifiedAt,
             },
         });
     } catch (error) {
