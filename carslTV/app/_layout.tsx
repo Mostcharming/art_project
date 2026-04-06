@@ -46,8 +46,12 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack
         screenOptions={{
-          contentStyle: { backgroundColor: "#000000" },
+          contentStyle: {
+            backgroundColor: "#000000",
+            flex: 1,
+          },
           headerStyle: { backgroundColor: "#000000" },
+          headerShown: false,
         }}
       >
         <Stack.Screen name="index" options={{ headerShown: false }} />
@@ -65,7 +69,7 @@ export default function RootLayout() {
           options={{ headerShown: false }}
         />
       </Stack>
-      <StatusBar style="light" />
+      <StatusBar style="light" hidden={false} />
     </ThemeProvider>
   );
 }

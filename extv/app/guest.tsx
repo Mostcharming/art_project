@@ -1,7 +1,6 @@
 import SignInModal from "@/components/SignInModal";
-import { useTVRemote } from "@/hooks/useTVRemote";
 import { useHomeStore } from "@/store";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ImageBackground,
   Pressable,
@@ -337,99 +336,6 @@ function GuestScreenContent() {
       bg: "bg-[#1a1a1a]",
     }));
 
-  const totalNavItems = 5 + 2 + trendingItems.length + artistItems.length;
-
-  // Handle navigation item selection
-  const handleNavSelection = useCallback((navIndex: number) => {
-    setShowSignInModal(true);
-  }, []);
-
-  const handleTVRemoteUp = useCallback(() => {
-    setSelectedIndex((prev) => (prev > 0 ? prev - 1 : totalNavItems - 1));
-  }, [totalNavItems]);
-
-  const handleTVRemoteDown = useCallback(() => {
-    setSelectedIndex((prev) => (prev < totalNavItems - 1 ? prev + 1 : 0));
-  }, [totalNavItems]);
-
-  const handleTVRemoteLeft = useCallback(() => {
-    setSelectedIndex((prev) => {
-      const trendingStart = 7;
-      const artistStart = trendingStart + trendingItems.length;
-
-      if (prev >= trendingStart && prev < artistStart) {
-        const cardIndex = prev - trendingStart;
-        if (cardIndex > 0) {
-          setSelectedTrendingCard(trendingItems[cardIndex - 1].id);
-          return prev - 1;
-        }
-      } else if (prev >= artistStart) {
-        const cardIndex = prev - artistStart;
-        if (cardIndex > 0) {
-          setSelectedArtistCard(artistItems[cardIndex - 1].id);
-          return prev - 1;
-        }
-      }
-      return prev;
-    });
-  }, [trendingItems, artistItems]);
-
-  const handleTVRemoteRight = useCallback(() => {
-    setSelectedIndex((prev) => {
-      const trendingStart = 7;
-      const artistStart = trendingStart + trendingItems.length;
-
-      if (prev >= trendingStart && prev < artistStart) {
-        const cardIndex = prev - trendingStart;
-        if (cardIndex < trendingItems.length - 1) {
-          setSelectedTrendingCard(trendingItems[cardIndex + 1].id);
-          return prev + 1;
-        }
-      } else if (prev >= artistStart) {
-        const cardIndex = prev - artistStart;
-        if (cardIndex < artistItems.length - 1) {
-          setSelectedArtistCard(artistItems[cardIndex + 1].id);
-          return prev + 1;
-        }
-      }
-      return prev;
-    });
-  }, [trendingItems, artistItems]);
-
-  const handleTVRemoteSelect = useCallback(() => {
-    setSelectedIndex((currentIndex) => {
-      const heroStart = 5;
-      const trendingStart = 7;
-      const artistStart = trendingStart + trendingItems.length;
-
-      if (currentIndex < heroStart) {
-        handleNavSelection(currentIndex);
-      } else if (currentIndex < trendingStart) {
-        const buttonIndex = currentIndex - heroStart;
-        if (buttonIndex === 0 || buttonIndex === 1) {
-          setShowSignInModal(true);
-        }
-      } else if (currentIndex < artistStart) {
-        const cardIndex = currentIndex - trendingStart;
-        setSelectedTrendingCard(trendingItems[cardIndex].id);
-        setShowSignInModal(true);
-      } else {
-        const cardIndex = currentIndex - artistStart;
-        setSelectedArtistCard(artistItems[cardIndex].id);
-        setShowSignInModal(true);
-      }
-      return currentIndex;
-    });
-  }, [trendingItems, artistItems, handleNavSelection]);
-
-  useTVRemote({
-    onUp: handleTVRemoteUp,
-    onDown: handleTVRemoteDown,
-    onLeft: handleTVRemoteLeft,
-    onRight: handleTVRemoteRight,
-    onSelect: handleTVRemoteSelect,
-  });
-
   return (
     <>
       <ScrollView className="flex-1 bg-black">
@@ -454,11 +360,9 @@ function GuestScreenContent() {
               }}
               onNavItemPress={(index) => {
                 setSelectedIndex(index);
-                handleNavSelection(index);
               }}
               onSearchPress={() => {
                 setSelectedIndex(3);
-                handleNavSelection(3);
               }}
             />
 
