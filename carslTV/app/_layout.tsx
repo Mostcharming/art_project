@@ -8,10 +8,18 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import "react-native-reanimated";
+import { LogBox } from "react-native";
 import "../globals.css";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
+
+// Suppress Reanimated strict mode warnings
+// These warnings occur in development when libraries internally use reanimated
+// but are not a concern for production
+LogBox.ignoreLogs([
+  "Reading from `value` during component render",
+  "Writing to `value` during component render",
+]);
 
 // Keep splash screen visible while loading
 SplashScreen.preventAutoHideAsync();
@@ -36,10 +44,28 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack>
+      <Stack
+        screenOptions={{
+          contentStyle: { backgroundColor: "#000000" },
+          headerStyle: { backgroundColor: "#000000" },
+        }}
+      >
         <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="pages/secondIndex"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen name="pages/guestPage" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="pages/signupPage"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="pages/signinPage"
+          options={{ headerShown: false }}
+        />
       </Stack>
-      <StatusBar style="auto" />
+      <StatusBar style="light" />
     </ThemeProvider>
   );
 }
