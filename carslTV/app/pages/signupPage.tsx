@@ -1,7 +1,11 @@
 import { tvColors } from "@/constants/tv-colors";
 import { useTVRemote } from "@/hooks/use-tv-remote";
+import { useUserStore } from "@/store/userStore";
+import { apiService } from "@/utils/apiService";
+import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import {
+  Alert,
   ScrollView,
   Text,
   TextInput,
@@ -11,13 +15,30 @@ import {
 } from "react-native";
 import Svg, { G, Path } from "react-native-svg";
 
-type FocusedField = "email" | "password" | "button";
+/**
+ * ANDROID TV TEXT INPUT GUIDE
+ * =============================
+ * Android TV users can type in multiple ways:
+ * 1. REMOTE KEYBOARD: Connect Bluetooth/USB wireless keyboard to Android TV
+ * 2. VIRTUAL KEYBOARD: On-screen IME keyboard appears when TextInput is focused
+ * 3. VOICE INPUT: Google Assistant voice search (if supported)
+ * 4. MOBILE APP: Use Android TV Companion app to type on phone
+ *
+ * This app uses the virtual keyboard approach - when focused on a TextInput,
+ * the system keyboard appears and users can navigate with remote D-pad.
+ */
+
+type FocusedField = "email" | "password" | "showPassword" | "button";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<FocusedField>("email");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const router = useRouter();
+  const loginUser = useUserStore((state) => state.loginUser);
 
   const emailInputRef = useRef<TextInput>(null);
   const passwordInputRef = useRef<TextInput>(null);
@@ -33,6 +54,8 @@ export default function SignupPage() {
         emailInputRef.current.focus();
       } else if (focusedField === "password" && passwordInputRef.current) {
         passwordInputRef.current.focus();
+      } else if (focusedField === "showPassword") {
+        setShowPassword(!showPassword);
       } else if (focusedField === "button" && isFormValid) {
         handleCreateAccount();
       }
@@ -40,23 +63,61 @@ export default function SignupPage() {
     onUp: () => {
       if (focusedField === "password") {
         setFocusedField("email");
-      } else if (focusedField === "button") {
+      } else if (focusedField === "showPassword") {
         setFocusedField("password");
+      } else if (focusedField === "button") {
+        setFocusedField("showPassword");
       }
     },
     onDown: () => {
       if (focusedField === "email") {
         setFocusedField("password");
       } else if (focusedField === "password") {
+        setFocusedField("showPassword");
+      } else if (focusedField === "showPassword") {
         setFocusedField("button");
       }
     },
   });
 
-  const handleCreateAccount = () => {
-    if (isFormValid) {
-      console.log("Creating account with:", { email, password });
-      // Add your account creation logic here
+  const handleCreateAccount = async () => {
+    if (!isFormValid) {
+      Alert.alert("Validation Error", "Please fill in all fields correctly.");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await apiService.post("/register", {
+        email,
+        password,
+      });
+
+      if (response.error) {
+        Alert.alert("Registration Error", response.error);
+        return;
+      }
+
+      // Assuming the API returns user data and token
+      const userData = response.data;
+      if (userData.user && userData.token) {
+        loginUser(userData.user, userData.token);
+        Alert.alert("Success", "Account created successfully!", [
+          {
+            text: "OK",
+            onPress: () => router.push("/"),
+          },
+        ]);
+      } else {
+        Alert.alert(
+          "Error",
+          "Registration successful but missing user data. Please sign in."
+        );
+      }
+    } catch {
+      Alert.alert("Error", "An unexpected error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -77,7 +138,6 @@ export default function SignupPage() {
         minHeight: height,
         paddingVertical: 32,
         paddingHorizontal: 16,
-        backgroundColor: tvColors.backgroundDark,
       }}
       scrollEnabled={false}
     >
@@ -216,8 +276,16 @@ export default function SignupPage() {
                 />
                 <TouchableOpacity
                   onPress={() => setShowPassword(!showPassword)}
-                  disabled={focusedField !== "password"}
-                  style={{ padding: 4 }}
+                  disabled={focusedField !== "showPassword"}
+                  style={[
+                    { padding: 4 },
+                    focusedField === "showPassword" && {
+                      borderRadius: 6,
+                      backgroundColor: "rgba(3, 218, 198, 0.2)",
+                      padding: 6,
+                    },
+                  ]}
+                  activeOpacity={0.6}
                 >
                   {showPassword ? <EyeIcon /> : <EyeOffIcon />}
                 </TouchableOpacity>
@@ -239,7 +307,7 @@ export default function SignupPage() {
           <View style={{ gap: 20, alignItems: "center", width: "100%" }}>
             <TouchableOpacity
               onPress={handleCreateAccount}
-              disabled={!isFormValid}
+              disabled={!isFormValid || isLoading}
               activeOpacity={0.8}
               style={{
                 width: "100%",
@@ -270,7 +338,7 @@ export default function SignupPage() {
                     : "rgba(255,255,255,0.30)",
                 }}
               >
-                Create account
+                {isLoading ? "Creating account..." : "Create account"}
               </Text>
             </TouchableOpacity>
             <Text

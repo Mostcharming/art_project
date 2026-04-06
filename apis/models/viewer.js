@@ -73,6 +73,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: false
     },
+    setupCompleted: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      comment: 'Indicates if profile setup (styles, vibe preference, app usage) is complete'
+    },
     resetPasswordToken: {
       type: DataTypes.STRING,
       allowNull: true

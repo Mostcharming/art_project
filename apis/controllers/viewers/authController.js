@@ -1,7 +1,7 @@
 const { Viewer } = require('../../models');
 const { hashPassword, comparePassword } = require('../../utils/passwordHash');
 const { generateToken } = require('../../utils/tokenGenerator');
-const { verifyCode } = require('../../utils/verificationCode');
+const { verifyCode, generateVerificationCode } = require('../../utils/verificationCode');
 const crypto = require('crypto');
 
 // Helper function to check viewer status
@@ -44,7 +44,7 @@ const checkViewerStatus = async (viewer) => {
 
 exports.register = async (req, res, next) => {
     try {
-        const { email, password, firstName, lastName, vibePreference, appUsage, styles } = req.body;
+        const { email, password } = req.body;
 
         if (!email || !password) {
             return res.status(400).json({ error: 'Email and password are required' });
@@ -56,36 +56,190 @@ exports.register = async (req, res, next) => {
         }
 
         const hashedPassword = await hashPassword(password);
-
-        const verificationToken = crypto.randomBytes(32).toString('hex');
+        const verificationCode = generateVerificationCode();
+        const verificationCodeExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
         const viewer = await Viewer.create({
             email,
             password: hashedPassword,
-            firstName,
-            lastName,
-            vibePreference,
-            appUsage,
-            verificationToken,
-            verificationTokenExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+            verificationToken: verificationCode,
+            verificationTokenExpires: verificationCodeExpires,
             isVerified: false,
+            setupCompleted: false,
         });
 
-        if (styles && Array.isArray(styles) && styles.length > 0) {
-            await viewer.addStyles(styles);
+        res.status(201).json({
+            message: 'Account created. Please verify the 4-digit code sent to your email.',
+            viewerId: viewer.id,
+            email: viewer.email,
+            verificationCode, // Send this to user (in production, send via email)
+        });
+    } catch (error) {
+        console.error('Register error:', error);
+        next(error);
+    }
+};
+
+// Step 2: Verify email with 4-digit code and issue JWT
+exports.verifyEmailAndIssueToken = async (req, res, next) => {
+    try {
+        const { viewerId, verificationCode } = req.body;
+
+        if (!viewerId || !verificationCode) {
+            return res.status(400).json({ error: 'viewerId and verification code are required' });
         }
 
-        res.status(201).json({
-            message: 'Viewer registered successfully. Please verify your email.',
+        const viewer = await Viewer.findByPk(viewerId);
+        if (!viewer) {
+            return res.status(404).json({ error: 'Viewer not found' });
+        }
+
+        // Check if token is expired
+        if (!viewer.verificationTokenExpires || viewer.verificationTokenExpires < new Date()) {
+            return res.status(400).json({ error: 'Verification code has expired' });
+        }
+
+        // Verify code
+        if (!verifyCode(verificationCode, viewer.verificationToken)) {
+            return res.status(400).json({ error: 'Invalid verification code' });
+        }
+
+        // Mark as verified
+        await viewer.update({
+            isVerified: true,
+            verificationToken: null,
+            verificationTokenExpires: null,
+        });
+
+        // Issue JWT token
+        const token = generateToken({
+            id: viewer.id,
+            email: viewer.email,
+            type: 'viewer',
+        });
+
+        res.json({
+            message: 'Email verified successfully. Proceed to complete your profile.',
+            token,
+            viewer: {
+                id: viewer.id,
+                email: viewer.email,
+            },
+        });
+    } catch (error) {
+        console.error('Verify email error:', error);
+        next(error);
+    }
+};
+
+// Step 3: Submit preferred styles
+exports.submitStyles = async (req, res, next) => {
+    try {
+        const { styles } = req.body;
+        const viewerId = req.user?.id; // From JWT middleware
+
+        if (!viewerId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        if (!styles || !Array.isArray(styles) || styles.length === 0) {
+            return res.status(400).json({ error: 'At least one style must be selected' });
+        }
+
+        const viewer = await Viewer.findByPk(viewerId);
+        if (!viewer) {
+            return res.status(404).json({ error: 'Viewer not found' });
+        }
+
+        await viewer.addStyles(styles);
+
+        res.json({
+            message: 'Styles submitted successfully',
+            viewerId: viewer.id,
+        });
+    } catch (error) {
+        console.error('Submit styles error:', error);
+        next(error);
+    }
+};
+
+// Step 4: Submit vibe preference
+exports.submitVibePreference = async (req, res, next) => {
+    try {
+        const { vibePreference } = req.body;
+        const viewerId = req.user?.id; // From JWT middleware
+
+        if (!viewerId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        if (vibePreference === undefined || vibePreference === null) {
+            return res.status(400).json({ error: 'Vibe preference is required' });
+        }
+
+        if (typeof vibePreference !== 'number' || vibePreference < 0 || vibePreference > 100) {
+            return res.status(400).json({ error: 'Vibe preference must be a number between 0 and 100' });
+        }
+
+        const viewer = await Viewer.findByPk(viewerId);
+        if (!viewer) {
+            return res.status(404).json({ error: 'Viewer not found' });
+        }
+
+        await viewer.update({ vibePreference });
+
+        res.json({
+            message: 'Vibe preference submitted successfully',
+            viewerId: viewer.id,
+            vibePreference: viewer.vibePreference,
+        });
+    } catch (error) {
+        console.error('Submit vibe preference error:', error);
+        next(error);
+    }
+};
+
+// Step 5: Submit app usage and complete setup
+exports.submitAppUsageAndCompleteSetup = async (req, res, next) => {
+    try {
+        const { appUsage, firstName, lastName } = req.body;
+        const viewerId = req.user?.id; // From JWT middleware
+
+        if (!viewerId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        if (!appUsage) {
+            return res.status(400).json({ error: 'App usage is required' });
+        }
+
+        const viewer = await Viewer.findByPk(viewerId);
+        if (!viewer) {
+            return res.status(404).json({ error: 'Viewer not found' });
+        }
+
+        // Mark setup as complete
+        await viewer.update({
+            appUsage,
+            firstName: firstName || viewer.firstName,
+            lastName: lastName || viewer.lastName,
+            setupCompleted: true,
+        });
+
+        res.json({
+            message: 'Profile setup completed successfully',
             viewer: {
                 id: viewer.id,
                 email: viewer.email,
                 firstName: viewer.firstName,
                 lastName: viewer.lastName,
+                vibePreference: viewer.vibePreference,
+                appUsage: viewer.appUsage,
+                setupCompleted: viewer.setupCompleted,
             },
         });
     } catch (error) {
-        console.error('Register error:', error);
+        console.error('Submit app usage error:', error);
         next(error);
     }
 };
@@ -105,6 +259,10 @@ exports.login = async (req, res, next) => {
 
         if (!viewer.isVerified) {
             return res.status(403).json({ error: 'Please verify your email before logging in' });
+        }
+
+        if (!viewer.setupCompleted) {
+            return res.status(403).json({ error: 'Please complete your profile setup before logging in' });
         }
 
         const isPasswordValid = await comparePassword(password, viewer.password);
@@ -135,6 +293,7 @@ exports.login = async (req, res, next) => {
                 vibePreference: viewer.vibePreference,
                 appUsage: viewer.appUsage,
                 isVerified: viewer.isVerified,
+                setupCompleted: viewer.setupCompleted,
                 status: viewer.status,
                 createdAt: viewer.createdAt,
                 updatedAt: viewer.updatedAt,
@@ -142,44 +301,6 @@ exports.login = async (req, res, next) => {
         });
     } catch (error) {
         console.error('Login error:', error);
-        next(error);
-    }
-};
-
-exports.verifyEmail = async (req, res, next) => {
-    try {
-        const { token } = req.body;
-
-        if (!token) {
-            return res.status(400).json({ error: 'Verification token is required' });
-        }
-
-        const viewer = await Viewer.findOne({
-            where: {
-                verificationTokenExpires: {
-                    [require('sequelize').Op.gt]: new Date(),
-                },
-            },
-        });
-
-        if (!viewer) {
-            return res.status(400).json({ error: 'Invalid or expired verification token' });
-        }
-
-        // Verify token against actual token or universal code 7777
-        if (!verifyCode(token, viewer.verificationToken)) {
-            return res.status(400).json({ error: 'Invalid or expired verification token' });
-        }
-
-        await viewer.update({
-            isVerified: true,
-            verificationToken: null,
-            verificationTokenExpires: null,
-        });
-
-        res.json({ message: 'Email verified successfully' });
-    } catch (error) {
-        console.error('Verify email error:', error);
         next(error);
     }
 };
