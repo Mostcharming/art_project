@@ -1,7 +1,7 @@
 import { getNextFocusIndex, useTVRemote } from "@/hooks/use-tv-remote";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
-import { Image, Platform, Pressable, Text, View } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
 
 const CARDS = [
   // 1 — Far left (partially off-screen)
@@ -112,9 +112,9 @@ export function HeroGallery() {
 
   const handleTap = () => {
     // Navigate to the next screen on tap (for Android phones/tablets)
-    if (Platform.OS === "android") {
-      handleCardSelect();
-    }
+    // if (Platform.OS === "android") {
+    handleCardSelect();
+    // }
   };
 
   const handleCardFocus = (index: number) => {

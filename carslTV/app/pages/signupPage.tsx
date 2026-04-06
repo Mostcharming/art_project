@@ -28,7 +28,12 @@ import Svg, { G, Path } from "react-native-svg";
  * the system keyboard appears and users can navigate with remote D-pad.
  */
 
-type FocusedField = "email" | "password" | "showPassword" | "button";
+type FocusedField =
+  | "email"
+  | "password"
+  | "showPassword"
+  | "button"
+  | "signin-link";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -68,6 +73,8 @@ export default function SignupPage() {
         setShowPassword(!showPassword);
       } else if (focusedField === "button" && isFormValid) {
         handleCreateAccount();
+      } else if (focusedField === "signin-link") {
+        router.push("/pages/signinPage");
       }
     },
     onUp: () => {
@@ -77,6 +84,8 @@ export default function SignupPage() {
         setFocusedField("password");
       } else if (focusedField === "button") {
         setFocusedField("showPassword");
+      } else if (focusedField === "signin-link") {
+        setFocusedField("button");
       }
     },
     onDown: () => {
@@ -86,6 +95,8 @@ export default function SignupPage() {
         setFocusedField("showPassword");
       } else if (focusedField === "showPassword") {
         setFocusedField("button");
+      } else if (focusedField === "button") {
+        setFocusedField("signin-link");
       }
     },
   });
@@ -381,6 +392,47 @@ export default function SignupPage() {
               </Text>
               .
             </Text>
+            <View
+              style={{ flexDirection: "row", justifyContent: "center", gap: 4 }}
+            >
+              <Text
+                style={{
+                  color: tvColors.textSecondary,
+                  fontSize: 14,
+                  fontWeight: "normal",
+                  lineHeight: 20,
+                }}
+              >
+                Already have an account?
+              </Text>
+              <TouchableOpacity
+                onPress={() => router.push("/pages/signinPage")}
+                activeOpacity={0.7}
+                style={[
+                  { paddingHorizontal: 6, paddingVertical: 4, borderRadius: 4 },
+                  focusedField === "signin-link" && {
+                    backgroundColor: "rgba(3, 218, 198, 0.2)",
+                    borderWidth: 2,
+                    borderColor: tvColors.accent,
+                  },
+                ]}
+              >
+                <Text
+                  style={{
+                    color:
+                      focusedField === "signin-link"
+                        ? tvColors.accent
+                        : tvColors.accent,
+                    fontSize: 14,
+                    fontWeight: "600",
+                    lineHeight: 20,
+                    textDecorationLine: "underline",
+                  }}
+                >
+                  Sign in
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>
