@@ -1,11 +1,81 @@
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useRef, useState } from 'react';
-import { Image, Pressable, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { getNextFocusIndex, useTVRemote } from '../../hooks/use-tv-remote';
 import { RootStackParamList } from '../../navigation/RootNavigator';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+const styles = StyleSheet.create({
+  container: {
+    position: 'relative',
+    width: '100%',
+    flex: 1,
+  },
+  card16x9: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'black',
+    overflow: 'hidden',
+    flex: 1,
+  },
+  gradientOverlay: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    zIndex: 10,
+  },
+  cardImage: {
+    position: 'absolute',
+    overflow: 'hidden',
+    borderRadius: 12,
+  },
+  cardImageContent: {
+    width: '100%',
+    height: '100%',
+  },
+  cardInfoOverlay: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'flex-end',
+    padding: 12,
+    flexDirection: 'column',
+  },
+  cardTitle: {
+    color: 'white',
+    fontWeight: '600',
+    lineHeight: 1.25,
+    fontFamily: 'Space_Grotesk',
+  },
+  cardArtist: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 12,
+    lineHeight: 1.25,
+  },
+  bottomPrompt: {
+    position: 'absolute',
+    bottom: 16,
+    left: '50%',
+    marginLeft: '-50%',
+    textAlign: 'center',
+    zIndex: 20,
+  },
+  promptText: {
+    color: 'white',
+    fontSize: 12,
+  },
+});
 
 const CARDS = [
   // 1 — Far left (partially off-screen)
@@ -14,8 +84,11 @@ const CARDS = [
     alt: 'Carsl',
     title: 'Carsl',
     artist: 'Carsl',
-    bg: 'bg-[#1a0a2e]',
-    pos: 'left-[-10%] top-[60%] w-[17.7%] h-[30.5%]',
+    bgColor: '#1a0a2e',
+    left: -10,
+    top: 60,
+    width: 17.7,
+    height: 30.5,
     partial: true,
   },
   // 2 — Left medium
@@ -24,8 +97,11 @@ const CARDS = [
     alt: 'Carsl',
     title: 'Carsl',
     artist: 'Carsl',
-    bg: 'bg-[#1a237e]',
-    pos: 'left-[6.1%] top-[41.2%] w-[17.7%] h-[40.6%]',
+    bgColor: '#1a237e',
+    left: 6.1,
+    top: 41.2,
+    width: 17.7,
+    height: 40.6,
     partial: false,
   },
   // 3 — Left tall
@@ -34,8 +110,11 @@ const CARDS = [
     alt: 'Carsl',
     title: 'Carsl',
     artist: 'Carsl',
-    bg: 'bg-[#111111]',
-    pos: 'left-[22.2%] top-[21.9%] w-[17.7%] h-[46.5%]',
+    bgColor: '#111111',
+    left: 22.2,
+    top: 21.9,
+    width: 17.7,
+    height: 46.5,
     partial: false,
   },
   // 4 — CENTER (tallest)
@@ -44,8 +123,11 @@ const CARDS = [
     alt: 'Carsl',
     title: 'Carsl',
     artist: 'Carsl',
-    bg: 'bg-[#6b1a1a]',
-    pos: 'left-[38.3%] top-[0%] w-[23.4%] h-[54.2%]',
+    bgColor: '#6b1a1a',
+    left: 38.3,
+    top: 0,
+    width: 23.4,
+    height: 54.2,
     partial: false,
     isCenter: true,
   },
@@ -55,8 +137,11 @@ const CARDS = [
     alt: 'Carsl',
     title: 'Carsl',
     artist: 'Carsl',
-    bg: 'bg-[#7a2800]',
-    pos: 'left-[60.1%] top-[22.4%] w-[17.7%] h-[46.5%]',
+    bgColor: '#7a2800',
+    left: 60.1,
+    top: 22.4,
+    width: 17.7,
+    height: 46.5,
     partial: false,
   },
   // 6 — Right medium
@@ -65,8 +150,11 @@ const CARDS = [
     alt: 'Carsl',
     title: 'Carsl',
     artist: 'Carsl',
-    bg: 'bg-[#d4d0c8]',
-    pos: 'left-[76.2%] top-[39.4%] w-[17.7%] h-[39.4%]',
+    bgColor: '#d4d0c8',
+    left: 76.2,
+    top: 39.4,
+    width: 17.7,
+    height: 39.4,
     partial: false,
   },
   // 7 — Far right (partially off-screen)
@@ -75,8 +163,11 @@ const CARDS = [
     alt: 'Carsl',
     title: 'Carsl',
     artist: 'Carsl',
-    bg: 'bg-[#5a2d00]',
-    pos: 'left-[92.3%] top-[60%] w-[17.7%] h-[29.3%]',
+    bgColor: '#5a2d00',
+    left: 92.3,
+    top: 60,
+    width: 17.7,
+    height: 29.3,
     partial: true,
   },
 ];
@@ -128,22 +219,43 @@ export function HeroGallery() {
   return (
     <Pressable
       onPress={handleTap}
-      className="relative w-full flex-1"
+      style={styles.container}
       ref={viewRef}
       accessible={true}
       accessibilityRole="tablist"
       accessibilityLabel="Gallery carousel"
     >
       {/* 16:9 container — fills the viewport width */}
-      <View className="absolute inset-0 bg-black overflow-hidden flex-1">
+      <View style={styles.card16x9}>
         {/* Background gradient overlay for depth */}
-        <View className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 z-10" />
+        <View style={styles.gradientOverlay} />
 
         {/* Cards */}
         {CARDS.map((card, index) => {
           // Only non-partial cards are focusable
           const isFocusable = !card.partial;
           const isFocused = isFocusable && index === focusedIndex;
+
+          const cardStyle: any = {
+            ...styles.cardImage,
+            backgroundColor: card.bgColor,
+            left: `${card.left}%`,
+            top: `${card.top}%`,
+            width: `${card.width}%`,
+            height: `${card.height}%`,
+            zIndex: isFocused ? 30 : card.isCenter ? 10 : 0,
+          };
+
+          if (isFocused) {
+            cardStyle.borderWidth = 4;
+            cardStyle.borderColor = 'rgba(255, 255, 255, 0.8)';
+            cardStyle.transform = [{ scale: 1.05 }];
+            cardStyle.shadowColor = '#000';
+            cardStyle.shadowOffset = { width: 0, height: 10 };
+            cardStyle.shadowOpacity = 0.8;
+            cardStyle.shadowRadius = 15;
+            cardStyle.elevation = 20;
+          }
 
           return (
             <Pressable
@@ -153,40 +265,21 @@ export function HeroGallery() {
               accessibilityRole="tab"
               accessibilityState={{ selected: isFocused }}
               accessibilityLabel={`${card.title} by ${card.artist}`}
-              className={[
-                'absolute overflow-hidden rounded-xl',
-                card.bg,
-                card.pos,
-                isFocused
-                  ? 'scale-[1.05] z-30 ring-4 ring-white/80 shadow-2xl'
-                  : card.isCenter
-                  ? 'z-10'
-                  : 'z-0',
-              ].join(' ')}
+              style={cardStyle}
             >
               <Image
                 source={{ uri: card.src }}
-                className="w-full h-full"
-                style={{
-                  resizeMode: 'cover',
-                  transform: isFocused ? [{ scale: 1.05 }] : undefined,
-                }}
+                style={styles.cardImageContent}
+                resizeMode="cover"
               />
 
               {/* Info overlay — always visible when focused */}
               {isFocused && (
-                <View className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-3">
-                  <Text
-                    className="text-white font-semibold leading-tight"
-                    numberOfLines={1}
-                    style={{ fontFamily: 'Space_Grotesk' }}
-                  >
+                <View style={styles.cardInfoOverlay}>
+                  <Text style={styles.cardTitle} numberOfLines={1}>
                     {card.title}
                   </Text>
-                  <Text
-                    className="text-white/60 text-sm leading-tight"
-                    numberOfLines={1}
-                  >
+                  <Text style={styles.cardArtist} numberOfLines={1}>
                     {card.artist}
                   </Text>
                 </View>
@@ -196,10 +289,8 @@ export function HeroGallery() {
         })}
 
         {/* Bottom text prompt */}
-        <View className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-center z-20">
-          <Text className="text-white text-sm">
-            Press Enter(ok) to continue
-          </Text>
+        <View style={styles.bottomPrompt}>
+          <Text style={styles.promptText}>Press Enter(ok) to continue</Text>
         </View>
       </View>
     </Pressable>
