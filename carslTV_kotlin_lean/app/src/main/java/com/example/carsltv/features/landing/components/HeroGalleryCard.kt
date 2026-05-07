@@ -106,5 +106,5 @@ object HeroGalleryData {
         )
     )
 
-    val focusableIndices = listOf(1, 2, 3, 4, 5) // Non-partial card indices
+    val focusableIndices = listOf(0,1, 2, 3, 4, 5,6) // Non-partial card indices
 }
