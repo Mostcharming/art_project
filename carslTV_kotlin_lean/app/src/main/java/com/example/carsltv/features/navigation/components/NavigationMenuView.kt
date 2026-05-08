@@ -52,7 +52,7 @@ class NavigationMenuView(context: Context) : FrameLayout(context) {
             artist = "Carsl",
             bg = Color.parseColor("#1a0a2e"),
             leftPercent = -10f,
-            topPercent = 70f,
+            topPercent = 80f,
             widthPercent = 17.7f,
             heightPercent = 30f,
             isPartial = true
@@ -64,7 +64,7 @@ class NavigationMenuView(context: Context) : FrameLayout(context) {
             artist = "Carsl",
             bg = Color.parseColor("#1a237e"),
             leftPercent = 6.1f,
-            topPercent = 60f,
+            topPercent = 70f,
             widthPercent = 17.7f,
             heightPercent = 40f
         ),
@@ -75,7 +75,7 @@ class NavigationMenuView(context: Context) : FrameLayout(context) {
             artist = "Carsl",
             bg = Color.parseColor("#111111"),
             leftPercent = 22.2f,
-            topPercent = 48f,
+            topPercent = 58f,
             widthPercent = 17.7f,
             heightPercent = 52f
         ),
@@ -86,7 +86,7 @@ class NavigationMenuView(context: Context) : FrameLayout(context) {
             artist = "Carsl",
             bg = Color.parseColor("#6b1a1a"),
             leftPercent = 38.3f,
-            topPercent = 40f,
+            topPercent = 50f,
             widthPercent = 23.4f,
             heightPercent = 60f,
             isCenter = true
@@ -98,7 +98,7 @@ class NavigationMenuView(context: Context) : FrameLayout(context) {
             artist = "Carsl",
             bg = Color.parseColor("#7a2800"),
             leftPercent = 60.1f,
-            topPercent = 48f,
+            topPercent = 58f,
             widthPercent = 17.7f,
             heightPercent = 52f
         ),
@@ -109,7 +109,7 @@ class NavigationMenuView(context: Context) : FrameLayout(context) {
             artist = "Carsl",
             bg = Color.parseColor("#d4d0c8"),
             leftPercent = 76.2f,
-            topPercent = 60f,
+            topPercent = 70f,
             widthPercent = 17.7f,
             heightPercent = 40f
         ),
@@ -120,7 +120,7 @@ class NavigationMenuView(context: Context) : FrameLayout(context) {
             artist = "Carsl",
             bg = Color.parseColor("#5a2d00"),
             leftPercent = 92.3f,
-            topPercent = 70f,
+            topPercent = 80f,
             widthPercent = 17.7f,
             heightPercent = 30f,
             isPartial = true
