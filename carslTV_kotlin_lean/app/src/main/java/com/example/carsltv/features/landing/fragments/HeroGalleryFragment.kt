@@ -9,7 +9,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import com.example.carsltv.features.signup.activities.SignUpActivity
+import com.example.carsltv.features.navigation.activities.NavigationActivity
 import com.example.carsltv.features.landing.components.HeroGalleryCard
 import com.example.carsltv.features.landing.components.HeroGalleryCarouselView
 import com.example.carsltv.features.landing.components.HeroGalleryData
@@ -17,7 +17,7 @@ import com.example.carsltv.features.landing.components.HeroGalleryData
 class HeroGalleryFragment : Fragment() {
 
     private lateinit var carouselView: HeroGalleryCarouselView
-    private var focusedIndex = 3
+    private var focusedIndex = 6
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -77,7 +77,7 @@ class HeroGalleryFragment : Fragment() {
     }
 
     private fun navigateToDetails() {
-        val intent = Intent(requireContext(), SignUpActivity::class.java)
+        val intent = Intent(requireContext(), NavigationActivity::class.java)
         startActivity(intent)
     }
 
