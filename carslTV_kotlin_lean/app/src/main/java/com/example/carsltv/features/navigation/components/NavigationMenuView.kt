@@ -180,8 +180,8 @@ class NavigationMenuView(context: Context) : FrameLayout(context) {
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         ).apply {
-            gravity = android.view.Gravity.CENTER_HORIZONTAL
-            topMargin = (context.resources.displayMetrics.heightPixels * 0.55).toInt()
+            gravity = android.view.Gravity.CENTER_HORIZONTAL or android.view.Gravity.BOTTOM
+            bottomMargin = 50
         }
         hintsContainer.addView(hintsText, hintsParams)
 
@@ -249,11 +249,11 @@ class NavigationMenuView(context: Context) : FrameLayout(context) {
         val buttonsContainer = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply {
-                leftMargin = 24
-                rightMargin = 24
+                leftMargin = 32
+                rightMargin = 32
                 bottomMargin = 24
             }
             gravity = android.view.Gravity.CENTER
@@ -274,18 +274,17 @@ class NavigationMenuView(context: Context) : FrameLayout(context) {
             }
         }
         buttonsContainer.addView(guestButton, LinearLayout.LayoutParams(
-            0,
-            120
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            80
         ).apply {
-            weight = 1f
-            rightMargin = 16
+            rightMargin = 20
         })
 
         // Sign Up Button
         signUpButton = createButton(
             "Sign up",
             bgColor = Color.TRANSPARENT,
-            textColor = Color.parseColor("#D8522E"),
+            textColor = Color.WHITE,
             borderColor = Color.parseColor("#D8522E")
         ).apply {
             setOnClickListener {
@@ -296,19 +295,36 @@ class NavigationMenuView(context: Context) : FrameLayout(context) {
             }
         }
         buttonsContainer.addView(signUpButton, LinearLayout.LayoutParams(
-            0,
-            120
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            80
         ).apply {
-            weight = 1f
-            leftMargin = 16
+            leftMargin = 20
         })
 
         contentContainer.addView(buttonsContainer)
 
         // Sign In Link
         signInText = TextView(context).apply {
-            text = "Already have an account? Sign In"
-            setTextColor(Color.parseColor("#D2D6DB"))
+            val fullText = "Already have an account? Sign In"
+            val spannableString = android.text.SpannableString(fullText)
+            
+            // Set white for the beginning part
+            spannableString.setSpan(
+                android.text.style.ForegroundColorSpan(Color.WHITE),
+                0,
+                "Already have an account? ".length,
+                android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            
+            // Set orange for "Sign In"
+            spannableString.setSpan(
+                android.text.style.ForegroundColorSpan(Color.parseColor("#D8522E")),
+                "Already have an account? ".length,
+                fullText.length,
+                android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            
+            text = spannableString
             textSize = 16f
             gravity = android.view.Gravity.CENTER
             layoutParams = LinearLayout.LayoutParams(
@@ -408,17 +424,19 @@ class NavigationMenuView(context: Context) : FrameLayout(context) {
         return AppCompatButton(context).apply {
             setText(text)
             setTextColor(textColor)
-            setBackgroundColor(bgColor)
             textSize = 16f
             setTypeface(null, android.graphics.Typeface.BOLD)
             
-            // Set border
+            // Set border and background
             val drawable = android.graphics.drawable.GradientDrawable().apply {
                 setColor(bgColor)
-                setStroke(4, borderColor)
-                cornerRadius = 16f
+                setStroke(2, borderColor)
+                cornerRadius = 20f
             }
             background = drawable
+            
+            // Add padding for better appearance
+            setPadding(24, 16, 24, 16)
         }
     }
 
@@ -472,64 +490,87 @@ class NavigationMenuView(context: Context) : FrameLayout(context) {
     }
 
     private fun updateButtonStates() {
+        // White with 70% opacity for unfocused text
+        val unfocusedTextColor = Color.parseColor("#B3FFFFFF")
+        
         // Update guest button
         guestButton.apply {
+            val drawable = android.graphics.drawable.GradientDrawable().apply {
+                setColor(Color.parseColor("#D8522E"))
+                setStroke(2, Color.parseColor("#D8522E"))
+                cornerRadius = 20f
+            }
+            background = drawable
+            
             if (focusedElement == FocusElement.GUEST_BUTTON) {
                 scaleX = 1.1f
                 scaleY = 1.1f
-                setBackgroundColor(Color.parseColor("#D8522E"))
                 setTextColor(Color.WHITE)
-                setShadowLayer(8f, 0f, 0f, Color.WHITE)
+                setShadowLayer(2f, 0f, 0f, Color.WHITE)
             } else {
                 scaleX = 1f
                 scaleY = 1f
-                val drawable = android.graphics.drawable.GradientDrawable().apply {
-                    setColor(Color.parseColor("#D8522E"))
-                    setStroke(4, Color.parseColor("#D8522E"))
-                    cornerRadius = 16f
-                }
-                background = drawable
-                setTextColor(Color.WHITE)
+                setTextColor(unfocusedTextColor)  // white/70%
                 setShadowLayer(0f, 0f, 0f, Color.TRANSPARENT)
             }
         }
 
         // Update sign up button
         signUpButton.apply {
+            val drawable = android.graphics.drawable.GradientDrawable().apply {
+                setColor(Color.TRANSPARENT)
+                setStroke(2, Color.parseColor("#D8522E"))
+                cornerRadius = 20f
+            }
+            background = drawable
+            
             if (focusedElement == FocusElement.SIGN_UP_BUTTON) {
                 scaleX = 1.1f
                 scaleY = 1.1f
-                setBackgroundColor(Color.parseColor("#14213D"))
                 setTextColor(Color.parseColor("#D8522E"))
-                setShadowLayer(8f, 0f, 0f, Color.parseColor("#D8522E"))
+                setShadowLayer(2f, 0f, 0f, Color.WHITE)
             } else {
                 scaleX = 1f
                 scaleY = 1f
-                val drawable = android.graphics.drawable.GradientDrawable().apply {
-                    setColor(Color.TRANSPARENT)
-                    setStroke(4, Color.parseColor("#D8522E"))
-                    cornerRadius = 16f
-                }
-                background = drawable
-                setTextColor(Color.parseColor("#D8522E"))
+                setTextColor(unfocusedTextColor)  // white/70%
                 setShadowLayer(0f, 0f, 0f, Color.TRANSPARENT)
             }
         }
 
         // Update sign in text
         signInText.apply {
+            // Create spannable string with white and orange colors
+            val fullText = "Already have an account? Sign In"
+            val spannableString = android.text.SpannableString(fullText)
+            
+            // Set white for the beginning part
+            spannableString.setSpan(
+                android.text.style.ForegroundColorSpan(Color.WHITE),
+                0,
+                "Already have an account? ".length,
+                android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            
+            // Set orange for "Sign In"
+            spannableString.setSpan(
+                android.text.style.ForegroundColorSpan(Color.parseColor("#D8522E")),
+                "Already have an account? ".length,
+                fullText.length,
+                android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            
+            text = spannableString
+            
             if (focusedElement == FocusElement.SIGN_IN_LINK) {
                 scaleX = 1.1f
                 scaleY = 1.1f
                 setBackgroundColor(Color.parseColor("#33D8522E"))
-                setTextColor(Color.parseColor("#D8522E"))
-                setShadowLayer(8f, 0f, 0f, Color.parseColor("#D8522E"))
+                setShadowLayer(2f, 0f, 0f, Color.WHITE)
                 setPadding(32, 16, 32, 16)
             } else {
                 scaleX = 1f
                 scaleY = 1f
                 setBackgroundColor(Color.TRANSPARENT)
-                setTextColor(Color.parseColor("#D2D6DB"))
                 setShadowLayer(0f, 0f, 0f, Color.TRANSPARENT)
                 setPadding(0, 0, 0, 0)
             }
