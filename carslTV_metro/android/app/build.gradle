@@ -9,7 +9,7 @@ apply plugin: "com.facebook.react"
 react {
     /* Folders */
     //   The root of your project, i.e. where "package.json" lives. Default is '../..'
-    // root = file("../../")
+    root = file("../../")
     //   The folder where the react-native NPM package is. Default is ../../node_modules/react-native
     // reactNativeDir = file("../../node_modules/react-native")
     //   The folder where the react-native Codegen package is. Default is ../../node_modules/@react-native/codegen
@@ -50,8 +50,8 @@ react {
     //   The list of flags to pass to the Hermes compiler. By default is "-O", "-output-source-map"
     // hermesFlags = ["-O", "-output-source-map"]
 
-    /* Autolinking */
-    autolinkLibrariesWithApp()
+    /* Autolinking - DISABLED */
+    // autolinkLibrariesWithApp()
 }
 
 /**
@@ -115,5 +115,33 @@ dependencies {
         implementation("com.facebook.react:hermes-android")
     } else {
         implementation jscFlavor
+    }
+
+    // Disabled due to CMake compilation issues
+    // implementation project(':react-native-safe-area-context')
+    // implementation project(':react-native-screens')
+}
+
+// Task to fix autolinking CMake file paths
+tasks.register('fixAutolinkingPaths') {
+    doLast {
+        def autolinkingFile = file("build/generated/autolinking/src/main/jni/Android-autolinking.cmake")
+        if (autolinkingFile.exists()) {
+            def content = autolinkingFile.text
+            // Replace the incorrect path (missing /dev/) with the correct one
+            content = content.replace(
+                'C:/Users/OluwaMayowa/Downloads/carsl/',
+                'C:/Users/OluwaMayowa/Downloads/dev/carsl/'
+            )
+            autolinkingFile.text = content
+        }
+    }
+}
+
+// Hook the fix task before any configure tasks
+afterEvaluate {
+    // Find all configureCMake tasks and make them depend on our fix task
+    tasks.findAll { it.name.contains('configureCMake') }.each { configTask ->
+        configTask.dependsOn('fixAutolinkingPaths')
     }
 }

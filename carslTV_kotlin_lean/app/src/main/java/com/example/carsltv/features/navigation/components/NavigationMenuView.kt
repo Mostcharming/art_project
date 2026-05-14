@@ -436,7 +436,7 @@ class NavigationMenuView(context: Context) : FrameLayout(context) {
             background = drawable
             
             // Add padding for better appearance
-            setPadding(24, 16, 24, 16)
+            setPadding(24, 10, 24, 10)
         }
     }
 
