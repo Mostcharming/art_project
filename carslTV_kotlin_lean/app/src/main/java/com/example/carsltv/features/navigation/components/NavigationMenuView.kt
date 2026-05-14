@@ -283,7 +283,7 @@ class NavigationMenuView(context: Context) : FrameLayout(context) {
         // Sign Up Button
         signUpButton = createButton(
             "Sign up",
-            bgColor = Color.TRANSPARENT,
+            bgColor = Color.parseColor("#D8522E"),
             textColor = Color.WHITE,
             borderColor = Color.parseColor("#D8522E")
         ).apply {
@@ -431,7 +431,7 @@ class NavigationMenuView(context: Context) : FrameLayout(context) {
             val drawable = android.graphics.drawable.GradientDrawable().apply {
                 setColor(bgColor)
                 setStroke(2, borderColor)
-                cornerRadius = 20f
+                cornerRadius = 40f
             }
             background = drawable
             
