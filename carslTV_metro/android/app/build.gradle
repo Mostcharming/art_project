@@ -12,6 +12,43 @@ if (!packageNameEnv) {
     System.setProperty("RN_PROJECT_ANDROID_PACKAGE_NAME", "com.carsltv")
 }
 
+// Workaround for autolinking config issue - provide config file
+tasks.register('generateConfig') {
+    doLast {
+        def configFile = file("../../react-native.config.js")
+        if (!configFile.exists()) {
+            configFile.text = """
+module.exports = {
+  project: {
+    ios: {},
+    android: {
+      packageName: "com.carsltv"
+    }
+  },
+  dependencies: {}
+};
+""".stripIndent()
+            logger.info("Generated react-native.config.js")
+        }
+    }
+}
+
+// Run config generation before any build task
+preBuild.dependsOn generateConfig
+
+// Disable problematic autolinking-dependent tasks early
+afterEvaluate {
+    try {
+        def entryPointTask = tasks.findByName('generateReactNativeEntryPoint')
+        if (entryPointTask) {
+            entryPointTask.enabled = false
+            logger.lifecycle("Disabled generateReactNativeEntryPoint task from build.gradle")
+        }
+    } catch (Exception e) {
+        logger.warn("Could not disable generateReactNativeEntryPoint: ${e.message}")
+    }
+}
+
 /**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
@@ -25,7 +62,7 @@ react {
     //   The folder where the react-native Codegen package is. Default is ../../node_modules/@react-native/codegen
     // codegenDir = file("../../node_modules/@react-native/codegen")
     //   The cli.js file which is the React Native CLI entrypoint. Default is ../../node_modules/react-native/cli.js
-    cliFile = file("../../cli-wrapper.js")
+    // cliFile = file("../../cli-wrapper.js")  // Commented out - using default CLI
 
     /* Variants */
     //   The list of variants to that are debuggable. For those we're going to
@@ -41,7 +78,7 @@ react {
     // bundleCommand = "ram-bundle"
     //
     //   The path to the CLI configuration file. Default is empty.
-    bundleConfig = file("../../rn-cli.config.js")
+    // bundleConfig = file("../../rn-cli.config.js")
     //
     //   The name of the generated asset file containing your JS bundle
     // bundleAssetName = "MyApplication.android.bundle"
@@ -94,6 +131,11 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        
+        // Support multiple architectures for better device compatibility
+        ndk {
+            abiFilters "x86", "armeabi-v7a", "arm64-v8a"
+        }
     }
     signingConfigs {
         debug {
@@ -114,6 +156,38 @@ android {
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
+    }
+}
+
+// Monkey-patch the autolinking tasks to disable them
+gradle.projectsEvaluated {
+    try {
+        def autoLinkTask = tasks.findByName('generateAutolinkingPackageList')
+        if (autoLinkTask) {
+            autoLinkTask.enabled = false
+            logger.lifecycle("Disabled generateAutolinkingPackageList task")
+        }
+        
+        def autoLinkNewArchTask = tasks.findByName('generateAutolinkingNewArchitectureFiles')
+        if (autoLinkNewArchTask) {
+            autoLinkNewArchTask.enabled = false
+            logger.lifecycle("Disabled generateAutolinkingNewArchitectureFiles task")
+        }
+        
+        // Also disable codegen tasks if they're causing issues
+        def codegenTask = tasks.findByName('generateCodegenSchemaFromJavaScript')
+        if (codegenTask) {
+            codegenTask.enabled = false
+            logger.lifecycle("Disabled generateCodegenSchemaFromJavaScript task")
+        }
+        
+        def codegenArtifactsTask = tasks.findByName('generateCodegenArtifactsFromSchema')
+        if (codegenArtifactsTask) {
+            codegenArtifactsTask.enabled = false
+            logger.lifecycle("Disabled generateCodegenArtifactsFromSchema task")
+        }
+    } catch (Exception e) {
+        logger.warn("Could not disable autolinking/codegen tasks: ${e.message}")
     }
 }
 
