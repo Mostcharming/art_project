@@ -10,7 +10,6 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.example.carsltv.features.navigation.activities.NavigationActivity
-import com.example.carsltv.features.landing.components.HeroGalleryCard
 import com.example.carsltv.features.landing.components.HeroGalleryCarouselView
 import com.example.carsltv.features.landing.components.HeroGalleryData
 

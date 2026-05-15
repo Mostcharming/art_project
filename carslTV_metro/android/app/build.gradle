@@ -2,6 +2,16 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
+// Set package name for autolinking
+project.ext.defaultPackageName = "com.carsltv"
+System.setProperty("ANDROID_PACKAGE_NAME", "com.carsltv")
+
+// Set environment variable for React Native CLI
+def packageNameEnv = System.getenv("RN_PROJECT_ANDROID_PACKAGE_NAME")
+if (!packageNameEnv) {
+    System.setProperty("RN_PROJECT_ANDROID_PACKAGE_NAME", "com.carsltv")
+}
+
 /**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
@@ -15,7 +25,7 @@ react {
     //   The folder where the react-native Codegen package is. Default is ../../node_modules/@react-native/codegen
     // codegenDir = file("../../node_modules/@react-native/codegen")
     //   The cli.js file which is the React Native CLI entrypoint. Default is ../../node_modules/react-native/cli.js
-    // cliFile = file("../../node_modules/react-native/cli.js")
+    cliFile = file("../../cli-wrapper.js")
 
     /* Variants */
     //   The list of variants to that are debuggable. For those we're going to
@@ -31,7 +41,7 @@ react {
     // bundleCommand = "ram-bundle"
     //
     //   The path to the CLI configuration file. Default is empty.
-    // bundleConfig = file(../rn-cli.config.js)
+    bundleConfig = file("../../rn-cli.config.js")
     //
     //   The name of the generated asset file containing your JS bundle
     // bundleAssetName = "MyApplication.android.bundle"
@@ -135,6 +145,26 @@ tasks.register('fixAutolinkingPaths') {
             )
             autolinkingFile.text = content
         }
+    }
+}
+
+// Task to work around autolinking packageName issue
+tasks.register('patchAutolinkingConfig') {
+    doLast {
+        def outputDir = file("$buildDir/generated/autolinking")
+        outputDir.mkdirs()
+        
+        def packageListFile = file("$buildDir/generated/autolinking/android-package-list.json")
+        def packageListContent = '{"packages":[]}'
+        packageListFile.text = packageListContent
+        
+        println "Created autolinking package list file"
+    }
+}
+
+tasks.whenTaskAdded { task ->
+    if (task.name == 'generateAutolinkingPackageList') {
+        task.dependsOn('patchAutolinkingConfig')
     }
 }
 

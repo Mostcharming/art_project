@@ -13,6 +13,7 @@ import android.widget.TextView
 import androidx.appcompat.widget.AppCompatButton
 import com.bumptech.glide.Glide
 import com.example.carsltv.R
+import com.example.carsltv.features.landing.components.CtaButton
 
 data class CardData(
     val src: String,
@@ -35,8 +36,8 @@ class NavigationMenuView(context: Context) : FrameLayout(context) {
     private var onMenuItemSelectedListener: ((String) -> Unit)? = null
     private var cardFocusIndex: Int = 6  // Far right card by default
 
-    private lateinit var guestButton: AppCompatButton
-    private lateinit var signUpButton: AppCompatButton
+    private lateinit var guestButton: CtaButton
+    private lateinit var signUpButton: CtaButton
     private lateinit var signInText: TextView
     private var cardsViews: MutableList<View> = mutableListOf()
 
@@ -260,12 +261,10 @@ class NavigationMenuView(context: Context) : FrameLayout(context) {
         }
 
         // Guest Button
-        guestButton = createButton(
-            "Continue as guest",
-            bgColor = Color.parseColor("#D8522E"),
-            textColor = Color.WHITE,
-            borderColor = Color.parseColor("#D8522E")
-        ).apply {
+        guestButton = CtaButton(context).apply {
+            text = "Continue as guest"
+            buttonType = CtaButton.ButtonType.GUEST
+            isButtonSelected = true
             setOnClickListener {
                 focusedElement = FocusElement.GUEST_BUTTON
                 selectedButtonId = "guest"
@@ -274,19 +273,17 @@ class NavigationMenuView(context: Context) : FrameLayout(context) {
             }
         }
         buttonsContainer.addView(guestButton, LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            80
+            dpToPx(200),
+            dpToPx(44)
         ).apply {
             rightMargin = 20
         })
 
         // Sign Up Button
-        signUpButton = createButton(
-            "Sign up",
-            bgColor = Color.parseColor("#D8522E"),
-            textColor = Color.WHITE,
-            borderColor = Color.parseColor("#D8522E")
-        ).apply {
+        signUpButton = CtaButton(context).apply {
+            text = "Sign up"
+            buttonType = CtaButton.ButtonType.SIGNUP
+            isButtonSelected = false
             setOnClickListener {
                 focusedElement = FocusElement.SIGN_UP_BUTTON
                 selectedButtonId = "signin"
@@ -295,8 +292,8 @@ class NavigationMenuView(context: Context) : FrameLayout(context) {
             }
         }
         buttonsContainer.addView(signUpButton, LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            80
+            dpToPx(200),
+            dpToPx(44)
         ).apply {
             leftMargin = 20
         })
@@ -415,31 +412,6 @@ class NavigationMenuView(context: Context) : FrameLayout(context) {
         return cardContainer
     }
 
-    private fun createButton(
-        text: String,
-        bgColor: Int,
-        textColor: Int,
-        borderColor: Int
-    ): AppCompatButton {
-        return AppCompatButton(context).apply {
-            setText(text)
-            setTextColor(textColor)
-            textSize = 16f
-            setTypeface(null, android.graphics.Typeface.BOLD)
-            
-            // Set border and background
-            val drawable = android.graphics.drawable.GradientDrawable().apply {
-                setColor(bgColor)
-                setStroke(2, borderColor)
-                cornerRadius = 40f
-            }
-            background = drawable
-            
-            // Add padding for better appearance
-            setPadding(24, 10, 24, 10)
-        }
-    }
-
     fun handleKeyEvent(keyCode: Int): Boolean {
         return when (keyCode) {
             KeyEvent.KEYCODE_DPAD_LEFT -> {
@@ -490,52 +462,11 @@ class NavigationMenuView(context: Context) : FrameLayout(context) {
     }
 
     private fun updateButtonStates() {
-        // White with 70% opacity for unfocused text
-        val unfocusedTextColor = Color.parseColor("#B3FFFFFF")
-        
         // Update guest button
-        guestButton.apply {
-            val drawable = android.graphics.drawable.GradientDrawable().apply {
-                setColor(Color.parseColor("#D8522E"))
-                setStroke(2, Color.parseColor("#D8522E"))
-                cornerRadius = 20f
-            }
-            background = drawable
-            
-            if (focusedElement == FocusElement.GUEST_BUTTON) {
-                scaleX = 1.1f
-                scaleY = 1.1f
-                setTextColor(Color.WHITE)
-                setShadowLayer(2f, 0f, 0f, Color.WHITE)
-            } else {
-                scaleX = 1f
-                scaleY = 1f
-                setTextColor(unfocusedTextColor)  // white/70%
-                setShadowLayer(0f, 0f, 0f, Color.TRANSPARENT)
-            }
-        }
+        guestButton.isButtonSelected = (focusedElement == FocusElement.GUEST_BUTTON)
 
         // Update sign up button
-        signUpButton.apply {
-            val drawable = android.graphics.drawable.GradientDrawable().apply {
-                setColor(Color.TRANSPARENT)
-                setStroke(2, Color.parseColor("#D8522E"))
-                cornerRadius = 20f
-            }
-            background = drawable
-            
-            if (focusedElement == FocusElement.SIGN_UP_BUTTON) {
-                scaleX = 1.1f
-                scaleY = 1.1f
-                setTextColor(Color.parseColor("#D8522E"))
-                setShadowLayer(2f, 0f, 0f, Color.WHITE)
-            } else {
-                scaleX = 1f
-                scaleY = 1f
-                setTextColor(unfocusedTextColor)  // white/70%
-                setShadowLayer(0f, 0f, 0f, Color.TRANSPARENT)
-            }
-        }
+        signUpButton.isButtonSelected = (focusedElement == FocusElement.SIGN_UP_BUTTON)
 
         // Update sign in text
         signInText.apply {
@@ -579,5 +510,9 @@ class NavigationMenuView(context: Context) : FrameLayout(context) {
 
     fun setOnMenuItemSelectedListener(listener: (String) -> Unit) {
         onMenuItemSelectedListener = listener
+    }
+
+    private fun dpToPx(dp: Int): Int {
+        return (dp * context.resources.displayMetrics.density).toInt()
     }
 }

@@ -1,4 +1,15 @@
 {
   "name": "carslTV",
-  "displayName": "carslTV"
+  "displayName": "carslTV",
+  "packageName": "com.carsltv",
+  "project": {
+    "android": {
+      "packageName": "com.carsltv"
+    }
+  },
+  "rnpm": {
+    "android": {
+      "packageName": "com.carsltv"
+    }
+  }
 }

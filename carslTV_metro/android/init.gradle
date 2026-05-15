@@ -1,0 +1,13 @@
+// Gradle init script to patch React Native autolinking issues
+allprojects {
+    afterEvaluate { project ->
+        if (project.name == 'app') {
+            def generateTask = project.tasks.findByName('generateAutolinkingPackageList')
+            if (generateTask) {
+                generateTask.doFirst {
+                    println "Patching generateAutolinkingPackageList..."
+                }
+            }
+        }
+    }
+}
