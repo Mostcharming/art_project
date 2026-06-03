@@ -3,7 +3,8 @@ const ENV = process.env.EXPO_PUBLIC_ENV || "production";
 
 export const API_CONFIG = {
   development: {
-    baseUrl: "http://192.168.1.147:3000/api/viewers",
+    baseUrl: "http://192.168.1.165:3000/api/viewers",
+
     timeout: 30000,
   },
   production: {

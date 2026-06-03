@@ -20,7 +20,6 @@ interface RequestOptions {
 
 /**
  * API Service for making HTTP requests
- * Uses axios and supports both development (192.168.1.147) and production URLs
  */
 class ApiService {
   private baseUrl: string;
