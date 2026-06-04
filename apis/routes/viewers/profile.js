@@ -17,6 +17,13 @@ router.get('/', verifyViewerToken, profileController.getProfile);
 router.put('/', verifyViewerToken, profileController.updateProfile);
 
 /**
+ * POST /api/viewers/profile/setup
+ * Complete viewer setup (secured)
+ * Body: { styles[], vibe, usage, usageLabel }
+ */
+router.post('/setup', verifyViewerToken, profileController.setup);
+
+/**
  * GET /api/viewers/profile/styles
  * Get viewer's selected styles (secured)
  */

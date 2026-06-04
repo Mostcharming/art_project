@@ -1,6 +1,31 @@
 const db = require('../../models');
 const { getCompleteImageUrl } = require('../../utils/imageUrlHelper');
 
+const formatCarousel = (carousel) => {
+    if (!carousel) return null;
+
+    return {
+        id: carousel.id,
+        name: carousel.name,
+        description: carousel.description,
+        tag: carousel.tag,
+        imageUrl: carousel.artworks && carousel.artworks.length > 0
+            ? getCompleteImageUrl(carousel.artworks[0].imageUrl)
+            : null,
+        publisher: carousel.publisher ? {
+            id: carousel.publisher.id,
+            name: carousel.publisher.name,
+        } : null,
+        views: carousel.views || 0,
+        artworks: (carousel.artworks || []).map(artwork => ({
+            id: artwork.id,
+            title: artwork.title,
+            imageUrl: getCompleteImageUrl(artwork.imageUrl),
+            artist: artwork.artist,
+        })),
+    };
+};
+
 exports.getHomeCarousels = async (req, res) => {
     try {
         const featuredCarousel = await db.Carousel.findOne({
@@ -58,31 +83,6 @@ exports.getHomeCarousels = async (req, res) => {
             limit: 5,
         });
 
-        const formatCarousel = (carousel) => {
-            if (!carousel) return null;
-
-            return {
-                id: carousel.id,
-                name: carousel.name,
-                description: carousel.description,
-                tag: carousel.tag,
-                imageUrl: carousel.artworks && carousel.artworks.length > 0
-                    ? getCompleteImageUrl(carousel.artworks[0].imageUrl)
-                    : null,
-                publisher: {
-                    id: carousel.publisher.id,
-                    name: carousel.publisher.name,
-                },
-                views: carousel.views || 0,
-                artworks: (carousel.artworks || []).map(artwork => ({
-                    id: artwork.id,
-                    title: artwork.title,
-                    imageUrl: getCompleteImageUrl(artwork.imageUrl),
-                    artist: artwork.artist,
-                })),
-            };
-        };
-
         res.json({
             success: true,
             featuredCarousel: formatCarousel(featuredCarousel),
@@ -93,6 +93,157 @@ exports.getHomeCarousels = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error fetching carousels',
+            error: error.message,
+        });
+    }
+};
+
+exports.saveWatchingCarousel = async (req, res) => {
+    try {
+        const viewerId = req.user.id;
+        const { carouselId, progressSeconds } = req.body;
+
+        if (!carouselId) {
+            return res.status(400).json({
+                success: false,
+                message: 'carouselId is required',
+            });
+        }
+
+        if (progressSeconds !== undefined && (!Number.isInteger(progressSeconds) || progressSeconds < 0)) {
+            return res.status(400).json({
+                success: false,
+                message: 'progressSeconds must be a non-negative integer',
+            });
+        }
+
+        const carousel = await db.Carousel.findOne({
+            where: {
+                id: carouselId,
+                status: 'active',
+                // adminApproved: true,
+                isDeleted: false,
+            },
+        });
+
+        if (!carousel) {
+            return res.status(404).json({
+                success: false,
+                message: 'Carousel not found',
+            });
+        }
+
+        await carousel.increment('views', { by: 1 });
+        await carousel.reload({ attributes: ['id', 'views'] });
+
+        const existingWatch = await db.ViewerCarouselWatch.findOne({
+            where: {
+                viewerId,
+                carouselId,
+            },
+        });
+
+        if (existingWatch) {
+            await existingWatch.update({
+                lastWatchedAt: new Date(),
+                watchCount: existingWatch.watchCount + 1,
+                progressSeconds: progressSeconds !== undefined ? progressSeconds : existingWatch.progressSeconds,
+            });
+
+            return res.json({
+                success: true,
+                message: 'Watching carousel updated successfully',
+                watch: {
+                    id: existingWatch.id,
+                    carouselId: existingWatch.carouselId,
+                    lastWatchedAt: existingWatch.lastWatchedAt,
+                    watchCount: existingWatch.watchCount,
+                    progressSeconds: existingWatch.progressSeconds,
+                },
+                views: carousel.views,
+            });
+        }
+
+        const watch = await db.ViewerCarouselWatch.create({
+            viewerId,
+            carouselId,
+            progressSeconds: progressSeconds !== undefined ? progressSeconds : null,
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'Watching carousel saved successfully',
+            watch: {
+                id: watch.id,
+                carouselId: watch.carouselId,
+                lastWatchedAt: watch.lastWatchedAt,
+                watchCount: watch.watchCount,
+                progressSeconds: watch.progressSeconds,
+            },
+            views: carousel.views,
+        });
+    } catch (error) {
+        console.error('Error saving watching carousel:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error saving watching carousel',
+            error: error.message,
+        });
+    }
+};
+
+exports.getRecentlyWatchedCarousels = async (req, res) => {
+    try {
+        const viewerId = req.user.id;
+
+        const watches = await db.ViewerCarouselWatch.findAll({
+            where: { viewerId },
+            attributes: ['id', 'carouselId', 'lastWatchedAt', 'watchCount', 'progressSeconds'],
+            include: [
+                {
+                    model: db.Carousel,
+                    as: 'carousel',
+                    required: true,
+                    where: {
+                        status: 'active',
+                        adminApproved: true,
+                        isDeleted: false,
+                    },
+                    include: [
+                        {
+                            model: db.Publisher,
+                            as: 'publisher',
+                            attributes: ['id', 'name'],
+                        },
+                        {
+                            model: db.Artwork,
+                            as: 'artworks',
+                            where: { isDeleted: false },
+                            required: false,
+                            attributes: ['id', 'title', 'imageUrl', 'artist'],
+                            limit: 1,
+                        },
+                    ],
+                },
+            ],
+            order: [['lastWatchedAt', 'DESC']],
+            limit: 5,
+        });
+
+        res.json({
+            success: true,
+            carousels: watches.map(watch => ({
+                ...formatCarousel(watch.carousel),
+                lastWatchedAt: watch.lastWatchedAt,
+                watchCount: watch.watchCount,
+                progressSeconds: watch.progressSeconds,
+            })),
+        });
+    } catch (error) {
+        console.error('Error fetching recently watched carousels:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching recently watched carousels',
             error: error.message,
         });
     }

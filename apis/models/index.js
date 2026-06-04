@@ -54,6 +54,7 @@ const modelDefiners = [
   require("./style"),
   require("./viewer"),
   require("./viewerstyle"),
+  require("./viewercarouselwatch"),
   require("./publishersetting"),
   require("./carousel"),
   require("./artwork"),

@@ -1,4 +1,4 @@
-const { Viewer, Style } = require('../../models');
+const { Viewer, Style, sequelize } = require('../../models');
 const { hashPassword } = require('../../utils/passwordHash');
 
 /**
@@ -69,6 +69,123 @@ exports.updateProfile = async (req, res, next) => {
         });
     } catch (error) {
         console.error('Update profile error:', error);
+        next(error);
+    }
+};
+
+/**
+ * Complete viewer setup
+ */
+exports.setup = async (req, res, next) => {
+    try {
+        const viewerId = req.user.id;
+        const { styles, vibe, usage, usageLabel } = req.body;
+
+        if (!Array.isArray(styles) || styles.length === 0) {
+            return res.status(400).json({ error: 'At least one style must be selected' });
+        }
+
+        if (styles.length < 3) {
+            return res.status(400).json({ error: 'Please select at least 3 styles' });
+        }
+
+        if (vibe === undefined || vibe === null) {
+            return res.status(400).json({ error: 'vibe is required' });
+        }
+
+        if (typeof vibe !== 'number' || vibe < 0 || vibe > 100) {
+            return res.status(400).json({ error: 'vibe must be a number between 0 and 100' });
+        }
+
+        if (!usage || typeof usage !== 'string') {
+            return res.status(400).json({ error: 'usage is required' });
+        }
+
+        if (usageLabel !== undefined && usageLabel !== null && typeof usageLabel !== 'string') {
+            return res.status(400).json({ error: 'usageLabel must be a string' });
+        }
+
+        const viewer = await Viewer.findByPk(viewerId);
+        if (!viewer) {
+            return res.status(404).json({ error: 'Viewer not found' });
+        }
+
+        const styleNames = styles.map(style => String(style).trim()).filter(Boolean);
+        if (styleNames.length !== styles.length) {
+            return res.status(400).json({ error: 'styles must contain valid style names' });
+        }
+
+        const styleAliases = {
+            contemporary: 'contemporary',
+            'contemporary art': 'contemporary',
+            minimalist: 'minimalist',
+            minimalism: 'minimalist',
+            'street art': 'street art',
+            digital: 'digital/nft',
+            nft: 'digital/nft',
+            'digital art': 'digital/nft',
+            'digital/nft': 'digital/nft',
+            'african art': 'african art',
+            photographpt: 'photography',
+        };
+        const normalizeStyleName = styleName => {
+            const normalized = styleName.toLowerCase().trim();
+            return styleAliases[normalized] || normalized;
+        };
+        const availableStyles = await Style.findAll();
+        const stylesByName = new Map();
+        availableStyles.forEach(style => {
+            stylesByName.set(style.name.toLowerCase(), style);
+            stylesByName.set(normalizeStyleName(style.name), style);
+        });
+
+        const selectedStyles = [];
+        const missingStyles = [];
+        styleNames.forEach(styleName => {
+            const matchedStyle = stylesByName.get(styleName.toLowerCase()) || stylesByName.get(normalizeStyleName(styleName));
+            if (matchedStyle) {
+                selectedStyles.push(matchedStyle);
+            } else {
+                missingStyles.push(styleName);
+            }
+        });
+
+        if (missingStyles.length > 0) {
+            return res.status(400).json({
+                error: 'One or more styles do not exist',
+                missingStyles,
+            });
+        }
+
+        await sequelize.transaction(async transaction => {
+            await viewer.update({
+                vibePreference: vibe,
+                appUsage: usage,
+                appUsageLabel: usageLabel || null,
+                setupCompleted: true,
+            }, { transaction });
+
+            await viewer.setStyles(selectedStyles, { transaction });
+        });
+
+        res.json({
+            message: 'Viewer setup completed successfully',
+            viewer: {
+                id: viewer.id,
+                email: viewer.email,
+                vibePreference: viewer.vibePreference,
+                appUsage: viewer.appUsage,
+                appUsageLabel: viewer.appUsageLabel,
+                setupCompleted: viewer.setupCompleted,
+                styles: selectedStyles.map(style => ({
+                    id: style.id,
+                    name: style.name,
+                    description: style.description,
+                })),
+            },
+        });
+    } catch (error) {
+        console.error('Viewer setup error:', error);
         next(error);
     }
 };

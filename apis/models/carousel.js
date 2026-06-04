@@ -19,6 +19,10 @@ module.exports = (sequelize, DataTypes) => {
                 foreignKey: 'carouselId',
                 as: 'artworks'
             });
+            Carousel.hasMany(models.ViewerCarouselWatch, {
+                foreignKey: 'carouselId',
+                as: 'viewerWatches'
+            });
         }
     }
 

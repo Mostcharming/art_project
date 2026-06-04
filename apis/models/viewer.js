@@ -24,6 +24,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'viewerId',
         as: 'subscriptions'
       });
+      Viewer.hasMany(models.ViewerCarouselWatch, {
+        foreignKey: 'viewerId',
+        as: 'carouselWatches'
+      });
     }
   }
   Viewer.init({
@@ -60,6 +64,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true,
       comment: 'How they want to use the app (e.g., "discovery", "curation", "portfolio")'
+    },
+    appUsageLabel: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Display label for viewer app usage preference'
     },
     verificationToken: {
       type: DataTypes.STRING,
