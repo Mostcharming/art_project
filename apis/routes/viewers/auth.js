@@ -9,6 +9,9 @@ router.post('/auth/register', authController.register);
 // Step 2: Verify email with 4-digit code and receive JWT
 router.post('/auth/verify-email', authController.verifyEmailAndIssueToken);
 
+// Resend verification code for email verification
+router.post('/auth/resend', authController.resendVerificationCode);
+
 // Step 3: Submit preferred styles (requires JWT)
 router.post('/auth/setup/styles', verifyViewerToken, authController.submitStyles);
 

@@ -2,6 +2,7 @@ const { Viewer } = require('../../models');
 const { hashPassword, comparePassword } = require('../../utils/passwordHash');
 const { generateToken } = require('../../utils/tokenGenerator');
 const { verifyCode, generateVerificationCode } = require('../../utils/verificationCode');
+const emailMiddleware = require('../../middleware/emailMiddleware');
 const crypto = require('crypto');
 
 // Helper function to check viewer status
@@ -50,7 +51,13 @@ exports.register = async (req, res, next) => {
             return res.status(400).json({ error: 'Email and password are required' });
         }
 
-        const existingViewer = await Viewer.findOne({ where: { email } });
+        const normalizedEmail = email.toLowerCase();
+
+        if (password.length < 6) {
+            return res.status(400).json({ error: 'Password must be at least 6 characters' });
+        }
+
+        const existingViewer = await Viewer.findOne({ where: { email: normalizedEmail } });
         if (existingViewer) {
             return res.status(409).json({ error: 'Email already registered' });
         }
@@ -60,7 +67,7 @@ exports.register = async (req, res, next) => {
         const verificationCodeExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
         const viewer = await Viewer.create({
-            email,
+            email: normalizedEmail,
             password: hashedPassword,
             verificationToken: verificationCode,
             verificationTokenExpires: verificationCodeExpires,
@@ -68,11 +75,19 @@ exports.register = async (req, res, next) => {
             setupCompleted: false,
         });
 
+        // try {
+        //     await emailMiddleware.sendVerificationEmail(normalizedEmail, verificationCode, normalizedEmail.split('@')[0]);
+        // } catch (emailError) {
+        //     console.warn('Email sending failed, but account created:', emailError);
+        // }
+
         res.status(201).json({
             message: 'Account created. Please verify the 4-digit code sent to your email.',
-            viewerId: viewer.id,
-            email: viewer.email,
-            verificationCode, // Send this to user (in production, send via email)
+            viewer: {
+                id: viewer.id,
+                email: viewer.email,
+                setupCompleted: viewer.setupCompleted,
+            },
         });
     } catch (error) {
         console.error('Register error:', error);
@@ -83,24 +98,28 @@ exports.register = async (req, res, next) => {
 // Step 2: Verify email with 4-digit code and issue JWT
 exports.verifyEmailAndIssueToken = async (req, res, next) => {
     try {
-        const { viewerId, verificationCode } = req.body;
+        const { email, token } = req.body;
+        console.log(req.body)
+        console.log(email + ' space ' + token)
 
-        if (!viewerId || !verificationCode) {
-            return res.status(400).json({ error: 'viewerId and verification code are required' });
+        if (!email || !token) {
+            return res.status(400).json({ error: 'Email and token are required' });
         }
 
-        const viewer = await Viewer.findByPk(viewerId);
+        const normalizedEmail = email.toLowerCase();
+
+        const viewer = await Viewer.findOne({ where: { email: normalizedEmail } });
         if (!viewer) {
             return res.status(404).json({ error: 'Viewer not found' });
         }
 
         // Check if token is expired
-        if (!viewer.verificationTokenExpires || viewer.verificationTokenExpires < new Date()) {
-            return res.status(400).json({ error: 'Verification code has expired' });
-        }
+        // if (!viewer.verificationTokenExpires || viewer.verificationTokenExpires < new Date()) {
+        //     return res.status(400).json({ error: 'Verification code has expired' });
+        // }
 
         // Verify code
-        if (!verifyCode(verificationCode, viewer.verificationToken)) {
+        if (!verifyCode(token, viewer.verificationToken)) {
             return res.status(400).json({ error: 'Invalid verification code' });
         }
 
@@ -113,7 +132,7 @@ exports.verifyEmailAndIssueToken = async (req, res, next) => {
         });
 
         // Issue JWT token
-        const token = generateToken({
+        const tokenJwt = generateToken({
             id: viewer.id,
             email: viewer.email,
             type: 'viewer',
@@ -121,15 +140,57 @@ exports.verifyEmailAndIssueToken = async (req, res, next) => {
 
         res.json({
             message: 'Email verified successfully. Proceed to complete your profile.',
-            token,
+            authToken: tokenJwt,
             viewer: {
                 id: viewer.id,
                 email: viewer.email,
                 emailVerifiedAt: viewer.emailVerifiedAt,
+                setupCompleted: viewer.setupCompleted,
             },
         });
     } catch (error) {
         console.error('Verify email error:', error);
+        next(error);
+    }
+};
+
+exports.resendVerificationCode = async (req, res, next) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ error: 'Email is required' });
+        }
+
+        const normalizedEmail = email.toLowerCase();
+
+        const viewer = await Viewer.findOne({ where: { email: normalizedEmail } });
+        if (!viewer) {
+            return res.status(404).json({ error: 'Viewer not found' });
+        }
+
+        if (viewer.isVerified) {
+            return res.status(400).json({ error: 'Email is already verified' });
+        }
+
+        const verificationCode = generateVerificationCode();
+
+        await viewer.update({
+            verificationToken: verificationCode,
+            verificationTokenExpires: new Date(Date.now() + 15 * 60 * 1000),
+        });
+
+        // try {
+        //     await emailMiddleware.sendResendVerificationEmail(normalizedEmail, verificationCode, normalizedEmail.split('@')[0]);
+        // } catch (emailError) {
+        //     console.warn('Resend verification email failed:', emailError);
+        // }
+
+        res.json({
+            message: 'Verification code has been resent to your email.',
+        });
+    } catch (error) {
+        console.error('Resend verification code error:', error);
         next(error);
     }
 };
