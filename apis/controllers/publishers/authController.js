@@ -36,11 +36,11 @@ exports.signup = async (req, res, next) => {
             accountSetupComplete: false,
         });
 
-        // try {
-        //     await emailMiddleware.sendVerificationEmail(normalizedEmail, verificationCode, normalizedEmail.split('@')[0]);
-        // } catch (emailError) {
-        //     console.warn('Email sending failed, but account created:', emailError);
-        // }
+        try {
+            await emailMiddleware.sendVerificationEmail(normalizedEmail, verificationCode, normalizedEmail.split('@')[0]);
+        } catch (emailError) {
+            console.warn('Email sending failed, but account created:', emailError);
+        }
 
         res.status(201).json({
             message: 'Publisher account created. Please verify your email with the 4-digit code sent to your email.',
@@ -93,11 +93,11 @@ exports.verifyEmail = async (req, res, next) => {
             type: 'publisher',
         });
 
-        // try {
-        //     await emailMiddleware.sendWelcomeEmail(email, email.split('@')[0]);
-        // } catch (emailError) {
-        //     console.warn('Welcome email sending failed:', emailError);
-        // }
+        try {
+            await emailMiddleware.sendWelcomeEmail(email, email.split('@')[0]);
+        } catch (emailError) {
+            console.warn('Welcome email sending failed:', emailError);
+        }
 
         res.json({
             message: 'Email verified successfully. Complete your profile to finish setup.',
@@ -139,11 +139,11 @@ exports.resendVerificationCode = async (req, res, next) => {
             verificationTokenExpires: new Date(Date.now() + 15 * 60 * 1000),
         });
 
-        // try {
-        //     await emailMiddleware.sendResendVerificationEmail(email, verificationCode, email.split('@')[0]);
-        // } catch (emailError) {
-        //     console.warn('Resend verification email failed:', emailError);
-        // }
+        try {
+            await emailMiddleware.sendResendVerificationEmail(email, verificationCode, email.split('@')[0]);
+        } catch (emailError) {
+            console.warn('Resend verification email failed:', emailError);
+        }
 
         res.json({
             message: 'Verification code has been resent to your email.',
@@ -335,11 +335,11 @@ exports.requestPasswordReset = async (req, res, next) => {
             resetPasswordTokenExpires: new Date(Date.now() + 15 * 60 * 1000),
         });
 
-        // try {
-        //     await emailMiddleware.sendPasswordResetEmail(email, resetCode, email.split('@')[0]);
-        // } catch (emailError) {
-        //     console.warn('Password reset email failed:', emailError);
-        // }
+        try {
+            await emailMiddleware.sendPasswordResetEmail(email, resetCode, email.split('@')[0]);
+        } catch (emailError) {
+            console.warn('Password reset email failed:', emailError);
+        }
 
         res.json({
             message: 'A 4-digit reset code has been sent to your email',

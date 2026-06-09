@@ -3,7 +3,7 @@ const { hashPassword, comparePassword } = require('../../utils/passwordHash');
 const { generateToken } = require('../../utils/tokenGenerator');
 const { verifyCode, generateVerificationCode } = require('../../utils/verificationCode');
 const emailMiddleware = require('../../middleware/emailMiddleware');
-const crypto = require('crypto');
+const { Op } = require('sequelize');
 
 // Helper function to check viewer status
 const checkViewerStatus = async (viewer) => {
@@ -75,11 +75,11 @@ exports.register = async (req, res, next) => {
             setupCompleted: false,
         });
 
-        // try {
-        //     await emailMiddleware.sendVerificationEmail(normalizedEmail, verificationCode, normalizedEmail.split('@')[0]);
-        // } catch (emailError) {
-        //     console.warn('Email sending failed, but account created:', emailError);
-        // }
+        try {
+            await emailMiddleware.sendVerificationEmail(normalizedEmail, verificationCode, normalizedEmail.split('@')[0]);
+        } catch (emailError) {
+            console.warn('Email sending failed, but account created:', emailError);
+        }
 
         res.status(201).json({
             message: 'Account created. Please verify the 4-digit code sent to your email.',
@@ -180,11 +180,11 @@ exports.resendVerificationCode = async (req, res, next) => {
             verificationTokenExpires: new Date(Date.now() + 15 * 60 * 1000),
         });
 
-        // try {
-        //     await emailMiddleware.sendResendVerificationEmail(normalizedEmail, verificationCode, normalizedEmail.split('@')[0]);
-        // } catch (emailError) {
-        //     console.warn('Resend verification email failed:', emailError);
-        // }
+        try {
+            await emailMiddleware.sendResendVerificationEmail(normalizedEmail, verificationCode, normalizedEmail.split('@')[0]);
+        } catch (emailError) {
+            console.warn('Resend verification email failed:', emailError);
+        }
 
         res.json({
             message: 'Verification code has been resent to your email.',
@@ -324,9 +324,9 @@ exports.login = async (req, res, next) => {
             return res.status(403).json({ error: 'Please verify your email before logging in' });
         }
 
-        if (!viewer.setupCompleted) {
-            return res.status(403).json({ error: 'Please complete your profile setup before logging in' });
-        }
+        // if (!viewer.setupCompleted) {
+        //     return res.status(403).json({ error: 'Please complete your profile setup before logging in' });
+        // }
 
         const isPasswordValid = await comparePassword(password, viewer.password);
         if (!isPasswordValid) {
@@ -373,65 +373,92 @@ exports.requestPasswordReset = async (req, res, next) => {
         const { email } = req.body;
 
         if (!email) {
-            return res.status(400).json({ error: 'Email is required' });
+            return res.status(400).json({ message: 'Internal server error' });
         }
 
-        const viewer = await Viewer.findOne({ where: { email } });
+        const normalizedEmail = email.toLowerCase();
+        const viewer = await Viewer.findOne({ where: { email: normalizedEmail } });
         if (!viewer) {
-            return res.json({ message: 'If this email exists, a reset link has been sent' });
+            return res.json({ message: 'Reset code sent' });
         }
 
-        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetToken = generateVerificationCode();
 
         await viewer.update({
             resetPasswordToken: resetToken,
-            resetPasswordTokenExpires: new Date(Date.now() + 1 * 60 * 60 * 1000),
+            resetPasswordTokenExpires: new Date(Date.now() + 15 * 60 * 1000),
         });
 
-        // Commented out email sending
-        // try {
-        //     // Send email with reset token
-        // } catch (emailError) {
-        //     // Handle email error
-        // }
-
-        res.json({
-            message: 'Password reset link has been sent to your email',
+        await emailMiddleware.sendPasswordResetEmail(
+            normalizedEmail,
             resetToken,
-        });
+            viewer.firstName || normalizedEmail.split('@')[0]
+        );
+
+        res.json({ message: 'Reset code sent' });
     } catch (error) {
         console.error('Request password reset error:', error);
-        next(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+exports.verifyResetToken = async (req, res, next) => {
+    try {
+        const { email, token } = req.body;
+
+        if (!email || !token) {
+            return res.status(400).json({ message: 'Invalid or expired token' });
+        }
+
+        const normalizedEmail = email.toLowerCase();
+        const viewer = await Viewer.findOne({
+            where: {
+                email: normalizedEmail,
+                resetPasswordTokenExpires: {
+                    [Op.gt]: new Date(),
+                },
+            },
+        });
+
+        if (!viewer || !verifyCode(token, viewer.resetPasswordToken)) {
+            return res.status(400).json({ message: 'Invalid or expired token' });
+        }
+
+        res.json({ message: 'Token verified' });
+    } catch (error) {
+        console.error('Verify reset token error:', error);
+        res.status(400).json({ message: 'Invalid or expired token' });
     }
 };
 
 exports.resetPassword = async (req, res, next) => {
     try {
-        const { token, newPassword } = req.body;
+        const { email, token, password } = req.body;
 
-        if (!token || !newPassword) {
-            return res.status(400).json({ error: 'Reset token and new password are required' });
+        if (!email || !token || !password) {
+            return res.status(400).json({ message: 'Invalid or expired token' });
         }
 
+        const isValidPassword = password.length >= 8 && /[*%#@!]/.test(password);
+        if (!isValidPassword) {
+            return res.status(400).json({ message: 'Invalid or expired token' });
+        }
+
+        const normalizedEmail = email.toLowerCase();
         const viewer = await Viewer.findOne({
             where: {
-                resetPasswordToken: token,
+                email: normalizedEmail,
                 resetPasswordTokenExpires: {
-                    [require('sequelize').Op.gt]: new Date(),
+                    [Op.gt]: new Date(),
                 },
             },
         });
 
-        if (!viewer) {
-            return res.status(400).json({ error: 'Invalid or expired reset token' });
+        if (!viewer || !verifyCode(token, viewer.resetPasswordToken)) {
+            return res.status(400).json({ message: 'Invalid or expired token' });
         }
 
-        // Verify token against actual token or universal code 7777
-        if (!verifyCode(token, viewer.resetPasswordToken)) {
-            return res.status(400).json({ error: 'Invalid or expired reset token' });
-        }
-
-        const hashedPassword = await hashPassword(newPassword);
+        const hashedPassword = await hashPassword(password);
 
         await viewer.update({
             password: hashedPassword,
@@ -439,9 +466,9 @@ exports.resetPassword = async (req, res, next) => {
             resetPasswordTokenExpires: null,
         });
 
-        res.json({ message: 'Password reset successfully' });
+        res.json({ message: 'Password changed successfully' });
     } catch (error) {
         console.error('Reset password error:', error);
-        next(error);
+        res.status(400).json({ message: 'Invalid or expired token' });
     }
 };

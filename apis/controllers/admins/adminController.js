@@ -115,18 +115,18 @@ exports.requestLoginToken = async (req, res) => {
             loginTokenExpires
         });
 
-        // try {
-        //     await sendEmail(admin.email, 'adminLoginToken', {
-        //         name: admin.firstName || admin.email,
-        //         loginToken
-        //     });
-        // } catch (emailError) {
-        //     console.error('Error sending login token email:', emailError);
-        //     return res.status(500).json({
-        //         success: false,
-        //         message: 'Error sending login token email'
-        //     });
-        // }
+        try {
+            await sendEmail(admin.email, 'adminLoginToken', {
+                name: admin.firstName || admin.email,
+                loginToken
+            });
+        } catch (emailError) {
+            console.error('Error sending login token email:', emailError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error sending login token email'
+            });
+        }
 
         res.json({
             success: true,
@@ -188,18 +188,18 @@ exports.resendLoginToken = async (req, res) => {
             loginTokenExpires
         });
 
-        // try {
-        //     await sendEmail(admin.email, 'adminLoginToken', {
-        //         name: admin.firstName || admin.email,
-        //         loginToken
-        //     });
-        // } catch (emailError) {
-        //     console.error('Error sending resend login token email:', emailError);
-        //     return res.status(500).json({
-        //         success: false,
-        //         message: 'Error sending login token email'
-        //     });
-        // }
+        try {
+            await sendEmail(admin.email, 'adminLoginToken', {
+                name: admin.firstName || admin.email,
+                loginToken
+            });
+        } catch (emailError) {
+            console.error('Error sending resend login token email:', emailError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error sending login token email'
+            });
+        }
 
         res.json({
             success: true,
@@ -477,24 +477,23 @@ exports.forgotPassword = async (req, res) => {
             resetPasswordTokenExpires: resetCodeExpires
         });
 
-        // try {
-        //     await sendEmail(
-        //         admin.email,
-        //         'passwordReset',
-        //         {
-        //             name: admin.firstName || 'Admin',
-        //             resetCode: resetCode
-        //         }
-        //     );
-        // } catch (emailError) {
-        //     console.error('Error sending password reset email:', emailError);
-        //     // Still return success to avoid exposing email service issues
-        //     return res.json({
-        //         success: true,
-        //         message: 'Password reset email sent',
-        //         _note: 'Email sending failed, but code was generated'
-        //     });
-        // }
+        try {
+            await sendEmail(
+                admin.email,
+                'passwordReset',
+                {
+                    name: admin.firstName || 'Admin',
+                    resetCode: resetCode
+                }
+            );
+        } catch (emailError) {
+            console.error('Error sending password reset email:', emailError);
+            return res.json({
+                success: true,
+                message: 'Password reset email sent',
+                _note: 'Email sending failed, but code was generated'
+            });
+        }
 
         res.json({
             success: true,
@@ -542,24 +541,23 @@ exports.resendForgotPasswordCode = async (req, res) => {
             resetPasswordTokenExpires: resetCodeExpires
         });
 
-        // try {
-        //     await sendEmail(
-        //         admin.email,
-        //         'passwordReset',
-        //         {
-        //             name: admin.firstName || 'Admin',
-        //             resetCode: resetCode
-        //         }
-        //     );
-        // } catch (emailError) {
-        //     console.error('Error sending password reset email:', emailError);
-        //     // Still return success to avoid exposing email service issues
-        //     return res.json({
-        //         success: true,
-        //         message: 'Password reset email sent',
-        //         _note: 'Email sending failed, but code was generated'
-        //     });
-        // }
+        try {
+            await sendEmail(
+                admin.email,
+                'passwordReset',
+                {
+                    name: admin.firstName || 'Admin',
+                    resetCode: resetCode
+                }
+            );
+        } catch (emailError) {
+            console.error('Error sending password reset email:', emailError);
+            return res.json({
+                success: true,
+                message: 'Password reset email sent',
+                _note: 'Email sending failed, but code was generated'
+            });
+        }
 
         res.json({
             success: true,

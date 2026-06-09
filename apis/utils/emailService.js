@@ -1,29 +1,19 @@
-const nodemailer = require('nodemailer');
+const { MailtrapClient } = require('mailtrap');
 const emailTemplates = require('../config/emailTemplates.json');
 
-let transporter;
+let client;
 
 const initializeEmailService = () => {
-    if (!transporter) {
-        transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST,
-            port: parseInt(process.env.SMTP_PORT),
-            secure: false,
-            auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASSWORD,
-            },
-        });
+    if (!client) {
+        if (!process.env.MAILTRAP_API_KEY) {
+            throw new Error('MAILTRAP_API_KEY is required to send email');
+        }
 
-        transporter.verify((error, success) => {
-            if (error) {
-                console.error('Email service error:', error);
-            } else {
-                console.log('Email service ready:', success);
-            }
+        client = new MailtrapClient({
+            token: process.env.MAILTRAP_API_KEY,
         });
     }
-    return transporter;
+    return client;
 };
 
 const getTemplate = (templateName) => {
@@ -49,21 +39,23 @@ const renderTemplate = (template, variables) => {
 
 const sendEmail = async (to, templateName, variables = {}) => {
     try {
-        const transporter = initializeEmailService();
+        const mailtrapClient = initializeEmailService();
         const template = getTemplate(templateName);
         const { html, text } = renderTemplate(template, variables);
 
-        const mailOptions = {
-            from: `${process.env.SMTP_FROM_NAME} <${process.env.SMTP_FROM_EMAIL}>`,
-            to,
+        const response = await mailtrapClient.send({
+            from: {
+                email: process.env.MAILTRAP_FROM_EMAIL || process.env.SMTP_FROM_EMAIL || 'hello@joincarsl.com',
+                name: process.env.MAILTRAP_FROM_NAME || process.env.SMTP_FROM_NAME || 'Carsl',
+            },
+            to: [{ email: to }],
             subject: template.subject,
-            html,
             text,
-        };
+            html,
+        });
 
-        const info = await transporter.sendMail(mailOptions);
-        console.log('Email sent:', info.messageId);
-        return { success: true, messageId: info.messageId };
+        console.log('Email sent:', response?.message_ids || response);
+        return { success: true, messageId: response?.message_ids?.[0] };
     } catch (error) {
         console.error('Error sending email:', error);
         throw error;

@@ -24,8 +24,10 @@ router.post('/auth/setup/complete', verifyViewerToken, authController.submitAppU
 // Login (only works after setup is complete)
 router.post('/auth/login', authController.login);
 
-// Password reset endpoints (unchanged)
+// Password reset endpoints
+router.post('/auth/forgot-password', authController.requestPasswordReset);
 router.post('/auth/request-password-reset', authController.requestPasswordReset);
+router.post('/auth/verify-reset-token', authController.verifyResetToken);
 router.post('/auth/reset-password', authController.resetPassword);
 
 module.exports = router;
