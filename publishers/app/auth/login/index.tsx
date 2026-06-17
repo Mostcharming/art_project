@@ -118,6 +118,8 @@ export default function LoginPage() {
         email: publisher.email,
         personaType: publisher.personaType,
         name: publisher.name,
+        country: publisher.country,
+        bio: publisher.bio,
         isEmailVerified: true,
         accountSetupComplete: publisher.accountSetupComplete,
       });

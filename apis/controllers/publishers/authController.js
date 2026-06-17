@@ -306,6 +306,8 @@ exports.login = async (req, res, next) => {
                 email: publisher.email,
                 personaType: publisher.personaType,
                 name: publisher.name,
+                country: publisher.country,
+                bio: publisher.bio,
                 accountSetupComplete: publisher.accountSetupComplete,
             },
         });
