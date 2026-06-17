@@ -19,6 +19,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import ImageFitModal, { FittedImage } from "./components/ImageFitModal";
 import ArtworkList from "./components/ArtworkList";
 
 export default function UploadArtwork() {
@@ -37,8 +38,10 @@ export default function UploadArtwork() {
   const [frameTiming, setFrameTiming] = useState(10);
   const [showFrameDropdown, setShowFrameDropdown] = useState(false);
   const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(
-    null
+    null,
   );
+  const [imageToFit, setImageToFit] =
+    useState<ImagePicker.ImagePickerAsset | null>(null);
   const [formData, setFormData] = useState<ArtworkForm>({
     title: "",
     artist: "",
@@ -50,7 +53,7 @@ export default function UploadArtwork() {
   const [alertMessage, setAlertMessage] = useState("");
   const [showAlert, setShowAlert] = useState(false);
   const [uploadedArtworks, setUploadedArtworks] = useState<UploadedArtwork[]>(
-    []
+    [],
   );
   const [showAddModal, setShowAddModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -93,27 +96,11 @@ export default function UploadArtwork() {
     // Check file size
     if (asset.fileSize && asset.fileSize > MAX_FILE_SIZE) {
       setAlertMessage(
-        `File size exceeds 25 MB limit. Your file is ${(asset.fileSize / (1024 * 1024)).toFixed(2)} MB`
+        `File size exceeds 25 MB limit. Your file is ${(asset.fileSize / (1024 * 1024)).toFixed(2)} MB`,
       );
       setShowAlert(true);
       return false;
     }
-
-    // Check dimensions - only validate if dimensions are available
-    if (asset.width && asset.height) {
-      if (asset.width < MIN_WIDTH || asset.height < MIN_HEIGHT) {
-        setAlertMessage(
-          `Minimum image size is 1920x1080px. Your image is ${asset.width}x${asset.height}px`
-        );
-        setShowAlert(true);
-        return false;
-      }
-    }
-    // If dimensions are not available, we'll allow it through
-    // (dimensions may not be available on first load)
-
-    // Note: Can't check DPI, format type, watermarks, or borders on React Native
-    // These would need to be validated on the backend
 
     return true;
   };
@@ -124,7 +111,7 @@ export default function UploadArtwork() {
 
     if (!permissionResult.granted) {
       setAlertMessage(
-        "Please allow access to your photo library to upload artwork"
+        "Please allow access to your photo library to upload artwork",
       );
       setShowAlert(true);
       return;
@@ -141,14 +128,14 @@ export default function UploadArtwork() {
       const asset = result.assets[0];
 
       if (validateImage(asset)) {
-        setSelectedImage({
-          uri: asset.uri,
-          width: asset.width || 0,
-          height: asset.height || 0,
-          fileSize: asset.fileSize || 0,
-        });
+        setImageToFit(asset);
       }
     }
+  };
+
+  const handleFittedImage = (image: FittedImage) => {
+    setSelectedImage(image);
+    setImageToFit(null);
   };
 
   const handleFormChange = (field: keyof ArtworkForm, value: string) => {
@@ -585,7 +572,7 @@ export default function UploadArtwork() {
                   Click to upload file or drag and drop
                 </Text>
                 <Text className="text-gray-400 mt-1 text-center text-xs">
-                  PNG, JPG, or TIFF (min. 1920x1080px, max 25 MB)
+                  PNG, JPG, or TIFF (auto-fitted to 1920x1080px, max 25 MB)
                 </Text>
               </Pressable>
 
@@ -603,7 +590,7 @@ export default function UploadArtwork() {
                   <View className="flex-row items-start">
                     <Text className="text-gray-400 mr-2">•</Text>
                     <Text className="text-gray-400 text-sm flex-1">
-                      Min size: 1920x1080px (Full HD)
+                      Auto-fitted to 1920x1080px (Full HD)
                     </Text>
                   </View>
                   <View className="flex-row items-start">
@@ -669,6 +656,29 @@ export default function UploadArtwork() {
             </>
           )}
         </ScrollView>
+
+        {/* Frame Timing Dropdown Modal */}
+        <ImageFitModal
+          visible={!!imageToFit}
+          image={
+            imageToFit
+              ? {
+                  uri: imageToFit.uri,
+                  width: imageToFit.width || MIN_WIDTH,
+                  height: imageToFit.height || MIN_HEIGHT,
+                  fileSize: imageToFit.fileSize || 0,
+                }
+              : null
+          }
+          minWidth={MIN_WIDTH}
+          minHeight={MIN_HEIGHT}
+          onCancel={() => setImageToFit(null)}
+          onConfirm={handleFittedImage}
+          onError={(message) => {
+            setAlertMessage(message);
+            setShowAlert(true);
+          }}
+        />
 
         {/* Frame Timing Dropdown Modal */}
         <Modal
@@ -750,7 +760,8 @@ export default function UploadArtwork() {
                             Click to upload file or drag and drop
                           </Text>
                           <Text className="text-gray-400 mt-1 text-center text-xs">
-                            PNG, JPG, or TIFF (min. 1920x1080px, max 25 MB)
+                            PNG, JPG, or TIFF (auto-fitted to 1920x1080px, max
+                            25 MB)
                           </Text>
                         </Pressable>
 
@@ -768,7 +779,7 @@ export default function UploadArtwork() {
                             <View className="flex-row items-start">
                               <Text className="text-gray-400 mr-2">•</Text>
                               <Text className="text-gray-400 text-sm flex-1">
-                                Min size: 1920x1080px (Full HD)
+                                Auto-fitted to 1920x1080px (Full HD)
                               </Text>
                             </View>
                             <View className="flex-row items-start">
