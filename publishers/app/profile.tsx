@@ -5,7 +5,9 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useRef, useState } from "react";
 import {
   Keyboard,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -56,6 +58,7 @@ export default function Profile() {
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const bioRef = useRef<TextInput>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const { mutate, isLoading } = useApiMutate();
 
@@ -104,14 +107,27 @@ export default function Profile() {
     setAlertVisible(true);
   };
 
+  const scrollToBioActions = () => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 250);
+  };
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View className="flex-1 bg-black" style={{ paddingTop: insets.top }}>
+      <KeyboardAvoidingView
+        className="flex-1 bg-black"
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={0}
+        style={{ paddingTop: insets.top }}
+      >
         <ScrollView
+          ref={scrollViewRef}
           className="flex-1 px-5"
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
+          contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
         >
           <View className="mb-8 mt-4">
             <Text
@@ -272,6 +288,7 @@ export default function Profile() {
                 placeholderTextColor="#666666"
                 value={bio}
                 onChangeText={setBio}
+                onFocus={scrollToBioActions}
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"
@@ -386,7 +403,7 @@ export default function Profile() {
           visible={alertVisible}
           onClose={() => setAlertVisible(false)}
         />
-      </View>
+      </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
 }

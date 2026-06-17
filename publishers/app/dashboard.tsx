@@ -34,10 +34,10 @@ export default function Dashboard() {
       };
       const subscription = BackHandler.addEventListener(
         "hardwareBackPress",
-        onBackPress
+        onBackPress,
       );
       return () => subscription.remove();
-    }, [])
+    }, []),
   );
 
   const stats = [
@@ -73,9 +73,7 @@ export default function Dashboard() {
                 Hey {user?.name || "Creator"} 👋🏾
               </Text>
             </View>
-            <Text className="text-lg text-gray-400 mt-1">
-              Welcome back, Picasso
-            </Text>
+            <Text className="text-lg text-gray-400 mt-1">Welcome back</Text>
           </View>
           <Pressable
             className="w-11 h-11 rounded-full bg-neutral-800 justify-center items-center"
