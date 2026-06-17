@@ -29,6 +29,10 @@ export default function Settings() {
   const [frameTiming, setFrameTiming] = useState(settings.carouselFrameTiming);
   const [showFrameModal, setShowFrameModal] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState(
+    "Settings updated successfully!"
+  );
+  const [isUpdatingPush, setIsUpdatingPush] = useState(false);
   const frameTimingOptions = [
     { label: "10 seconds", value: 10 },
     { label: "30 seconds", value: 30 },
@@ -90,9 +94,51 @@ export default function Settings() {
         carouselFrameTiming: res.data.carouselFrameTiming ?? 1,
         pushNotifications: res.data.pushNotifications ?? true,
       });
+      setAlertMessage("Settings updated successfully!");
       setShowAlert(true);
     }
     setShowFrameModal(false);
+  };
+
+  const handlePushToggle = async (nextValue: boolean) => {
+    if (isUpdatingPush) return;
+
+    const previousValue = pushEnabled;
+    setIsUpdatingPush(true);
+    setPushEnabled(nextValue);
+    updateSettings({ pushNotifications: nextValue });
+
+    const res = await mutate("/settings", {
+      method: "PATCH",
+      payload: {
+        pushNotifications: nextValue,
+      },
+    });
+
+    if (res.error) {
+      setPushEnabled(previousValue);
+      updateSettings({ pushNotifications: previousValue });
+      setAlertMessage(res.error || "Failed to update push notifications.");
+      setShowAlert(true);
+      setIsUpdatingPush(false);
+      return;
+    }
+
+    if (res.data) {
+      setSettings({
+        carouselFrameTiming:
+          res.data.carouselFrameTiming ?? settings.carouselFrameTiming,
+        pushNotifications: res.data.pushNotifications ?? nextValue,
+      });
+    }
+
+    setAlertMessage(
+      nextValue
+        ? "Push notifications turned on."
+        : "Push notifications turned off."
+    );
+    setShowAlert(true);
+    setIsUpdatingPush(false);
   };
 
   return (
@@ -135,7 +181,8 @@ export default function Settings() {
             </View>
             <Switch
               value={pushEnabled}
-              onValueChange={setPushEnabled}
+              onValueChange={handlePushToggle}
+              disabled={isUpdatingPush}
               trackColor={{ false: "#444", true: "#ea580c" }}
               thumbColor={pushEnabled ? "#ea580c" : "#888"}
             />
@@ -243,7 +290,7 @@ export default function Settings() {
         </Modal>
       </Modal>
       <Alert
-        message="Settings updated successfully!"
+        message={alertMessage}
         visible={showAlert}
         onClose={() => setShowAlert(false)}
         duration={5000}
