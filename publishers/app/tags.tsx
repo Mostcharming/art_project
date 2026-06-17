@@ -10,7 +10,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 export default function Tags() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { carousels, isLoading } = useCarouselList("publishers");
+  const { carousels, isLoading } = useCarouselList("published");
 
   useFocusEffect(
     React.useCallback(() => {
