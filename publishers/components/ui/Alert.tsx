@@ -27,7 +27,6 @@ export const Alert: React.FC<AlertProps> = ({
 
   useEffect(() => {
     if (visible) {
-      // Slide up animation
       Animated.timing(slideAnim, {
         toValue: 1,
         duration: 300,
@@ -41,7 +40,6 @@ export const Alert: React.FC<AlertProps> = ({
 
       return () => clearTimeout(timer);
     } else {
-      // Slide down animation
       Animated.timing(slideAnim, {
         toValue: 0,
         duration: 300,
@@ -62,7 +60,7 @@ export const Alert: React.FC<AlertProps> = ({
 
   const translateY = slideAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [200, 0],
+    outputRange: [-120, 0],
   });
 
   const opacity = slideAnim.interpolate({
@@ -77,7 +75,7 @@ export const Alert: React.FC<AlertProps> = ({
         {
           transform: [{ translateY }],
           opacity,
-          bottom: insets.bottom + 80,
+          top: insets.top + 12,
         },
       ]}
       pointerEvents="box-none"

@@ -99,6 +99,15 @@ export const CarouselListView: React.FC<CarouselListProps> = ({
   };
 
   const handleEdit = (carousel: Carousel) => {
+    if (carousel.status === "active" || carouselType === "published") {
+      setAlertMessage(
+        "Published carousels cannot be edited. Move it to draft first."
+      );
+      setShowAlert(true);
+      setShowActionMenu(false);
+      return;
+    }
+
     router.push({
       pathname: "/edit-carousel" as any,
       params: {

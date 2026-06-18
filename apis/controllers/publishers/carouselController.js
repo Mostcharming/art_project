@@ -409,7 +409,8 @@ exports.moveToDraft = async (req, res, next) => {
         // Update carousel status to draft and clear scheduled publish date if exists
         await carousel.update({
             status: 'draft',
-            scheduledPublishDate: null
+            scheduledPublishDate: null,
+            adminApproved: false
         });
 
         // Update all artworks status to draft
