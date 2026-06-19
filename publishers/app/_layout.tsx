@@ -7,9 +7,10 @@ import * as Font from "expo-font";
 import { Stack, usePathname, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast from "react-native-toast-message";
+import { MaterialIcons } from "@expo/vector-icons";
 import "../globals.css";
 
 import BottomNavbar from "@/components/BottomNavbar";
@@ -32,6 +33,28 @@ const NAVBAR_SEGMENTS = [
 ];
 
 const HIDE_NAVBAR_SEGMENTS = ["carousel-preview", "carousel-success"];
+
+const toastConfig = {
+  publisherAlert: ({ text1, props }: any) => {
+    const IconComponent = props?.icon;
+
+    return (
+      <View style={styles.toastBox} pointerEvents="auto">
+        {IconComponent && (
+          <View style={styles.toastIcon}>
+            <IconComponent size={24} color={props?.iconColor || "#000000"} />
+          </View>
+        )}
+        <Text style={styles.toastMessage} numberOfLines={2}>
+          {text1}
+        </Text>
+        <Pressable onPress={props?.onClose} style={styles.toastCloseButton}>
+          <MaterialIcons name="close" size={24} color="#000000" />
+        </Pressable>
+      </View>
+    );
+  },
+};
 
 function useProtectedRoute() {
   const segments = useSegments();
@@ -169,9 +192,44 @@ export default function RootLayout() {
             translucent={true}
             backgroundColor="transparent"
           />
-          <Toast />
+          <Toast config={toastConfig} />
         </View>
       </ThemeProvider>
     </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  toastBox: {
+    width: "92%",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    shadowColor: "#000000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  toastIcon: {
+    marginRight: 12,
+  },
+  toastMessage: {
+    flex: 1,
+    fontSize: 14,
+    color: "#000000",
+    fontWeight: "500",
+    marginRight: 12,
+  },
+  toastCloseButton: {
+    padding: 8,
+    marginRight: -8,
+  },
+});
