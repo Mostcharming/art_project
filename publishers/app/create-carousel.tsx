@@ -4,7 +4,9 @@ import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import {
   Keyboard,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -49,6 +51,7 @@ export default function CreateCarousel() {
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const descriptionRef = useRef<TextInput>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const isFormValid = carouselName.trim() !== "" && country.trim() !== "";
   const isDisabled = !isFormValid;
@@ -78,14 +81,27 @@ export default function CreateCarousel() {
     });
   };
 
+  const scrollToDescriptionActions = () => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 250);
+  };
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View className="flex-1 bg-black" style={{ paddingTop: insets.top }}>
+      <KeyboardAvoidingView
+        className="flex-1 bg-black"
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={0}
+        style={{ paddingTop: insets.top }}
+      >
         <ScrollView
+          ref={scrollViewRef}
           className="flex-1 px-5"
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
+          contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
         >
           {/* Header with Back Button */}
           <View className="mb-8 mt-4">
@@ -177,6 +193,7 @@ export default function CreateCarousel() {
                 placeholderTextColor="#666666"
                 value={description}
                 onChangeText={setDescription}
+                onFocus={scrollToDescriptionActions}
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"
@@ -246,7 +263,7 @@ export default function CreateCarousel() {
           onClose={() => setAlertVisible(false)}
           duration={3000}
         />
-      </View>
+      </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
 }
