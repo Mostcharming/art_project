@@ -1110,7 +1110,8 @@ export default function EditCarousel() {
               <ScrollView
                 scrollEnabled={true}
                 showsVerticalScrollIndicator={true}
-                className="bg-neutral-800 rounded-t-2xl"
+                className="bg-black rounded-t-2xl"
+                style={{ maxHeight: "88%" }}
               >
                 <View className="pb-8 pt-4 px-5">
                   <View className="w-10 h-1 bg-neutral-600 rounded-full self-center mb-4" />
