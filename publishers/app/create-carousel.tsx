@@ -53,7 +53,10 @@ export default function CreateCarousel() {
   const descriptionRef = useRef<TextInput>(null);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const isFormValid = carouselName.trim() !== "" && country.trim() !== "";
+  const isFormValid =
+    carouselName.trim() !== "" &&
+    country.trim() !== "" &&
+    description.trim() !== "";
   const isDisabled = !isFormValid;
 
   const handleCreate = async () => {
@@ -65,6 +68,12 @@ export default function CreateCarousel() {
 
     if (!country.trim()) {
       setAlertMessage("Please select a country");
+      setAlertVisible(true);
+      return;
+    }
+
+    if (!description.trim()) {
+      setAlertMessage("Please enter a description");
       setAlertVisible(true);
       return;
     }
@@ -203,12 +212,18 @@ export default function CreateCarousel() {
           </View>
 
           <Pressable
-            className="mt-4 mb-10 rounded-xl justify-center items-center bg-orange-600"
+            className={`mt-4 mb-10 rounded-xl justify-center items-center ${
+              isDisabled ? "bg-orange-900" : "bg-orange-600"
+            }`}
             style={{ minHeight: 60 }}
             disabled={isDisabled}
             onPress={handleCreate}
           >
-            <Text className="text-base font-bold text-white">
+            <Text
+              className={`text-base font-bold ${
+                isDisabled ? "text-amber-700" : "text-white"
+              }`}
+            >
               Continue to upload artwork
             </Text>
           </Pressable>

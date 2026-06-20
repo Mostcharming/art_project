@@ -6,11 +6,13 @@ import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { CloudUpload, Play, X } from "lucide-react-native";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Image,
   Keyboard,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -56,11 +58,14 @@ export default function UploadArtwork() {
     [],
   );
   const [showAddModal, setShowAddModal] = useState(false);
+  const [isFittingModalArtwork, setIsFittingModalArtwork] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [carouselName, setCarouselName] = useState("");
   const [carouselTag, setCarouselTag] = useState("");
   const [carouselCountry, setCarouselCountry] = useState("");
   const [carouselDescription, setCarouselDescription] = useState("");
+  const scrollViewRef = useRef<ScrollView>(null);
+  const modalScrollViewRef = useRef<ScrollView>(null);
 
   // Initialize carousel details from route params
   useEffect(() => {
@@ -128,6 +133,10 @@ export default function UploadArtwork() {
       const asset = result.assets[0];
 
       if (validateImage(asset)) {
+        setIsFittingModalArtwork(inModal);
+        if (inModal) {
+          setShowAddModal(false);
+        }
         setImageToFit(asset);
       }
     }
@@ -136,6 +145,18 @@ export default function UploadArtwork() {
   const handleFittedImage = (image: FittedImage) => {
     setSelectedImage(image);
     setImageToFit(null);
+    if (isFittingModalArtwork) {
+      setShowAddModal(true);
+      setIsFittingModalArtwork(false);
+    }
+  };
+
+  const handleCancelImageFit = () => {
+    setImageToFit(null);
+    if (isFittingModalArtwork) {
+      setShowAddModal(true);
+      setIsFittingModalArtwork(false);
+    }
   };
 
   const handleFormChange = (field: keyof ArtworkForm, value: string) => {
@@ -318,14 +339,28 @@ export default function UploadArtwork() {
     }
   };
 
+  const scrollToArtworkActions = () => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+      modalScrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 250);
+  };
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View className="flex-1 bg-black" style={{ paddingTop: insets.top }}>
+      <KeyboardAvoidingView
+        className="flex-1 bg-black"
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={0}
+        style={{ paddingTop: insets.top }}
+      >
         <ScrollView
+          ref={scrollViewRef}
           className="flex-1 px-5"
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
+          contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}
         >
           {/* Header with Back Button */}
           <View className="mb-8 mt-4">
@@ -484,6 +519,7 @@ export default function UploadArtwork() {
                       onChangeText={(value) =>
                         handleFormChange("height", value)
                       }
+                      onFocus={scrollToArtworkActions}
                       keyboardType="decimal-pad"
                       className="bg-black text-white px-4 py-3 rounded-lg"
                     />
@@ -497,6 +533,7 @@ export default function UploadArtwork() {
                       placeholderTextColor="#ffffff"
                       value={formData.width}
                       onChangeText={(value) => handleFormChange("width", value)}
+                      onFocus={scrollToArtworkActions}
                       keyboardType="decimal-pad"
                       className="bg-black text-white px-4 py-3 rounded-lg"
                     />
@@ -516,6 +553,7 @@ export default function UploadArtwork() {
                       onChangeText={(value) =>
                         handleFormChange("yearOfCreation", value)
                       }
+                      onFocus={scrollToArtworkActions}
                       keyboardType="number-pad"
                       maxLength={4}
                       className="bg-black text-white px-4 py-3 rounded-lg"
@@ -532,6 +570,7 @@ export default function UploadArtwork() {
                       onChangeText={(value) =>
                         handleFormChange("purchasePrice", value)
                       }
+                      onFocus={scrollToArtworkActions}
                       keyboardType="decimal-pad"
                       className="bg-black text-white px-4 py-3 rounded-lg"
                     />
@@ -569,7 +608,7 @@ export default function UploadArtwork() {
               >
                 <CloudUpload size={30} color="#ffffff" />
                 <Text className="text-white mt-4 text-center font-semibold">
-                  Click to upload file or drag and drop
+                  Tap to upload artwork
                 </Text>
                 <Text className="text-gray-400 mt-1 text-center text-xs">
                   PNG, JPG, or TIFF (auto-fitted to 1920x1080px, max 25 MB)
@@ -658,29 +697,6 @@ export default function UploadArtwork() {
         </ScrollView>
 
         {/* Frame Timing Dropdown Modal */}
-        <ImageFitModal
-          visible={!!imageToFit}
-          image={
-            imageToFit
-              ? {
-                  uri: imageToFit.uri,
-                  width: imageToFit.width || MIN_WIDTH,
-                  height: imageToFit.height || MIN_HEIGHT,
-                  fileSize: imageToFit.fileSize || 0,
-                }
-              : null
-          }
-          minWidth={MIN_WIDTH}
-          minHeight={MIN_HEIGHT}
-          onCancel={() => setImageToFit(null)}
-          onConfirm={handleFittedImage}
-          onError={(message) => {
-            setAlertMessage(message);
-            setShowAlert(true);
-          }}
-        />
-
-        {/* Frame Timing Dropdown Modal */}
         <Modal
           visible={showFrameDropdown}
           transparent
@@ -728,11 +744,18 @@ export default function UploadArtwork() {
         >
           <View style={{ flex: 1, backgroundColor: "rgba(0, 0, 0, 0.77)" }}>
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-              <View style={{ flex: 1, paddingTop: insets.top }}>
+              <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                keyboardVerticalOffset={0}
+                style={{ flex: 1, paddingTop: insets.top }}
+              >
                 <ScrollView
+                  ref={modalScrollViewRef}
                   className="flex-1"
                   keyboardShouldPersistTaps="handled"
+                  keyboardDismissMode="interactive"
                   showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}
                 >
                   {/* Modal Header */}
                   <View className="flex-row items-center justify-between px-5 py-4 ">
@@ -757,7 +780,7 @@ export default function UploadArtwork() {
                         >
                           <CloudUpload size={30} color="#ffffff" />
                           <Text className="text-white mt-4 text-center font-semibold">
-                            Click to upload file or drag and drop
+                            Tap to upload artwork
                           </Text>
                           <Text className="text-gray-400 mt-1 text-center text-xs">
                             PNG, JPG, or TIFF (auto-fitted to 1920x1080px, max
@@ -870,6 +893,7 @@ export default function UploadArtwork() {
                                 onChangeText={(value) =>
                                   handleFormChange("height", value)
                                 }
+                                onFocus={scrollToArtworkActions}
                                 keyboardType="decimal-pad"
                                 className="bg-black text-white px-4 py-3 rounded-lg"
                               />
@@ -886,6 +910,7 @@ export default function UploadArtwork() {
                                 onChangeText={(value) =>
                                   handleFormChange("width", value)
                                 }
+                                onFocus={scrollToArtworkActions}
                                 keyboardType="decimal-pad"
                                 className="bg-black text-white px-4 py-3 rounded-lg"
                               />
@@ -905,6 +930,7 @@ export default function UploadArtwork() {
                                 onChangeText={(value) =>
                                   handleFormChange("yearOfCreation", value)
                                 }
+                                onFocus={scrollToArtworkActions}
                                 keyboardType="number-pad"
                                 maxLength={4}
                                 className="bg-black text-white px-4 py-3 rounded-lg"
@@ -921,6 +947,7 @@ export default function UploadArtwork() {
                                 onChangeText={(value) =>
                                   handleFormChange("purchasePrice", value)
                                 }
+                                onFocus={scrollToArtworkActions}
                                 keyboardType="decimal-pad"
                                 className="bg-black text-white px-4 py-3 rounded-lg"
                               />
@@ -966,10 +993,32 @@ export default function UploadArtwork() {
                     )}
                   </View>
                 </ScrollView>
-              </View>
+              </KeyboardAvoidingView>
             </TouchableWithoutFeedback>
           </View>
         </Modal>
+
+        <ImageFitModal
+          visible={!!imageToFit}
+          image={
+            imageToFit
+              ? {
+                  uri: imageToFit.uri,
+                  width: imageToFit.width || MIN_WIDTH,
+                  height: imageToFit.height || MIN_HEIGHT,
+                  fileSize: imageToFit.fileSize || 0,
+                }
+              : null
+          }
+          minWidth={MIN_WIDTH}
+          minHeight={MIN_HEIGHT}
+          onCancel={handleCancelImageFit}
+          onConfirm={handleFittedImage}
+          onError={(message) => {
+            setAlertMessage(message);
+            setShowAlert(true);
+          }}
+        />
 
         {/* Carousel Details Modal */}
         {/* Removed - carousel details are now passed from create-carousel page */}
@@ -981,7 +1030,7 @@ export default function UploadArtwork() {
           onClose={() => setShowAlert(false)}
           duration={4000}
         />
-      </View>
+      </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
 }
