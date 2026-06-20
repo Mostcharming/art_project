@@ -1,14 +1,17 @@
 import * as ImageManipulator from "expo-image-manipulator";
-import { useEffect, useMemo, useRef, useState } from "react";
+import * as FileSystem from "expo-file-system/legacy";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Image,
+  Image as RNImage,
   Modal,
   PanResponder,
   Pressable,
   Text,
   View,
+  type GestureResponderEvent,
   useWindowDimensions,
 } from "react-native";
+import Svg, { Image as SvgImage, Rect } from "react-native-svg";
 
 export interface FittedImage {
   uri: string;
@@ -51,6 +54,12 @@ export default function ImageFitModal({
   const [isProcessing, setIsProcessing] = useState(false);
   const offsetRef = useRef(offset);
   const zoomRef = useRef(zoom);
+  const exportSvgRef = useRef<Svg | null>(null);
+  const gestureStartOffsetRef = useRef(offset);
+  const gestureStartZoomRef = useRef(zoom);
+  const gestureStartCenterRef = useRef({ x: 0, y: 0 });
+  const pinchStartDistanceRef = useRef<number | null>(null);
+  const touchCountRef = useRef(0);
 
   useEffect(() => {
     if (visible) {
@@ -82,45 +91,186 @@ export default function ImageFitModal({
     };
   }, [frameHeight, frameWidth, image?.height, image?.width]);
 
-  const clampOffset = (
-    nextOffset: { x: number; y: number },
-    nextZoom = zoom,
-  ) => {
-    const renderedWidth = baseSize.width * nextZoom;
-    const renderedHeight = baseSize.height * nextZoom;
-    const maxX = Math.max(0, (renderedWidth - frameWidth) / 2);
-    const maxY = Math.max(0, (renderedHeight - frameHeight) / 2);
+  const minZoom = useMemo(() => {
+    if (!image?.width || !image?.height) return 1;
 
-    return {
-      x: Math.min(maxX, Math.max(-maxX, nextOffset.x)),
-      y: Math.min(maxY, Math.max(-maxY, nextOffset.y)),
-    };
-  };
+    const coverScale = Math.max(
+      frameWidth / image.width,
+      frameHeight / image.height,
+    );
+    const containScale = Math.min(
+      frameWidth / image.width,
+      frameHeight / image.height,
+    );
+
+    return containScale / coverScale;
+  }, [frameHeight, frameWidth, image?.height, image?.width]);
+
+  const getTouchDistance = useCallback(
+    (touches: { pageX: number; pageY: number }[]): number | null => {
+      if (touches.length < 2) return null;
+
+      const [firstTouch, secondTouch] = touches;
+      return Math.hypot(
+        secondTouch.pageX - firstTouch.pageX,
+        secondTouch.pageY - firstTouch.pageY,
+      );
+    },
+    [],
+  );
+
+  const getTouchCenter = useCallback(
+    (touches: { pageX: number; pageY: number }[]) => {
+      if (touches.length === 0) return gestureStartCenterRef.current;
+
+      const totals = touches.reduce(
+        (sum, touch) => ({
+          x: sum.x + touch.pageX,
+          y: sum.y + touch.pageY,
+        }),
+        { x: 0, y: 0 },
+      );
+
+      return {
+        x: totals.x / touches.length,
+        y: totals.y / touches.length,
+      };
+    },
+    [],
+  );
+
+  const beginGesture = useCallback(
+    (event: GestureResponderEvent) => {
+      const touches = event.nativeEvent.touches;
+
+      touchCountRef.current = touches.length;
+      gestureStartOffsetRef.current = offsetRef.current;
+      gestureStartZoomRef.current = zoomRef.current;
+      gestureStartCenterRef.current = getTouchCenter(touches);
+      pinchStartDistanceRef.current = getTouchDistance(touches);
+    },
+    [getTouchCenter, getTouchDistance],
+  );
+
+  const clampOffset = useCallback(
+    (nextOffset: { x: number; y: number }, nextZoom = zoom) => {
+      const renderedWidth = baseSize.width * nextZoom;
+      const renderedHeight = baseSize.height * nextZoom;
+      const maxX = Math.max(0, (renderedWidth - frameWidth) / 2);
+      const maxY = Math.max(0, (renderedHeight - frameHeight) / 2);
+
+      return {
+        x: Math.min(maxX, Math.max(-maxX, nextOffset.x)),
+        y: Math.min(maxY, Math.max(-maxY, nextOffset.y)),
+      };
+    },
+    [baseSize.height, baseSize.width, frameHeight, frameWidth, zoom],
+  );
 
   const panResponder = useMemo(
     () =>
       PanResponder.create({
-        onMoveShouldSetPanResponder: (_, gesture) =>
-          Math.abs(gesture.dx) > 2 || Math.abs(gesture.dy) > 2,
-        onPanResponderMove: (_, gesture) => {
-          setOffset(
-            clampOffset({
-              x: offsetRef.current.x + gesture.dx,
-              y: offsetRef.current.y + gesture.dy,
-            }),
-          );
+        onStartShouldSetPanResponder: () => true,
+        onStartShouldSetPanResponderCapture: () => true,
+        onMoveShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponderCapture: () => true,
+        onPanResponderGrant: beginGesture,
+        onPanResponderMove: (event) => {
+          const touches = event.nativeEvent.touches;
+          const currentCenter = getTouchCenter(touches);
+
+          if (touches.length !== touchCountRef.current) {
+            beginGesture(event);
+            return;
+          }
+
+          const nextOffset = {
+            x:
+              gestureStartOffsetRef.current.x +
+              (currentCenter.x - gestureStartCenterRef.current.x),
+            y:
+              gestureStartOffsetRef.current.y +
+              (currentCenter.y - gestureStartCenterRef.current.y),
+          };
+
+          const pinchDistance = getTouchDistance(touches);
+          if (
+            touches.length > 1 &&
+            pinchDistance &&
+            pinchStartDistanceRef.current
+          ) {
+            const nextZoom = Math.min(
+              3,
+              Math.max(
+                minZoom,
+                gestureStartZoomRef.current *
+                  (pinchDistance / pinchStartDistanceRef.current),
+              ),
+            );
+
+            setZoom(nextZoom);
+            setOffset(clampOffset(nextOffset, nextZoom));
+            return;
+          }
+
+          setOffset(clampOffset(nextOffset));
         },
         onPanResponderRelease: () => {
           offsetRef.current = offset;
+          pinchStartDistanceRef.current = null;
+          touchCountRef.current = 0;
+        },
+        onPanResponderTerminate: () => {
+          pinchStartDistanceRef.current = null;
+          touchCountRef.current = 0;
         },
       }),
-    [baseSize.width, baseSize.height, frameHeight, frameWidth, offset],
+    [beginGesture, clampOffset, getTouchCenter, getTouchDistance, minZoom, offset],
   );
 
   const changeZoom = (delta: number) => {
-    const nextZoom = Math.min(3, Math.max(1, zoom + delta));
+    const nextZoom = Math.min(3, Math.max(minZoom, zoom + delta));
     setZoom(nextZoom);
     setOffset((current) => clampOffset(current, nextZoom));
+  };
+
+  const getExportLayout = () => {
+    const outputScaleX = minWidth / frameWidth;
+    const outputScaleY = minHeight / frameHeight;
+    const renderedWidth = baseSize.width * zoom;
+    const renderedHeight = baseSize.height * zoom;
+
+    return {
+      x: ((frameWidth - renderedWidth) / 2 + offset.x) * outputScaleX,
+      y: ((frameHeight - renderedHeight) / 2 + offset.y) * outputScaleY,
+      width: renderedWidth * outputScaleX,
+      height: renderedHeight * outputScaleY,
+    };
+  };
+
+  const exportSvgToFile = async () => {
+    const svg = exportSvgRef.current;
+    if (!svg || !FileSystem.cacheDirectory) {
+      throw new Error("Image export is not available on this device.");
+    }
+
+    const base64 = await new Promise<string>((resolve, reject) => {
+      try {
+        svg.toDataURL(resolve, {
+          width: minWidth,
+          height: minHeight,
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+    const outputUri = `${FileSystem.cacheDirectory}carsl-fitted-${Date.now()}.png`;
+    await FileSystem.writeAsStringAsync(outputUri, base64, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+
+    return outputUri;
   };
 
   const handleConfirm = async () => {
@@ -128,36 +278,11 @@ export default function ImageFitModal({
 
     setIsProcessing(true);
     try {
-      const renderedWidth = baseSize.width * zoom;
-      const renderedHeight = baseSize.height * zoom;
-      const scaleX = image.width / renderedWidth;
-      const scaleY = image.height / renderedHeight;
-      const visibleWidth = frameWidth * scaleX;
-      const visibleHeight = frameHeight * scaleY;
-      const originX = (renderedWidth - frameWidth) / 2 - offset.x;
-      const originY = (renderedHeight - frameHeight) / 2 - offset.y;
-
-      const crop = {
-        originX: Math.max(
-          0,
-          Math.min(image.width - visibleWidth, originX * scaleX),
-        ),
-        originY: Math.max(
-          0,
-          Math.min(image.height - visibleHeight, originY * scaleY),
-        ),
-        width: Math.min(image.width, visibleWidth),
-        height: Math.min(image.height, visibleHeight),
-      };
-
-      const result = await ImageManipulator.manipulateAsync(
-        image.uri,
-        [{ crop }, { resize: { width: minWidth, height: minHeight } }],
-        {
-          compress: 0.95,
-          format: ImageManipulator.SaveFormat.JPEG,
-        },
-      );
+      const exportedUri = await exportSvgToFile();
+      const result = await ImageManipulator.manipulateAsync(exportedUri, [], {
+        compress: 1,
+        format: ImageManipulator.SaveFormat.PNG,
+      });
 
       onConfirm({
         uri: result.uri,
@@ -198,7 +323,7 @@ export default function ImageFitModal({
           {...panResponder.panHandlers}
         >
           {image && (
-            <Image
+            <RNImage
               source={{ uri: image.uri }}
               style={{
                 position: "absolute",
@@ -211,6 +336,32 @@ export default function ImageFitModal({
             />
           )}
         </View>
+
+        {image && (
+          <View
+            pointerEvents="none"
+            style={{
+              position: "absolute",
+              left: -minWidth - 20,
+              top: 0,
+              width: minWidth,
+              height: minHeight,
+              opacity: 0,
+            }}
+          >
+            <Svg ref={exportSvgRef} width={minWidth} height={minHeight}>
+              <Rect width={minWidth} height={minHeight} fill="#000000" />
+              <SvgImage
+                href={{ uri: image.uri }}
+                x={getExportLayout().x}
+                y={getExportLayout().y}
+                width={getExportLayout().width}
+                height={getExportLayout().height}
+                preserveAspectRatio="none"
+              />
+            </Svg>
+          </View>
+        )}
 
         <View className="flex-row gap-3 mt-5">
           <Pressable

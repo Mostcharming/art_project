@@ -317,6 +317,7 @@ export default function CarouselPreview() {
                 width: screenWidth - 40,
                 height: 400,
                 borderRadius: 16,
+                backgroundColor: "#000000",
               }}
               resizeMode="contain"
             />
