@@ -4,6 +4,7 @@ import { Alert } from "@/components/ui/Alert";
 import { useCarouselApi } from "@/hooks/useCarouselApi";
 import { Carousel } from "@/hooks/useCarouselList";
 import { useCarouselListStore } from "@/store/carouselListStore";
+import { useCarouselStore } from "@/store/carouselStore";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -82,6 +83,7 @@ export default function EditCarousel() {
   const router = useRouter();
   const { updateDraft } = useCarouselApi();
   const upsertCarousel = useCarouselListStore((state) => state.upsertCarousel);
+  const saveDraftLocally = useCarouselStore((state) => state.saveDraftLocally);
 
   const params = useLocalSearchParams<{
     carousel?: string;
@@ -138,6 +140,39 @@ export default function EditCarousel() {
   const MIN_WIDTH = 1920;
   const MIN_HEIGHT = 1080;
   const MAX_FILE_SIZE = 25 * 1024 * 1024;
+
+  const saveEditedCarouselToStores = (
+    updatedCarousel: Carousel,
+    fallbackArtworks: UploadedArtwork[]
+  ) => {
+    upsertCarousel(updatedCarousel);
+    setCarousel(updatedCarousel);
+    saveDraftLocally({
+      id: updatedCarousel.id?.toString(),
+      name: updatedCarousel.name,
+      tag: updatedCarousel.tag || undefined,
+      country: updatedCarousel.country,
+      description: updatedCarousel.description || undefined,
+      frameTimingSeconds: updatedCarousel.frameTimingSeconds,
+      status: updatedCarousel.status,
+      createdAt: updatedCarousel.createdAt,
+      updatedAt: updatedCarousel.updatedAt,
+      artworks:
+        updatedCarousel.artworks?.map((artwork) => ({
+          id: artwork.id?.toString(),
+          imageUrl: artwork.imageUrl,
+          imageWidth: artwork.widthInches,
+          imageHeight: artwork.heightInches,
+          fileSize: 0,
+          title: artwork.title,
+          artist: artwork.artist,
+          height: artwork.heightInches?.toString() || "",
+          width: artwork.widthInches?.toString() || "",
+          yearOfCreation: artwork.yearOfCreation?.toString() || "",
+          purchasePrice: artwork.purchasePrice?.toString() || "",
+        })) || fallbackArtworks,
+    });
+  };
 
   // Initialize carousel data
   useEffect(() => {
@@ -427,10 +462,9 @@ export default function EditCarousel() {
       } else {
         const updatedCarousel = response.data?.carousel;
         if (updatedCarousel) {
-          upsertCarousel(updatedCarousel);
-          setCarousel(updatedCarousel);
+          saveEditedCarouselToStores(updatedCarousel, uploadedArtworks);
         } else {
-          upsertCarousel({
+          const fallbackCarousel = {
             ...carousel,
             name: carouselName,
             country: carouselCountry,
@@ -438,6 +472,19 @@ export default function EditCarousel() {
             description: carouselDescription.trim() || undefined,
             frameTimingSeconds: frameTiming,
             updatedAt: new Date().toISOString(),
+          };
+          upsertCarousel(fallbackCarousel);
+          saveDraftLocally({
+            id: carousel.id?.toString(),
+            name: carouselName,
+            tag: carouselTag.trim() || undefined,
+            country: carouselCountry,
+            description: carouselDescription.trim() || undefined,
+            frameTimingSeconds: frameTiming,
+            status: carousel.status,
+            createdAt: carousel.createdAt,
+            updatedAt: fallbackCarousel.updatedAt,
+            artworks: uploadedArtworks,
           });
         }
 
