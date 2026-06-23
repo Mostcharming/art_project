@@ -1,4 +1,0 @@
-source 'https://rubygems.org'
-
-# This project is Android TV only - no iOS support
-ruby ">= 2.6.10"
