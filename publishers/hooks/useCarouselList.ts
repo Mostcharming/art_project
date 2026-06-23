@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useCarouselListStore } from "@/store/carouselListStore";
 import { useApiMutate } from "./useApiMutate";
 
 export interface Artwork {
@@ -46,7 +47,10 @@ export const useCarouselList = (
   type: CarouselType
 ): UseCarouselListResponse => {
   const { mutate } = useApiMutate();
-  const [carousels, setCarousels] = useState<Carousel[]>([]);
+  const carousels = useCarouselListStore(
+    (state) => state.carouselsByType[type]
+  );
+  const setCarousels = useCarouselListStore((state) => state.setCarousels);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -75,15 +79,15 @@ export const useCarouselList = (
 
         if (response.error) {
           setError(response.error);
-          setCarousels([]);
+          setCarousels(type, []);
         } else if (response.data?.carousels) {
-          setCarousels(response.data.carousels);
+          setCarousels(type, response.data.carousels);
         }
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : "Failed to fetch carousels";
         setError(errorMessage);
-        setCarousels([]);
+        setCarousels(type, []);
       } finally {
         setIsLoading(false);
       }
@@ -116,15 +120,15 @@ export const useCarouselList = (
 
       if (response.error) {
         setError(response.error);
-        setCarousels([]);
+        setCarousels(type, []);
       } else if (response.data?.carousels) {
-        setCarousels(response.data.carousels);
+        setCarousels(type, response.data.carousels);
       }
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to fetch carousels";
       setError(errorMessage);
-      setCarousels([]);
+      setCarousels(type, []);
     } finally {
       setIsLoading(false);
     }

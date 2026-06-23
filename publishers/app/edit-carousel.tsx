@@ -3,6 +3,7 @@ import ImageFitModal, { FittedImage } from "@/app/components/ImageFitModal";
 import { Alert } from "@/components/ui/Alert";
 import { useCarouselApi } from "@/hooks/useCarouselApi";
 import { Carousel } from "@/hooks/useCarouselList";
+import { useCarouselListStore } from "@/store/carouselListStore";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -80,6 +81,7 @@ export default function EditCarousel() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { updateDraft } = useCarouselApi();
+  const upsertCarousel = useCarouselListStore((state) => state.upsertCarousel);
 
   const params = useLocalSearchParams<{
     carousel?: string;
@@ -423,6 +425,22 @@ export default function EditCarousel() {
         setAlertMessage(response.error);
         setShowAlert(true);
       } else {
+        const updatedCarousel = response.data?.carousel;
+        if (updatedCarousel) {
+          upsertCarousel(updatedCarousel);
+          setCarousel(updatedCarousel);
+        } else {
+          upsertCarousel({
+            ...carousel,
+            name: carouselName,
+            country: carouselCountry,
+            tag: carouselTag.trim() || undefined,
+            description: carouselDescription.trim() || undefined,
+            frameTimingSeconds: frameTiming,
+            updatedAt: new Date().toISOString(),
+          });
+        }
+
         setAlertMessage("Carousel updated successfully!");
         setShowAlert(true);
 
