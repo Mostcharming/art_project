@@ -96,14 +96,10 @@ export const useCarouselApi = () => {
         );
       }
       if (payload.tag !== undefined) {
-        if (payload.tag) {
-          formData.append("tag", payload.tag);
-        }
+        formData.append("tag", payload.tag);
       }
       if (payload.description !== undefined) {
-        if (payload.description) {
-          formData.append("description", payload.description);
-        }
+        formData.append("description", payload.description);
       }
 
       if (payload.artworks) {

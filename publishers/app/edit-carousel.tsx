@@ -329,10 +329,10 @@ export default function EditCarousel() {
       return;
     }
 
-    setCarouselName(tempName);
-    setCarouselTag(tempTag);
+    setCarouselName(tempName.trim());
+    setCarouselTag(tempTag.trim());
     setCarouselCountry(tempCountry);
-    setCarouselDescription(tempDescription);
+    setCarouselDescription(tempDescription.trim());
     setShowEditDetailsModal(false);
   };
 
@@ -413,8 +413,8 @@ export default function EditCarousel() {
       const response = await updateDraft(carouselId, {
         name: carouselName,
         country: carouselCountry,
-        tag: carouselTag || undefined,
-        description: carouselDescription || undefined,
+        tag: carouselTag.trim(),
+        description: carouselDescription.trim(),
         frameTimingSeconds: frameTiming,
         artworks: uploadedArtworks,
       });
@@ -1101,10 +1101,7 @@ export default function EditCarousel() {
         animationType="slide"
         onRequestClose={() => setShowEditDetailsModal(false)}
       >
-        <Pressable
-          className="flex-1 bg-black/95"
-          onPress={() => setShowEditDetailsModal(false)}
-        >
+        <View className="flex-1 bg-black/95">
           <View className="flex-1 justify-end">
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
               <ScrollView
@@ -1241,7 +1238,7 @@ export default function EditCarousel() {
               </ScrollView>
             </TouchableWithoutFeedback>
           </View>
-        </Pressable>
+        </View>
       </Modal>
 
       {/* Country Dropdown Modal */}

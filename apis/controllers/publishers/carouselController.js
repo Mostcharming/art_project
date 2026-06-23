@@ -115,9 +115,15 @@ exports.updateCarouselDraft = async (req, res, next) => {
 
         const updateData = {};
         if (name) updateData.name = name;
-        if (tag !== undefined) updateData.tag = tag;
+        if (tag !== undefined) {
+            const normalizedTag = typeof tag === 'string' ? tag.trim() : tag;
+            updateData.tag = normalizedTag || null;
+        }
         if (country) updateData.country = country;
-        if (description !== undefined) updateData.description = description;
+        if (description !== undefined) {
+            const normalizedDescription = typeof description === 'string' ? description.trim() : description;
+            updateData.description = normalizedDescription || null;
+        }
         if (frameTimingSeconds) {
             if (frameTimingSeconds < 10 || frameTimingSeconds > 300) {
                 return res.status(400).json({
@@ -526,9 +532,15 @@ exports.updateCarousel = async (req, res, next) => {
 
         const updateData = {};
         if (name) updateData.name = name;
-        if (tag !== undefined) updateData.tag = tag;
+        if (tag !== undefined) {
+            const normalizedTag = typeof tag === 'string' ? tag.trim() : tag;
+            updateData.tag = normalizedTag || null;
+        }
         if (country) updateData.country = country;
-        if (description !== undefined) updateData.description = description;
+        if (description !== undefined) {
+            const normalizedDescription = typeof description === 'string' ? description.trim() : description;
+            updateData.description = normalizedDescription || null;
+        }
         if (frameTimingSeconds) {
             if (frameTimingSeconds < 10 || frameTimingSeconds > 300) {
                 return res.status(400).json({
