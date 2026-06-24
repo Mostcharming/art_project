@@ -1,0 +1,186 @@
+/* ATFA — Colors & Type tokens
+   Derived from the ATFA Brand Guidelines (Figma: "Brand Guidelines" section).
+   Three-color palette: ATFA Red, Off-White, Pitch Black — peach tint used sparingly
+   for sub-brand (.art). Typography: Raleway for everything (display, body, accents).
+   Benchmark body size = 19.98px; scale by 1.618.
+*/
+
+/* ── Fonts — local variable Raleway (brand-provided) ── */
+@font-face {
+  font-family: 'Raleway';
+  src: url('fonts/Raleway-VariableFont_wght.ttf') format('truetype-variations'),
+       url('fonts/Raleway-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Raleway';
+  src: url('fonts/Raleway-Italic-VariableFont_wght.ttf') format('truetype-variations'),
+       url('fonts/Raleway-Italic-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+:root {
+  /* ── PRIMARY BRAND COLORS ────────────────────────────────────────── */
+  --atfa-red:        #DB522E;  /* rgb(219,82,46) — the dot, primary brand color */
+  --atfa-red-alt:    #DB342E;  /* slightly cooler red variant in use */
+  --atfa-red-deep:   #AD4327;  /* deepened variant, radial backgrounds */
+  --atfa-red-dark:   #752712;  /* conic-gradient dark stop on banners */
+
+  --atfa-off-white:  #FBF8F8;  /* rgb(251,248,248) — dominant background */
+  --atfa-cream:      #FFFFF8;  /* rgb(255,255,248) — paper/print tint */
+  --atfa-peach:      #FBC9B4;  /* rgb(251,201,180) — sub-brand (.art) surface */
+  --atfa-pitch:      #1A2229;  /* rgb(26,34,41) — pitch black (not pure) */
+  --atfa-ink:        #000000;
+  --atfa-white:      #FFFFFF;
+
+  /* ── NEUTRALS (from live use) ────────────────────────────────────── */
+  --neutral-900:     #1F1F1F;
+  --neutral-800:     #2B2A2A;
+  --neutral-700:     #414141;
+  --neutral-600:     #4C4C4C;
+  --neutral-500:     #5E5A5A;
+  --neutral-400:     #838383;
+  --neutral-300:     #B7B1B1;
+  --neutral-200:     #D2CECE;
+  --neutral-100:     #D9D9D9;
+  --neutral-050:     #FAFAFA;
+
+  /* ── SECONDARY / ACCENTS (sparingly used) ────────────────────────── */
+  --accent-olive:    #708B60;  /* rgb(112,139,96) — spec marker swatch */
+  --accent-amber:    #E98801;  /* rgb(233,136,1) — clear-space guides */
+  --accent-forest:   #00674E;  /* rgb(0,103,78) — rare supporting */
+
+  /* ── SEMANTIC COLORS ─────────────────────────────────────────────── */
+  --bg:              var(--atfa-off-white);
+  --bg-alt:          var(--atfa-white);
+  --bg-inverse:      var(--atfa-ink);
+  --bg-brand:        var(--atfa-red);
+  --bg-subbrand:     var(--atfa-peach);
+
+  --fg:              var(--atfa-ink);
+  --fg-muted:        var(--neutral-500);
+  --fg-subtle:       var(--neutral-400);
+  --fg-inverse:      var(--atfa-off-white);
+  --fg-brand:        var(--atfa-red);
+
+  --border:          rgba(0,0,0,0.1);
+  --border-strong:   var(--atfa-ink);
+  --border-hair:     rgba(125,122,122,0.5);
+
+  --shadow-sm:       0 2px 4px rgba(67,24,13,0.12);
+  --shadow-md:       0 4px 12px rgba(67,24,13,0.18);
+  --shadow-lg:       0 8px 28px rgba(67,24,13,0.26);
+  --shadow-soft:     0 4px 4px rgba(0,0,0,0.25);
+
+  /* ── TYPOGRAPHY ──────────────────────────────────────────────────── */
+  --font-sans:       'Raleway', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display:    'Raleway', sans-serif;            /* bold/black weights */
+  --font-gothic:     'Raleway', sans-serif;            /* display accents (Raleway bold) */
+  --font-italic:     'Raleway', serif;                 /* italic variants */
+  --font-script:     'Raleway', sans-serif;            /* hand accents → Raleway */
+
+  /* Benchmark body = 19.98px, scaled by golden ratio (1.618) per brand spec */
+  --fs-body-min:     12.35px;   /* absolute lower limit per brand spec */
+  --fs-caption:      12px;
+  --fs-small:        14px;
+  --fs-body:         19.98px;   /* φ-anchored body */
+  --fs-lead:         24px;
+  --fs-h6:           20px;
+  --fs-h5:           24px;
+  --fs-h4:           32px;
+  --fs-h3:           52px;
+  --fs-h2:           86px;
+  --fs-h1:           137px;     /* brand guide cover size */
+
+  --fw-regular:      400;      /* @kind font */
+  --fw-medium:       500;      /* @kind font */
+  --fw-semibold:     600;      /* @kind font */
+  --fw-bold:         700;      /* @kind font */
+  --fw-extrabold:    800;      /* @kind font */
+  --fw-black:        900;      /* @kind font */
+
+  --lh-tight:        1;        /* @kind font */
+  --lh-snug:         1.15;     /* @kind font */
+  --lh-body:         1.5;      /* @kind font */
+
+  --tracking-tight:  -0.05em;  /* body / display tight-set */
+  --tracking-heading:-0.04em;
+  --tracking-normal: 0;
+  --tracking-wide:   0.5em;    /* sub-brand / program labels (RESIDENCIES) */
+
+  /* ── SPACING (golden-ratio inspired scale) ───────────────────────── */
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-5:  24px;
+  --sp-6:  32px;
+  --sp-7:  52px;
+  --sp-8:  77px;   /* observed "corner" layout inset used across templates */
+  --sp-9:  128px;
+
+  /* ── RADII ───────────────────────────────────────────────────────── */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+  --radius-circle: 50%;
+}
+
+/* ── SEMANTIC ELEMENT DEFAULTS ─────────────────────────────────────── */
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-body);
+  letter-spacing: var(--tracking-tight);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-heading);
+  margin: 0;
+}
+h1 { font-size: var(--fs-h1); font-weight: var(--fw-bold); }
+h2 { font-size: var(--fs-h2); font-weight: var(--fw-bold); }
+h3 { font-size: var(--fs-h3); font-weight: var(--fw-bold); }
+h4 { font-size: var(--fs-h4); font-weight: var(--fw-bold); }
+h5 { font-size: var(--fs-h5); font-weight: var(--fw-bold); }
+h6 { font-size: var(--fs-h6); font-weight: var(--fw-bold); }
+p  { margin: 0 0 1em; }
+a  { color: var(--atfa-red); text-decoration: none; border-bottom: 1px solid currentColor; }
+a:hover { opacity: 0.72; }
+small, .caption { font-size: var(--fs-caption); letter-spacing: 0; }
+
+/* Program / section labels — always uppercase, wide tracking */
+.label, .eyebrow {
+  font-size: var(--fs-small);
+  font-weight: var(--fw-medium);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+}
+
+/* Display variant for big quote / banner hero lines */
+.display {
+  font-family: var(--font-display);
+  font-weight: var(--fw-black);
+  font-size: clamp(48px, 6vw, var(--fs-h2));
+  letter-spacing: var(--tracking-tight);
+  line-height: 1;
+}
+
+/* Emphasis the brand uses: italic lowercase asides */
+.aside {
+  font-style: italic;
+  font-size: var(--fs-small);
+  color: var(--fg-muted);
+}

@@ -1,5 +1,12 @@
 const db = require('../../models');
 const { getCompleteImageUrl } = require('../../utils/imageUrlHelper');
+const emailMiddleware = require('../../middleware/emailMiddleware');
+
+const isViewMilestone = (views) => (
+    [100, 500, 1000, 5000].includes(views) || (views >= 10000 && views % 10000 === 0)
+);
+
+const getFrontendUrl = () => (process.env.FRONTEND_URL || 'https://joincarsl.com').replace(/\/$/, '');
 
 const formatCarousel = (carousel) => {
     if (!carousel) return null;
@@ -134,7 +141,25 @@ exports.saveWatchingCarousel = async (req, res) => {
         }
 
         await carousel.increment('views', { by: 1 });
-        await carousel.reload({ attributes: ['id', 'views'] });
+        await carousel.reload({ attributes: ['id', 'name', 'views', 'publisherId'] });
+
+        if (isViewMilestone(carousel.views)) {
+            try {
+                const publisher = await db.Publisher.findByPk(carousel.publisherId);
+                if (publisher?.email) {
+                    await emailMiddleware.sendMilestoneAlertEmail(publisher.email, {
+                        firstName: publisher.name || publisher.email.split('@')[0],
+                        carouselName: carousel.name,
+                        itemName: carousel.name,
+                        views: carousel.views,
+                        milestoneLabel: `${carousel.views.toLocaleString()} views`,
+                        actionUrl: `${getFrontendUrl()}/publisher/dashboard`,
+                    });
+                }
+            } catch (emailError) {
+                console.warn('Milestone email sending failed:', emailError);
+            }
+        }
 
         const existingWatch = await db.ViewerCarouselWatch.findOne({
             where: {

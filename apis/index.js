@@ -56,6 +56,7 @@ app.use(express.json());
 // Serve uploaded files as static
 const uploadPath = process.env.NODE_ENV === 'production' ? '/api/uploads' : '/uploads';
 app.use(uploadPath, express.static(path.join(__dirname, 'uploads')));
+app.use('/email-assets', express.static(path.join(__dirname, 'email_templates', 'carsl-emails')));
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'API is running' });

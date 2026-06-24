@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>carsl · Email Suite</title>
+<link rel="stylesheet" href="carsl-emails/email.css">
+<style>
+  body { background: var(--off-white); }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 72px 40px 96px; }
+  .hero { border-bottom: 1px solid var(--line); padding-bottom: 34px; margin-bottom: 48px; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .hero img { height: 30px; }
+  .hero .h-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.34em; text-transform: uppercase; color: var(--red); margin-bottom: 16px; }
+  .hero h1 { font-size: 52px; font-weight: 800; letter-spacing: -0.04em; line-height: 1; margin: 0; }
+  .hero .sub { font-size: 16px; color: var(--n-500); margin-top: 14px; max-width: 440px; line-height: 1.5; letter-spacing: -0.01em; }
+  .hero .count { font-size: 13px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--n-400); text-align: right; }
+  .grp { margin-bottom: 52px; }
+  .grp-head { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+  .grp-head h2 { font-size: 17px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; margin: 0; }
+  .grp-head .cnt { font-size: 12px; font-weight: 700; color: var(--n-400); border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(232px, 1fr)); gap: 14px; }
+  .card { display: flex; flex-direction: column; gap: 0; background: var(--cream); border: 1px solid var(--line); border-radius: 2px; padding: 22px 22px 20px; text-decoration: none; color: var(--ink); transition: box-shadow 0.18s, transform 0.18s, border-color 0.18s; border-top: 3px solid var(--ink); }
+  .card:hover { box-shadow: 0 12px 30px rgba(67,24,13,0.14); transform: translateY(-2px); border-top-color: var(--red); }
+  .card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; }
+  .card-top .num { font-size: 12px; font-weight: 800; letter-spacing: 0.1em; color: var(--n-400); }
+  .card-top .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); }
+  .card-name { font-size: 18px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.15; }
+  .card-ph { font-size: 13px; color: var(--n-500); margin-top: 8px; line-height: 1.45; letter-spacing: -0.005em; font-style: italic; }
+  .foot-note { margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--line); font-size: 13px; color: var(--n-400); line-height: 1.6; letter-spacing: -0.005em; }
+  @media (max-width: 600px){ .wrap{padding:40px 22px 64px} .hero h1{font-size:38px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div>
+      <div class="h-eyebrow">Email Suite</div>
+      <h1>carsl<span style="color:var(--red)">.</span></h1>
+      <div class="sub">Eighteen transactional and lifecycle emails for the carsl channel — built on the ATFA design system. Click any card to open the email.</div>
+    </div>
+    <div class="count">18 Emails<br>4 Categories</div>
+  </div>
+  <section class="grp">
+    <div class="grp-head"><span class="reddot"></span><h2>Onboarding & Welcome</h2><span class="cnt">5</span></div>
+    <div class="grid">
+      <a class="card" href="01%20Verify%20email.html">
+      <div class="card-top"><span class="num">01</span><span class="dot"></span></div>
+      <div class="card-name">Verify email</div>
+      <div class="card-ph">Confirm it’s you and the doors open.</div>
+    </a>
+      <a class="card" href="02%20Welcome%20-%20Artist.html">
+      <div class="card-top"><span class="num">02</span><span class="dot"></span></div>
+      <div class="card-name">Welcome - Artist</div>
+      <div class="card-ph">Hang your first work and reach the world, @amara.adeyemi.</div>
+    </a>
+      <a class="card" href="03%20Welcome%20-%20Art%20Enthusiast.html">
+      <div class="card-top"><span class="num">03</span><span class="dot"></span></div>
+      <div class="card-name">Welcome - Art Enthusiast</div>
+      <div class="card-ph">Discovery starts the moment you open the app.</div>
+    </a>
+      <a class="card" href="04%20Finish%20setting%20up.html">
+      <div class="card-top"><span class="num">04</span><span class="dot"></span></div>
+      <div class="card-name">Finish setting up</div>
+      <div class="card-ph">Two minutes now and the world can see your work.</div>
+    </a>
+      <a class="card" href="05%20Profile%20is%20live.html">
+      <div class="card-top"><span class="num">05</span><span class="dot"></span></div>
+      <div class="card-name">Profile is live</div>
+      <div class="card-ph">@amara.adeyemi is ready for visitors.</div>
+    </a>
+    </div>
+  </section>
+  <section class="grp">
+    <div class="grp-head"><span class="reddot"></span><h2>Security</h2><span class="cnt">5</span></div>
+    <div class="grid">
+      <a class="card" href="06%20Two-factor%20enabled.html">
+      <div class="card-top"><span class="num">06</span><span class="dot"></span></div>
+      <div class="card-name">Two-factor enabled</div>
+      <div class="card-ph">Your account just got harder to break into.</div>
+    </a>
+      <a class="card" href="07%20Sign-in%20code.html">
+      <div class="card-top"><span class="num">07</span><span class="dot"></span></div>
+      <div class="card-name">Sign-in code</div>
+      <div class="card-ph">Use it in the next 30 seconds.</div>
+    </a>
+      <a class="card" href="08%20Reset%20password.html">
+      <div class="card-top"><span class="num">08</span><span class="dot"></span></div>
+      <div class="card-name">Reset password</div>
+      <div class="card-ph">This link works once, for the next hour.</div>
+    </a>
+      <a class="card" href="09%20Password%20changed.html">
+      <div class="card-top"><span class="num">09</span><span class="dot"></span></div>
+      <div class="card-name">Password changed</div>
+      <div class="card-ph">If this was you, you’re all set.</div>
+    </a>
+      <a class="card" href="10%20New%20sign-in%20detected.html">
+      <div class="card-top"><span class="num">10</span><span class="dot"></span></div>
+      <div class="card-name">New sign-in detected</div>
+      <div class="card-ph">Was this you?</div>
+    </a>
+    </div>
+  </section>
+  <section class="grp">
+    <div class="grp-head"><span class="reddot"></span><h2>Publishing</h2><span class="cnt">3</span></div>
+    <div class="grid">
+      <a class="card" href="11%20Carousel%20published.html">
+      <div class="card-top"><span class="num">11</span><span class="dot"></span></div>
+      <div class="card-name">Carousel published</div>
+      <div class="card-ph">It’s discoverable across every screen now.</div>
+    </a>
+      <a class="card" href="12%20Scheduled%20publish.html">
+      <div class="card-top"><span class="num">12</span><span class="dot"></span></div>
+      <div class="card-name">Scheduled publish</div>
+      <div class="card-ph">We’ll publish it for you, right on time.</div>
+    </a>
+      <a class="card" href="13%20Upload%20failed.html">
+      <div class="card-top"><span class="num">13</span><span class="dot"></span></div>
+      <div class="card-name">Upload failed</div>
+      <div class="card-ph">Here’s what happened and how to fix it.</div>
+    </a>
+    </div>
+  </section>
+  <section class="grp">
+    <div class="grp-head"><span class="reddot"></span><h2>Engagement & Lifecycle</h2><span class="cnt">5</span></div>
+    <div class="grid">
+      <a class="card" href="14%20Milestone%20alert.html">
+      <div class="card-top"><span class="num">14</span><span class="dot"></span></div>
+      <div class="card-name">Milestone alert</div>
+      <div class="card-ph">Your work’s finding its audience.</div>
+    </a>
+      <a class="card" href="15%20Win-back.html">
+      <div class="card-top"><span class="num">15</span><span class="dot"></span></div>
+      <div class="card-name">Win-back</div>
+      <div class="card-ph">Here’s what you missed while you were away.</div>
+    </a>
+      <a class="card" href="16%20Weekly%20digest.html">
+      <div class="card-top"><span class="num">16</span><span class="dot"></span></div>
+      <div class="card-name">Weekly digest</div>
+      <div class="card-ph">New work from artists you’d love.</div>
+    </a>
+      <a class="card" href="17%20New%20from%20follow.html">
+      <div class="card-top"><span class="num">17</span><span class="dot"></span></div>
+      <div class="card-name">New from follow</div>
+      <div class="card-ph">“Market Day, Oshodi” is live.</div>
+    </a>
+      <a class="card" href="18%20Inquiry%20sent.html">
+      <div class="card-top"><span class="num">18</span><span class="dot"></span></div>
+      <div class="card-name">Inquiry sent</div>
+      <div class="card-ph">Ndidi Emeka has it. Replies land here.</div>
+    </a>
+    </div>
+  </section>
+  <div class="foot-note">Drop-in image slots accept real artwork — drag an image onto any placeholder and it persists. Security emails use hairline Lucide-style icons (no native ATFA icon set exists). Sample names, codes, and figures are placeholders.</div>
+</div>
+</body>
+</html>

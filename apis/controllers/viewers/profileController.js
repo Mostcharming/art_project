@@ -1,5 +1,6 @@
 const { Viewer, Style, sequelize } = require('../../models');
 const { hashPassword } = require('../../utils/passwordHash');
+const emailMiddleware = require('../../middleware/emailMiddleware');
 
 /**
  * Get viewer profile
@@ -288,6 +289,15 @@ exports.changePassword = async (req, res, next) => {
         const hashedPassword = await hashPassword(newPassword);
 
         await viewer.update({ password: hashedPassword });
+
+        try {
+            await emailMiddleware.sendPasswordChangedEmail(
+                viewer.email,
+                viewer.firstName || viewer.email.split('@')[0]
+            );
+        } catch (emailError) {
+            console.warn('Password changed email sending failed:', emailError);
+        }
 
         res.json({ message: 'Password changed successfully' });
     } catch (error) {

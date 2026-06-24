@@ -1,0 +1,230 @@
+{
+  "plugins": [
+    "react",
+    "import"
+  ],
+  "rules": {
+    "react/forbid-elements": [
+      "warn",
+      {
+        "forbid": []
+      }
+    ],
+    "no-restricted-imports": [
+      "warn",
+      {
+        "patterns": [
+          {
+            "group": [
+              "ui_kits/marketing/**"
+            ],
+            "message": "Import design-system components from 'index.js', not component internals."
+          }
+        ]
+      }
+    ],
+    "no-restricted-syntax": [
+      "warn",
+      {
+        "selector": "Literal[value=/#[0-9a-fA-F]{3,8}\\b/]",
+        "message": "Raw hex color — use a design-system color token via var()."
+      },
+      {
+        "selector": "Literal[value=/\\b\\d+px\\b/]",
+        "message": "Raw px value — use a design-system spacing token via var()."
+      },
+      {
+        "selector": "Literal[value=/font-family\\s*:\\s*(?!['\\\"]?(?:Raleway))/i]",
+        "message": "Font not provided by the design system. Available: Raleway."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/index.js"
+      ],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ],
+  "x-omelette": {
+    "components": {},
+    "tokens": [
+      "--accent-amber",
+      "--accent-forest",
+      "--accent-olive",
+      "--atfa-cream",
+      "--atfa-ink",
+      "--atfa-off-white",
+      "--atfa-peach",
+      "--atfa-pitch",
+      "--atfa-red",
+      "--atfa-red-alt",
+      "--atfa-red-dark",
+      "--atfa-red-deep",
+      "--atfa-white",
+      "--bg",
+      "--bg-alt",
+      "--bg-brand",
+      "--bg-inverse",
+      "--bg-subbrand",
+      "--border",
+      "--border-hair",
+      "--border-strong",
+      "--fg",
+      "--fg-brand",
+      "--fg-inverse",
+      "--fg-muted",
+      "--fg-subtle",
+      "--font-display",
+      "--font-gothic",
+      "--font-italic",
+      "--font-sans",
+      "--font-script",
+      "--fs-body",
+      "--fs-body-min",
+      "--fs-caption",
+      "--fs-h1",
+      "--fs-h2",
+      "--fs-h3",
+      "--fs-h4",
+      "--fs-h5",
+      "--fs-h6",
+      "--fs-lead",
+      "--fs-small",
+      "--fw-black",
+      "--fw-bold",
+      "--fw-extrabold",
+      "--fw-medium",
+      "--fw-regular",
+      "--fw-semibold",
+      "--lh-body",
+      "--lh-snug",
+      "--lh-tight",
+      "--neutral-050",
+      "--neutral-100",
+      "--neutral-200",
+      "--neutral-300",
+      "--neutral-400",
+      "--neutral-500",
+      "--neutral-600",
+      "--neutral-700",
+      "--neutral-800",
+      "--neutral-900",
+      "--radius-circle",
+      "--radius-lg",
+      "--radius-md",
+      "--radius-pill",
+      "--radius-sm",
+      "--radius-xs",
+      "--shadow-lg",
+      "--shadow-md",
+      "--shadow-sm",
+      "--shadow-soft",
+      "--sp-1",
+      "--sp-2",
+      "--sp-3",
+      "--sp-4",
+      "--sp-5",
+      "--sp-6",
+      "--sp-7",
+      "--sp-8",
+      "--sp-9",
+      "--tracking-heading",
+      "--tracking-normal",
+      "--tracking-tight",
+      "--tracking-wide"
+    ],
+    "tokenKinds": {
+      "--atfa-red": "color",
+      "--atfa-red-alt": "color",
+      "--atfa-red-deep": "color",
+      "--atfa-red-dark": "color",
+      "--atfa-off-white": "color",
+      "--atfa-cream": "color",
+      "--atfa-peach": "color",
+      "--atfa-pitch": "color",
+      "--atfa-ink": "color",
+      "--atfa-white": "color",
+      "--neutral-900": "color",
+      "--neutral-800": "color",
+      "--neutral-700": "color",
+      "--neutral-600": "color",
+      "--neutral-500": "color",
+      "--neutral-400": "color",
+      "--neutral-300": "color",
+      "--neutral-200": "color",
+      "--neutral-100": "color",
+      "--neutral-050": "color",
+      "--accent-olive": "color",
+      "--accent-amber": "color",
+      "--accent-forest": "color",
+      "--bg": "color",
+      "--bg-alt": "color",
+      "--bg-inverse": "color",
+      "--bg-brand": "color",
+      "--bg-subbrand": "color",
+      "--fg": "color",
+      "--fg-muted": "color",
+      "--fg-subtle": "color",
+      "--fg-inverse": "color",
+      "--fg-brand": "color",
+      "--border": "color",
+      "--border-strong": "color",
+      "--border-hair": "color",
+      "--shadow-sm": "shadow",
+      "--shadow-md": "shadow",
+      "--shadow-lg": "shadow",
+      "--shadow-soft": "shadow",
+      "--font-sans": "font",
+      "--font-display": "font",
+      "--font-gothic": "font",
+      "--font-italic": "font",
+      "--font-script": "font",
+      "--fs-body-min": "spacing",
+      "--fs-caption": "spacing",
+      "--fs-small": "spacing",
+      "--fs-body": "spacing",
+      "--fs-lead": "spacing",
+      "--fs-h6": "spacing",
+      "--fs-h5": "spacing",
+      "--fs-h4": "spacing",
+      "--fs-h3": "spacing",
+      "--fs-h2": "spacing",
+      "--fs-h1": "spacing",
+      "--fw-regular": "font",
+      "--fw-medium": "font",
+      "--fw-semibold": "font",
+      "--fw-bold": "font",
+      "--fw-extrabold": "font",
+      "--fw-black": "font",
+      "--lh-tight": "font",
+      "--lh-snug": "font",
+      "--lh-body": "font",
+      "--tracking-tight": "font",
+      "--tracking-heading": "font",
+      "--tracking-normal": "font",
+      "--tracking-wide": "font",
+      "--sp-1": "spacing",
+      "--sp-2": "spacing",
+      "--sp-3": "spacing",
+      "--sp-4": "spacing",
+      "--sp-5": "spacing",
+      "--sp-6": "spacing",
+      "--sp-7": "spacing",
+      "--sp-8": "spacing",
+      "--sp-9": "spacing",
+      "--radius-xs": "radius",
+      "--radius-sm": "radius",
+      "--radius-md": "radius",
+      "--radius-lg": "radius",
+      "--radius-pill": "radius",
+      "--radius-circle": "radius"
+    },
+    "fontFamilies": [
+      "Raleway"
+    ]
+  }
+}

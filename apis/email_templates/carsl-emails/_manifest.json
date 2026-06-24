@@ -1,0 +1,92 @@
+[
+  {
+    "file": "01 Verify email.html",
+    "cat": "ACCOUNT",
+    "preheader": "Confirm it’s you and the doors open."
+  },
+  {
+    "file": "02 Welcome - Artist.html",
+    "cat": "WELCOME",
+    "preheader": "Hang your first work and reach the world, @amara.adeyemi."
+  },
+  {
+    "file": "03 Welcome - Art Enthusiast.html",
+    "cat": "DISCOVERY",
+    "preheader": "Discovery starts the moment you open the app."
+  },
+  {
+    "file": "04 Finish setting up.html",
+    "cat": "REMINDER",
+    "preheader": "Two minutes now and the world can see your work."
+  },
+  {
+    "file": "05 Profile is live.html",
+    "cat": "YOUR CHANNEL",
+    "preheader": "@amara.adeyemi is ready for visitors."
+  },
+  {
+    "file": "06 Two-factor enabled.html",
+    "cat": "SECURITY",
+    "preheader": "Your account just got harder to break into."
+  },
+  {
+    "file": "07 Sign-in code.html",
+    "cat": "SECURITY",
+    "preheader": "Use it in the next 30 seconds."
+  },
+  {
+    "file": "08 Reset password.html",
+    "cat": "SECURITY",
+    "preheader": "This link works once, for the next hour."
+  },
+  {
+    "file": "09 Password changed.html",
+    "cat": "SECURITY",
+    "preheader": "If this was you, you’re all set."
+  },
+  {
+    "file": "10 New sign-in detected.html",
+    "cat": "SECURITY",
+    "preheader": "Was this you?"
+  },
+  {
+    "file": "11 Carousel published.html",
+    "cat": "PUBLISHING",
+    "preheader": "It’s discoverable across every screen now."
+  },
+  {
+    "file": "12 Scheduled publish.html",
+    "cat": "PUBLISHING",
+    "preheader": "We’ll publish it for you, right on time."
+  },
+  {
+    "file": "13 Upload failed.html",
+    "cat": "PUBLISHING",
+    "preheader": "Here’s what happened and how to fix it."
+  },
+  {
+    "file": "14 Milestone alert.html",
+    "cat": "ANALYTICS",
+    "preheader": "Your work’s finding its audience."
+  },
+  {
+    "file": "15 Win-back.html",
+    "cat": "WE MISS YOU",
+    "preheader": "Here’s what you missed while you were away."
+  },
+  {
+    "file": "16 Weekly digest.html",
+    "cat": "DISCOVERY",
+    "preheader": "New work from artists you’d love."
+  },
+  {
+    "file": "17 New from follow.html",
+    "cat": "NEW WORK",
+    "preheader": "“Market Day, Oshodi” is live."
+  },
+  {
+    "file": "18 Inquiry sent.html",
+    "cat": "INQUIRY",
+    "preheader": "Ndidi Emeka has it. Replies land here."
+  }
+]

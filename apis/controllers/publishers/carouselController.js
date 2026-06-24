@@ -1,7 +1,98 @@
-const { Carousel, Artwork, Publisher, sequelize } = require('../../models');
+const { Carousel, Artwork, Publisher, Subscriber, Viewer, sequelize } = require('../../models');
 const { Op } = require('sequelize');
 const path = require('path');
 const { processCarouselImages, processCarouselsImages } = require('../../utils/imageUrlHelper');
+const emailMiddleware = require('../../middleware/emailMiddleware');
+
+const getFrontendUrl = () => (process.env.FRONTEND_URL || 'https://joincarsl.com').replace(/\/$/, '');
+
+const getCarouselActionUrl = (carouselId) => `${getFrontendUrl()}/carousels/${carouselId}`;
+
+const getPublisherDisplayName = (publisher) => (
+    publisher?.name || publisher?.email?.split('@')[0] || 'there'
+);
+
+const getScheduleParts = (date) => {
+    const publishDate = new Date(date);
+
+    return {
+        publishDate: publishDate.toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+            timeZone: 'Africa/Lagos',
+        }),
+        publishTime: publishDate.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+            timeZone: 'Africa/Lagos',
+        }),
+        timeZone: 'WAT',
+    };
+};
+
+const sendCarouselPublishedEmails = async (publisher, carousel) => {
+    if (!publisher?.email || !carousel) return;
+
+    const pieceCount = carousel.artworks?.length || 0;
+    const variables = {
+        firstName: getPublisherDisplayName(publisher),
+        carouselName: carousel.name,
+        pieceCount,
+        actionUrl: getCarouselActionUrl(carousel.id),
+        shareUrl: getCarouselActionUrl(carousel.id),
+    };
+
+    try {
+        await emailMiddleware.sendCarouselPublishedEmail(publisher.email, variables);
+    } catch (emailError) {
+        console.warn('Carousel published email sending failed:', emailError);
+    }
+
+    try {
+        const subscribers = await Subscriber.findAll({
+            where: {
+                publisherId: publisher.id,
+                isActive: true,
+            },
+            include: [{
+                model: Viewer,
+                as: 'viewer',
+                attributes: ['email', 'firstName'],
+            }],
+        });
+
+        await Promise.all(subscribers
+            .filter(subscriber => subscriber.viewer?.email)
+            .map(subscriber => emailMiddleware.sendNewFromFollowEmail(subscriber.viewer.email, {
+                firstName: subscriber.viewer.firstName || subscriber.viewer.email.split('@')[0],
+                artistName: getPublisherDisplayName(publisher),
+                carouselName: carousel.name,
+                pieceCount,
+                actionUrl: getCarouselActionUrl(carousel.id),
+            }).catch(emailError => {
+                console.warn('New from follow email sending failed:', emailError);
+            })));
+    } catch (emailError) {
+        console.warn('Subscriber notification lookup failed:', emailError);
+    }
+};
+
+const sendScheduledPublishEmail = async (publisher, carousel) => {
+    if (!publisher?.email || !carousel?.scheduledPublishDate) return;
+
+    try {
+        await emailMiddleware.sendScheduledPublishEmail(publisher.email, {
+            firstName: getPublisherDisplayName(publisher),
+            carouselName: carousel.name,
+            actionUrl: `${getFrontendUrl()}/publisher/carousels/${carousel.id}`,
+            ...getScheduleParts(carousel.scheduledPublishDate),
+        });
+    } catch (emailError) {
+        console.warn('Scheduled publish email sending failed:', emailError);
+    }
+};
 
 const parseOptionalInteger = (value) => {
     if (value === undefined || value === null || value === '') {
@@ -378,6 +469,9 @@ exports.publishCarouselDraft = async (req, res, next) => {
             }
         });
 
+        const publisher = await Publisher.findByPk(publisherId);
+        await sendCarouselPublishedEmails(publisher, publishedCarousel);
+
         res.status(200).json({
             message: 'Carousel published successfully',
             carousel: processCarouselImages(publishedCarousel)
@@ -592,6 +686,13 @@ exports.getScheduledCarousels = async (req, res, next) => {
 
         if (carouselsToActivate.length > 0) {
             await Promise.all(carouselsToActivate);
+
+            await Promise.all(carouselsToReturn
+                .filter(carousel => carousel.status === 'active')
+                .map(async (carousel) => {
+                    const publisher = await Publisher.findByPk(carousel.publisherId);
+                    await sendCarouselPublishedEmails(publisher, carousel);
+                }));
         }
 
         res.status(200).json({
@@ -620,6 +721,7 @@ exports.updateCarousel = async (req, res, next) => {
             return res.status(404).json({ error: 'Carousel not found' });
         }
 
+        const previousStatus = carousel.status;
         const updateData = {};
         if (name) updateData.name = name;
         if (tag !== undefined) {
@@ -702,6 +804,18 @@ exports.updateCarousel = async (req, res, next) => {
                 as: 'artworks'
             }
         });
+
+        const publisher = await Publisher.findByPk(publisherId);
+        if (updatedCarousel.status === 'active' && previousStatus !== 'active') {
+            await sendCarouselPublishedEmails(publisher, updatedCarousel);
+        }
+
+        if (
+            updatedCarousel.status === 'scheduled'
+            && (previousStatus !== 'scheduled' || scheduledPublishDate !== undefined)
+        ) {
+            await sendScheduledPublishEmail(publisher, updatedCarousel);
+        }
 
         res.status(200).json({
             message: 'Carousel updated successfully',
@@ -846,6 +960,8 @@ exports.scheduleCarouselForPublish = async (req, res, next) => {
                 as: 'artworks'
             }
         });
+
+        await sendScheduledPublishEmail(publisher, scheduledCarousel);
 
         res.status(200).json({
             message: 'Carousel scheduled for publish successfully',

@@ -1,0 +1,180 @@
+CARSL by AFTA — Email Copy
+________________
+
+
+Verify your email
+Subject: Your code to step inside CARSL Preheader: Confirm it's you and the doors open.
+You're one step from the gallery.
+Enter this code in the app to confirm your email:
+[6-DIGIT CODE]
+It expires in 15 minutes. If you didn't start signing up for CARSL, you can ignore this — no account is created until the code is entered.
+________________
+
+
+Welcome — Artist
+Subject: Your gallery never closes now Preheader: Hang your first work and reach the world, @[HANDLE].
+Welcome in, [FIRST NAME].
+You're now @[HANDLE] on CARSL — your channel, your wall, open to anyone with a screen.
+Here's the quickest way to be seen:
+1. Build your first carousel. Group your work the way you'd hang a show.
+2. Upload in full frame. We optimise every piece for TV, tablet, and phone so it looks the way you made it.
+3. Set your profile. A banner, a bio, a face — collectors connect with people, not thumbnails.
+The first piece is the hardest to hang. After that, it's just curating.
+[ Hang your first piece ]
+________________
+
+
+
+
+Welcome — Art Enthusiast
+Subject: Press play on a world of art Preheader: Discovery starts the moment you open the app.
+You're in, [FIRST NAME].
+CARSL turns discovery into something you do from the couch. Browse by mood, medium, or maker — and watch art the way you'd watch anything else worth your evening.
+On your TV: open CARSL on Android TV and start with what's trending. On the go: keep exploring on web, and pick up where you left off.
+Follow the artists you love. Ask about the pieces that stop you. It's all one tap (or one click of the remote) away.
+[ Start exploring ]
+________________
+
+
+Finish setting up
+Subject: Your wall's still empty Preheader: Two minutes now and the world can see your work.
+[FIRST NAME], you're set up but you're not showing yet.
+Your channel exists — but there's nothing on the wall for anyone to find. The good news: you're one upload away from being discoverable.
+Start with a banner and a bio so your channel looks like you. Then add your first piece — even one is enough to appear in discovery.
+[ Finish my setup ]
+________________
+
+
+Two-factor enabled
+Subject: Two-factor is on Preheader: Your account just got harder to break into.
+Done — two-factor authentication is now protecting [EMAIL/PHONE].
+From now on, signing in takes your password plus a one-time code sent to [METHOD]. It's the single best thing you've done for your account's safety today.
+Didn't turn this on? Secure your account now — someone may have access.
+[ Manage security settings ]
+________________
+
+
+Your 2FA code
+Subject: [CODE] is your CARSL code Preheader: Use it in the next 30 seconds.
+Your sign-in code is:
+[6-DIGIT CODE]
+It works for 30 seconds. CARSL will never ask you for this code by phone, chat, or email reply. If you're not signing in right now, change your password.
+________________
+
+
+Reset your password
+Subject: Reset your CARSL password Preheader: This link works once, for the next hour.
+Forgot it? Happens to the best curators.
+Tap below to set a new password. The link works once and expires in 1 hour.
+If you didn't ask for this, ignore it — your password stays exactly as it is, and nothing changes.
+[ Set a new password ]
+________________
+
+
+Password changed
+Subject: Your password was changed Preheader: If this was you, you're all set.
+Your CARSL password was just changed.
+If that was you, nothing more to do.
+If it wasn't you, act now — someone may have access to your account. Reset your password and review your active sessions immediately.
+[ This wasn't me ]
+________________
+
+
+Profile is live
+Subject: Your channel looks the part Preheader: @[HANDLE] is ready for visitors.
+[FIRST NAME], your channel is set.
+@[HANDLE] now has a face, a bio, and a banner. Visitors who land on you will know exactly whose work they're looking at.
+Next: fill the wall. The channels that get followed are the ones with something to see.
+[ Add your first carousel ]
+________________
+
+
+Your carousel is published
+Subject: "[CAROUSEL NAME]" is live Preheader: It's discoverable across every screen now.
+It's up.
+"[CAROUSEL NAME]" is now live on your channel and showing in discovery — on phones, tablets, and the big screen.
+[N] pieces, framed and ready. Share the link and send the right people straight to it.
+[ View it live ] · [ Share the carousel ]
+________________
+
+
+Scheduled publish confirmed
+Subject: "[CAROUSEL NAME]" goes live [DATE] Preheader: We'll publish it for you, right on time.
+Your show has a date.
+"[CAROUSEL NAME]" premieres [DATE] at [TIME] [TZ]. We'll publish it automatically and let you know the moment it's live.
+Want to build anticipation? Share the date now — the link goes warm the second it premieres.
+[ Edit schedule ]
+________________
+
+
+Upload couldn't finish
+Subject: One piece didn't make it up Preheader: Here's what happened and how to fix it.
+"[FILENAME]" couldn't be added.
+[REASON — e.g. The file was over 5MB / The format isn't supported (we take JPG, PNG, WEBP) / The crop wasn't in 16:9)].
+Nothing else was affected. Fix the one piece and re-upload — the rest of your carousel is safe.
+[ Try again ]
+________________
+
+
+Milestone alert
+Subject: "[CAROUSEL/ARTWORK]" just hit [N] views Preheader: Your work's finding its audience.
+People are looking, [FIRST NAME].
+"[CAROUSEL/ARTWORK]" just passed [N] [views / likes].
+Want to see who's watching and where they're coming from? Your analytics break it down.
+[ See the numbers ]
+________________
+
+
+________________
+
+
+Win-back (dormant Publisher)
+Subject: Your wall's been quiet Preheader: Here's what you missed while you were away.
+It's been a minute, [FISST NAME].
+While you were away, your work didn't stop being seen:
+* [N] new views across your carousels
+* [N] likes
+* [N] inquiries waiting for you
+That last one's worth a look — interest doesn't wait forever.
+[ See what's waiting ]
+________________
+
+
+Weekly discovery digest
+Subject: This week, framed for you Preheader: New work from artists you'd love.
+Five things worth your eyes this week.
+Hand-picked from the makers and movements you've been drawn to:
+* [ARTWORK] — [ARTIST]
+* [ARTWORK] — [ARTIST]
+* [ARTWORK] — [ARTIST]
+Best seen big. Open CARSL on your TV and let it play.
+[ See this week's picks ]
+________________
+
+
+New from someone you follow
+Subject: [ARTIST] just dropped new work Preheader: "[CAROUSEL NAME]" is live.
+[ARTIST] just published "[CAROUSEL NAME]".
+You followed them for exactly this. [N] new pieces, live now.
+[ Go see it ]
+________________
+
+
+Inquiry sent (buyer confirmation)
+Subject: Your inquiry's on its way Preheader: [ARTIST/GALLERY] has it. Replies land here.
+Sent.
+Your inquiry about "[ARTWORK TITLE]" is now with [ARTIST/GALLERY]. They'll reply through CARSL, and you'll get a note here the moment they do.
+No payment, no commitment — this is just the start of a conversation.
+[ View my inquiry ]
+________________
+
+
+New sign-in detected
+Subject: New sign-in to your account Preheader: Was this you?
+Your CARSL account was just opened on a new device.
+* Device: [DEVICE / BROWSER]
+* Where: [CITY, COUNTRY — approx.]
+* When: [TIME, TZ]
+If this was you, you're all good. If it wasn't, secure your account now — change your password and sign out everywhere.
+[ This wasn't me ]
+________________

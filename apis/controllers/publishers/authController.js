@@ -13,6 +13,19 @@ const normalizeCode = (code) => (
     code === undefined || code === null ? '' : String(code).trim()
 );
 
+const getPublisherDisplayName = (publisher) => (
+    publisher?.name || publisher?.email?.split('@')[0] || 'there'
+);
+
+const buildSignInDetails = (req) => ({
+    device: req.get('user-agent') || 'Unknown device',
+    location: req.ip || req.get('x-forwarded-for') || 'Unknown location',
+    loginTime: new Date().toLocaleString('en-US', {
+        timeZone: 'Africa/Lagos',
+        timeZoneName: 'short',
+    }),
+});
+
 exports.signup = async (req, res, next) => {
     try {
         const { email, password } = req.body;
@@ -104,7 +117,7 @@ exports.verifyEmail = async (req, res, next) => {
         });
 
         try {
-            await emailMiddleware.sendWelcomeEmail(normalizedEmail, normalizedEmail.split('@')[0]);
+            await emailMiddleware.sendWelcomePublisherEmail(normalizedEmail, normalizedEmail.split('@')[0]);
         } catch (emailError) {
             console.warn('Welcome email sending failed:', emailError);
         }
@@ -192,6 +205,14 @@ exports.completeProfileSetup = async (req, res, next) => {
             bio: bio || null,
             accountSetupComplete: true,
         });
+
+        try {
+            await emailMiddleware.sendProfileLiveEmail(publisher.email, name, {
+                handle: name,
+            });
+        } catch (emailError) {
+            console.warn('Profile live email sending failed:', emailError);
+        }
 
         res.json({
             message: 'Profile setup completed successfully',
@@ -309,6 +330,16 @@ exports.login = async (req, res, next) => {
             email: publisher.email,
             type: 'publisher',
         });
+
+        try {
+            await emailMiddleware.sendNewSignInDetectedEmail(
+                publisher.email,
+                getPublisherDisplayName(publisher),
+                buildSignInDetails(req)
+            );
+        } catch (emailError) {
+            console.warn('New sign-in email sending failed:', emailError);
+        }
 
         res.json({
             message: 'Login successful',
@@ -443,6 +474,15 @@ exports.resetPassword = async (req, res, next) => {
             resetPasswordTokenExpires: null,
         });
 
+        try {
+            await emailMiddleware.sendPasswordChangedEmail(
+                publisher.email,
+                getPublisherDisplayName(publisher)
+            );
+        } catch (emailError) {
+            console.warn('Password changed email sending failed:', emailError);
+        }
+
         res.json({ message: 'Password reset successfully' });
     } catch (error) {
         console.error('Reset password error:', error);
@@ -482,6 +522,17 @@ exports.updateProfile = async (req, res, next) => {
         }
 
         await publisher.update(updateData);
+
+        if (password) {
+            try {
+                await emailMiddleware.sendPasswordChangedEmail(
+                    publisher.email,
+                    getPublisherDisplayName(publisher)
+                );
+            } catch (emailError) {
+                console.warn('Password changed email sending failed:', emailError);
+            }
+        }
 
         res.json({
             message: 'Profile updated successfully',

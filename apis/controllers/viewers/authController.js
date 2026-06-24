@@ -5,6 +5,19 @@ const { verifyCode, generateVerificationCode } = require('../../utils/verificati
 const emailMiddleware = require('../../middleware/emailMiddleware');
 const { Op } = require('sequelize');
 
+const getViewerDisplayName = (viewer) => (
+    viewer?.firstName || viewer?.email?.split('@')[0] || 'there'
+);
+
+const buildSignInDetails = (req) => ({
+    device: req.get('user-agent') || 'Unknown device',
+    location: req.ip || req.get('x-forwarded-for') || 'Unknown location',
+    loginTime: new Date().toLocaleString('en-US', {
+        timeZone: 'Africa/Lagos',
+        timeZoneName: 'short',
+    }),
+});
+
 // Helper function to check viewer status
 const checkViewerStatus = async (viewer) => {
     if (viewer.status === 'banned') {
@@ -137,6 +150,15 @@ exports.verifyEmailAndIssueToken = async (req, res, next) => {
             email: viewer.email,
             type: 'viewer',
         });
+
+        try {
+            await emailMiddleware.sendWelcomeViewerEmail(
+                viewer.email,
+                getViewerDisplayName(viewer)
+            );
+        } catch (emailError) {
+            console.warn('Viewer welcome email sending failed:', emailError);
+        }
 
         res.json({
             message: 'Email verified successfully. Proceed to complete your profile.',
@@ -345,6 +367,16 @@ exports.login = async (req, res, next) => {
             type: 'viewer',
         });
 
+        try {
+            await emailMiddleware.sendNewSignInDetectedEmail(
+                viewer.email,
+                getViewerDisplayName(viewer),
+                buildSignInDetails(req)
+            );
+        } catch (emailError) {
+            console.warn('New sign-in email sending failed:', emailError);
+        }
+
         res.json({
             message: 'Login successful',
             token,
@@ -465,6 +497,15 @@ exports.resetPassword = async (req, res, next) => {
             resetPasswordToken: null,
             resetPasswordTokenExpires: null,
         });
+
+        try {
+            await emailMiddleware.sendPasswordChangedEmail(
+                viewer.email,
+                getViewerDisplayName(viewer)
+            );
+        } catch (emailError) {
+            console.warn('Password changed email sending failed:', emailError);
+        }
 
         res.json({ message: 'Password changed successfully' });
     } catch (error) {
