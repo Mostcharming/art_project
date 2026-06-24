@@ -7,8 +7,10 @@ import { useEffect, useRef, useState } from "react";
 import {
   Dimensions,
   Image,
+  KeyboardAvoidingView,
   Modal,
   PanResponder,
+  Platform,
   Pressable,
   ScrollView,
   Switch,
@@ -415,10 +417,15 @@ export default function CarouselPreview() {
             className="flex-1 bg-black/95"
             onPress={() => setShowTimePicker(false)}
           >
-            <View className="flex-1 justify-end">
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              keyboardVerticalOffset={0}
+              style={{ flex: 1, justifyContent: "flex-end" }}
+            >
               <Pressable
                 className="bg-neutral-800 rounded-t-2xl px-5 py-4"
                 onPress={(e) => e.stopPropagation()}
+                style={{ paddingBottom: Math.max(insets.bottom, 20) }}
               >
                 {/* Drag Handle */}
                 <View className="w-10 h-1 bg-neutral-600 rounded-full self-center mb-4" />
@@ -537,10 +544,8 @@ export default function CarouselPreview() {
                     Done
                   </Text>
                 </Pressable>
-
-                <View style={{ marginBottom: 20 }} />
               </Pressable>
-            </View>
+            </KeyboardAvoidingView>
           </Pressable>
         </Modal>
 
