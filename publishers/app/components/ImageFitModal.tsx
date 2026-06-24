@@ -1,17 +1,17 @@
-import * as ImageManipulator from "expo-image-manipulator";
 import * as FileSystem from "expo-file-system/legacy";
+import * as ImageManipulator from "expo-image-manipulator";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Image as RNImage,
   Modal,
   PanResponder,
   Pressable,
+  Image as RNImage,
   Text,
+  useWindowDimensions,
   View,
   type GestureResponderEvent,
-  useWindowDimensions,
 } from "react-native";
-import Svg, { Image as SvgImage, Rect } from "react-native-svg";
+import Svg, { Rect, Image as SvgImage } from "react-native-svg";
 
 export interface FittedImage {
   uri: string;
