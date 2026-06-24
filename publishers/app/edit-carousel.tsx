@@ -1,4 +1,7 @@
 import ArtworkList from "@/app/components/ArtworkList";
+import AddArtworkModal from "@/app/components/AddArtworkModal";
+import ArtworkFormCard from "@/app/components/ArtworkFormCard";
+import ArtworkUploadPrompt from "@/app/components/ArtworkUploadPrompt";
 import ImageFitModal, { FittedImage } from "@/app/components/ImageFitModal";
 import { Alert } from "@/components/ui/Alert";
 import { useCarouselApi } from "@/hooks/useCarouselApi";
@@ -8,10 +11,9 @@ import { useCarouselStore } from "@/store/carouselStore";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { CloudUpload, Play, X } from "lucide-react-native";
-import { useEffect, useState } from "react";
+import { Play } from "lucide-react-native";
+import { useEffect, useRef, useState } from "react";
 import {
-  Image,
   Keyboard,
   Modal,
   Pressable,
@@ -102,6 +104,7 @@ export default function EditCarousel() {
   );
   const [imageToFit, setImageToFit] =
     useState<ImagePicker.ImagePickerAsset | null>(null);
+  const [showImageFitModal, setShowImageFitModal] = useState(false);
   const [formData, setFormData] = useState<ArtworkForm>({
     title: "",
     artist: "",
@@ -124,6 +127,7 @@ export default function EditCarousel() {
   const [carouselCountry, setCarouselCountry] = useState("");
   const [carouselDescription, setCarouselDescription] = useState("");
   const [showEditDetailsModal, setShowEditDetailsModal] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   // Temporary carousel details for modal editing
   const [tempName, setTempName] = useState("");
@@ -235,37 +239,57 @@ export default function EditCarousel() {
     return true;
   };
 
-  const pickImage = async (inModal: boolean = false) => {
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
+  const pickImage = async () => {
+    try {
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-    if (!permissionResult.granted) {
-      setAlertMessage(
-        "Please allow access to your photo library to upload artwork",
-      );
-      setShowAlert(true);
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
-      allowsEditing: false,
-      aspect: undefined,
-    });
-
-    if (!result.canceled && result.assets[0]) {
-      const asset = result.assets[0];
-
-      if (validateImage(asset)) {
-        setImageToFit(asset);
+      if (!permissionResult.granted) {
+        setAlertMessage(
+          "Please allow access to your photo library to upload artwork",
+        );
+        setShowAlert(true);
+        return;
       }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+        allowsEditing: false,
+        aspect: undefined,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
+
+        if (validateImage(asset)) {
+          setImageToFit(asset);
+          setShowImageFitModal(true);
+        }
+      }
+    } catch (error) {
+      console.error("Image picker failed:", error);
+      setAlertMessage("Failed to open image picker. Please try again.");
+      setShowAlert(true);
     }
   };
 
   const handleFittedImage = (image: FittedImage) => {
     setSelectedImage(image);
     setImageToFit(null);
+    setShowImageFitModal(false);
+  };
+
+  const handleCancelImageFit = () => {
+    setImageToFit(null);
+    setShowImageFitModal(false);
+  };
+
+  const pickImageFromAddModal = () => {
+    setShowAddModal(false);
+    setImageToFit(null);
+    setShowImageFitModal(false);
+    void pickImage();
   };
 
   const handleFormChange = (field: keyof ArtworkForm, value: string) => {
@@ -321,6 +345,8 @@ export default function EditCarousel() {
 
       // Reset form and image
       setSelectedImage(null);
+      setImageToFit(null);
+      setShowImageFitModal(false);
       setFormData({
         title: "",
         artist: "",
@@ -336,6 +362,8 @@ export default function EditCarousel() {
 
   const handleCancel = () => {
     setSelectedImage(null);
+    setImageToFit(null);
+    setShowImageFitModal(false);
     setFormData({
       title: "",
       artist: "",
@@ -354,7 +382,12 @@ export default function EditCarousel() {
 
   const handleModalCancel = () => {
     setShowAddModal(false);
-    handleCancel();
+  };
+
+  const scrollToArtworkActions = () => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 250);
   };
 
   const openEditDetailsModal = () => {
@@ -532,6 +565,7 @@ export default function EditCarousel() {
   return (
     <View className="flex-1 bg-black" style={{ paddingTop: insets.top }}>
       <ScrollView
+        ref={scrollViewRef}
         className="flex-1"
         keyboardShouldPersistTaps="handled"
         scrollEnabled={true}
@@ -646,173 +680,17 @@ export default function EditCarousel() {
             </View>
           </>
         ) : selectedImage ? (
-          <>
-            {/* Selected Image and Form Display */}
-            <View className="bg-neutral-800 rounded-lg p-6 mb-6 border border-neutral-700">
-              {/* Selected Image Display */}
-              <Image
-                source={{ uri: selectedImage.uri }}
-                style={{
-                  width: "100%",
-                  height: 200,
-                  borderRadius: 8,
-                  marginBottom: 12,
-                }}
-                resizeMode="contain"
-              />
-              <Text className="text-gray-400 text-xs mb-6">
-                {selectedImage.width}x{selectedImage.height}px
-                {selectedImage.fileSize
-                  ? ` â€¢ ${(selectedImage.fileSize / (1024 * 1024)).toFixed(2)} MB`
-                  : ""}
-              </Text>
-
-              {/* Artwork Form */}
-              {/* Title */}
-              <View className="mb-4">
-                <Text className="text-white text-sm font-semibold mb-2">
-                  Title
-                </Text>
-                <TextInput
-                  placeholder="Enter artwork title"
-                  placeholderTextColor="#ffffff"
-                  value={formData.title}
-                  onChangeText={(value) => handleFormChange("title", value)}
-                  className="bg-black text-white px-4 py-3 rounded-lg"
-                />
-              </View>
-
-              {/* Artist */}
-              <View className="mb-4">
-                <Text className="text-white text-sm font-semibold mb-2">
-                  Artist
-                </Text>
-                <TextInput
-                  placeholder="Enter artist name"
-                  placeholderTextColor="#ffffff"
-                  value={formData.artist}
-                  onChangeText={(value) => handleFormChange("artist", value)}
-                  className="bg-black text-white px-4 py-3 rounded-lg"
-                />
-              </View>
-
-              {/* Height and Width */}
-              <View className="flex-row gap-4 mb-4">
-                <View className="flex-1">
-                  <TextInput
-                    placeholder="Height"
-                    placeholderTextColor="#ffffff"
-                    value={formData.height}
-                    onChangeText={(value) => handleFormChange("height", value)}
-                    keyboardType="decimal-pad"
-                    className="bg-black text-white px-4 py-3 rounded-lg"
-                  />
-                </View>
-                <View className="flex-1">
-                  <TextInput
-                    placeholder="Width"
-                    placeholderTextColor="#ffffff"
-                    value={formData.width}
-                    onChangeText={(value) => handleFormChange("width", value)}
-                    keyboardType="decimal-pad"
-                    className="bg-black text-white px-4 py-3 rounded-lg"
-                  />
-                </View>
-              </View>
-
-              {/* Year and Purchase Price */}
-              <View className="flex-row gap-4 mb-6">
-                <View className="flex-1">
-                  <TextInput
-                    placeholder="Year of Creation"
-                    placeholderTextColor="#ffffff"
-                    value={formData.yearOfCreation}
-                    onChangeText={(value) =>
-                      handleFormChange("yearOfCreation", value)
-                    }
-                    keyboardType="number-pad"
-                    className="bg-black text-white px-4 py-3 rounded-lg"
-                  />
-                </View>
-                <View className="flex-1">
-                  <TextInput
-                    placeholder="Purchase Price"
-                    placeholderTextColor="#ffffff"
-                    value={formData.purchasePrice}
-                    onChangeText={(value) =>
-                      handleFormChange("purchasePrice", value)
-                    }
-                    keyboardType="decimal-pad"
-                    className="bg-black text-white px-4 py-3 rounded-lg"
-                  />
-                </View>
-              </View>
-
-              {/* Action Buttons */}
-              <View className="flex-row gap-3">
-                <Pressable
-                  style={{
-                    flex: 1,
-                    minHeight: 50,
-                    backgroundColor: "transparent",
-                    borderWidth: 2,
-                    borderColor: "#FFFFFF1A",
-                    borderRadius: 12,
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                  onPress={handleModalCancel}
-                >
-                  <Text className="text-base font-bold text-white">Cancel</Text>
-                </Pressable>
-                <Pressable
-                  style={{
-                    flex: 1,
-                    minHeight: 50,
-                    backgroundColor: "#ea580c",
-                    borderRadius: 12,
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                  onPress={handleAddArtwork}
-                >
-                  <Text className="text-base font-bold text-white">Add</Text>
-                </Pressable>
-              </View>
-            </View>
-          </>
+          <ArtworkFormCard
+            selectedImage={selectedImage}
+            formData={formData}
+            onFormChange={handleFormChange}
+            onCancel={handleCancel}
+            onSubmit={handleAddArtwork}
+            onInputFocus={scrollToArtworkActions}
+          />
         ) : (
           <>
-            {/* Upload Box */}
-            <Pressable
-              onPress={() => pickImage(false)}
-              className="bg-neutral-800 rounded-lg p-6 mb-4 border border-neutral-700 h-40 justify-center items-center"
-            >
-              <CloudUpload size={30} color="#ffffff" />
-              <Text className="text-white mt-4 text-center font-semibold">
-                Click to upload file or drag and drop
-              </Text>
-              <Text className="text-gray-400 mt-1 text-center text-xs">
-                PNG, JPG, or TIFF (auto-fitted to 1920x1080px, max 25 MB)
-              </Text>
-            </Pressable>
-
-            <View className="bg-neutral-800 rounded-lg p-6 mb-10 border border-neutral-700">
-              <Text className="text-white font-semibold text-base mb-3">
-                Artwork Upload Requirements:
-              </Text>
-              <View className="gap-2">
-                <Text className="text-gray-400 text-sm">
-                  â€¢ Auto-fitted to 1920x1080px
-                </Text>
-                <Text className="text-gray-400 text-sm">
-                  â€¢ Maximum file size: 25 MB
-                </Text>
-                <Text className="text-gray-400 text-sm">
-                  â€¢ Supported formats: PNG, JPG, TIFF
-                </Text>
-              </View>
-            </View>
+            <ArtworkUploadPrompt onPress={pickImage} />
 
             <View className="flex-row gap-3">
               <Pressable
@@ -858,7 +736,7 @@ export default function EditCarousel() {
       </ScrollView>
 
       <ImageFitModal
-        visible={!!imageToFit}
+        visible={showImageFitModal && !!imageToFit}
         image={
           imageToFit
             ? {
@@ -871,7 +749,7 @@ export default function EditCarousel() {
         }
         minWidth={MIN_WIDTH}
         minHeight={MIN_HEIGHT}
-        onCancel={() => setImageToFit(null)}
+        onCancel={handleCancelImageFit}
         onConfirm={handleFittedImage}
         onError={(message) => {
           setAlertMessage(message);
@@ -921,257 +799,12 @@ export default function EditCarousel() {
         </Pressable>
       </Modal>
 
-      {/* Add Artwork Modal */}
-      <Modal
+      <AddArtworkModal
         visible={showAddModal}
-        transparent
-        animationType="slide"
-        onRequestClose={handleModalCancel}
-      >
-        <View style={{ flex: 1, backgroundColor: "rgba(0, 0, 0, 0.77)" }}>
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={{ flex: 1, paddingTop: insets.top }}>
-              <ScrollView
-                className="flex-1"
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
-              >
-                {/* Modal Header */}
-                <View className="flex-row items-center justify-between px-5 py-4 ">
-                  <Text
-                    className="text-white text-lg"
-                    style={{ fontFamily: "BankGothicBold" }}
-                  >
-                    Add Artwork
-                  </Text>
-                  <Pressable onPress={handleModalCancel}>
-                    <X size={24} color="#ffffff" />
-                  </Pressable>
-                </View>
-
-                <View className="px-5 py-6">
-                  {!selectedImage ? (
-                    <>
-                      {/* Upload Box */}
-                      <Pressable
-                        onPress={() => pickImage(true)}
-                        className="bg-neutral-800 rounded-lg p-6 mb-4 border border-neutral-700 h-40 justify-center items-center"
-                      >
-                        <CloudUpload size={30} color="#ffffff" />
-                        <Text className="text-white mt-4 text-center font-semibold">
-                          Click to upload file or drag and drop
-                        </Text>
-                        <Text className="text-gray-400 mt-1 text-center text-xs">
-                          PNG, JPG, or TIFF (auto-fitted to 1920x1080px, max 25
-                          MB)
-                        </Text>
-                      </Pressable>
-
-                      <View className="bg-neutral-800 rounded-lg p-6 mb-10 border border-neutral-700">
-                        <Text className="text-white font-semibold text-base mb-3">
-                          Artwork Upload Requirements:
-                        </Text>
-                        <View className="gap-2">
-                          <View className="flex-row items-start">
-                            <Text className="text-gray-400 mr-2">â€¢</Text>
-                            <Text className="text-gray-400 text-sm flex-1">
-                              Images only: .JPG, .PNG, .TIFF
-                            </Text>
-                          </View>
-                          <View className="flex-row items-start">
-                            <Text className="text-gray-400 mr-2">â€¢</Text>
-                            <Text className="text-gray-400 text-sm flex-1">
-                              Auto-fitted to 1920x1080px (Full HD)
-                            </Text>
-                          </View>
-                          <View className="flex-row items-start">
-                            <Text className="text-gray-400 mr-2">â€¢</Text>
-                            <Text className="text-gray-400 text-sm flex-1">
-                              Min resolution: 300DPI
-                            </Text>
-                          </View>
-                          <View className="flex-row items-start">
-                            <Text className="text-gray-400 mr-2">â€¢</Text>
-                            <Text className="text-gray-400 text-sm flex-1">
-                              No watermarks or borders
-                            </Text>
-                          </View>
-                          <View className="flex-row items-start">
-                            <Text className="text-gray-400 mr-2">â€¢</Text>
-                            <Text className="text-gray-400 text-sm flex-1">
-                              Max file size: 25 MB
-                            </Text>
-                          </View>
-                        </View>
-                      </View>
-                    </>
-                  ) : (
-                    <>
-                      {/* Combined Image, Form, and Buttons Box */}
-                      <View className="bg-neutral-800 rounded-lg p-6 mb-6 border border-neutral-700">
-                        {/* Selected Image Display */}
-                        <Image
-                          source={{ uri: selectedImage.uri }}
-                          style={{
-                            width: "100%",
-                            height: 200,
-                            borderRadius: 8,
-                            marginBottom: 12,
-                          }}
-                          resizeMode="contain"
-                        />
-                        <Text className="text-gray-400 text-xs mb-6">
-                          {selectedImage.width}x{selectedImage.height}px
-                          {selectedImage.fileSize
-                            ? ` â€¢ ${(selectedImage.fileSize / (1024 * 1024)).toFixed(2)} MB`
-                            : ""}
-                        </Text>
-
-                        <View className="mb-4">
-                          <Text className="text-white text-sm font-semibold mb-2">
-                            Title <Text className="text-orange-600">*</Text>
-                          </Text>
-                          <TextInput
-                            placeholder="Enter artwork title"
-                            placeholderTextColor="#ffffff"
-                            value={formData.title}
-                            onChangeText={(value) =>
-                              handleFormChange("title", value)
-                            }
-                            className="bg-black text-white px-4 py-3 rounded-lg"
-                          />
-                        </View>
-
-                        {/* Artist */}
-                        <View className="mb-4">
-                          <Text className="text-white text-sm font-semibold mb-2">
-                            Artist <Text className="text-orange-600">*</Text>
-                          </Text>
-                          <TextInput
-                            placeholder="Enter artist name"
-                            placeholderTextColor="#ffffff"
-                            value={formData.artist}
-                            onChangeText={(value) =>
-                              handleFormChange("artist", value)
-                            }
-                            className="bg-black text-white px-4 py-3 rounded-lg"
-                          />
-                        </View>
-
-                        {/* Height and Width */}
-                        <View className="flex-row gap-4 mb-4">
-                          <View className="flex-1">
-                            <Text className="text-white text-sm font-semibold mb-2">
-                              Height (inches){" "}
-                              <Text className="text-orange-600">*</Text>
-                            </Text>
-                            <TextInput
-                              placeholder="0.00"
-                              placeholderTextColor="#ffffff"
-                              value={formData.height}
-                              onChangeText={(value) =>
-                                handleFormChange("height", value)
-                              }
-                              keyboardType="decimal-pad"
-                              className="bg-black text-white px-4 py-3 rounded-lg"
-                            />
-                          </View>
-                          <View className="flex-1">
-                            <Text className="text-white text-sm font-semibold mb-2">
-                              Width (inches){" "}
-                              <Text className="text-orange-600">*</Text>
-                            </Text>
-                            <TextInput
-                              placeholder="0.00"
-                              placeholderTextColor="#ffffff"
-                              value={formData.width}
-                              onChangeText={(value) =>
-                                handleFormChange("width", value)
-                              }
-                              keyboardType="decimal-pad"
-                              className="bg-black text-white px-4 py-3 rounded-lg"
-                            />
-                          </View>
-                        </View>
-
-                        {/* Year and Purchase Price */}
-                        <View className="flex-row gap-4 mb-4">
-                          <View className="flex-1">
-                            <Text className="text-white text-sm font-semibold mb-2">
-                              Year of Creation
-                            </Text>
-                            <TextInput
-                              placeholder="YYYY"
-                              placeholderTextColor="#ffffff"
-                              value={formData.yearOfCreation}
-                              onChangeText={(value) =>
-                                handleFormChange("yearOfCreation", value)
-                              }
-                              keyboardType="number-pad"
-                              maxLength={4}
-                              className="bg-black text-white px-4 py-3 rounded-lg"
-                            />
-                          </View>
-                          <View className="flex-1">
-                            <Text className="text-white text-sm font-semibold mb-2">
-                              Purchase Price
-                            </Text>
-                            <TextInput
-                              placeholder="0.00"
-                              placeholderTextColor="#ffffff"
-                              value={formData.purchasePrice}
-                              onChangeText={(value) =>
-                                handleFormChange("purchasePrice", value)
-                              }
-                              keyboardType="decimal-pad"
-                              className="bg-black text-white px-4 py-3 rounded-lg"
-                            />
-                          </View>
-                        </View>
-
-                        {/* Action Buttons */}
-                        <View className="flex-row gap-3">
-                          <Pressable
-                            className="flex-1 rounded-xl justify-center items-center border-2 border-[#FFFFFF1A]"
-                            style={{
-                              minHeight: 60,
-                              backgroundColor: "transparent",
-                            }}
-                            onPress={() => {
-                              setSelectedImage(null);
-                              setFormData({
-                                title: "",
-                                artist: "",
-                                height: "",
-                                width: "",
-                                yearOfCreation: "",
-                                purchasePrice: "",
-                              });
-                            }}
-                          >
-                            <Text className="text-base text-orange-600">
-                              Cancel
-                            </Text>
-                          </Pressable>
-                          <Pressable
-                            className="flex-1 rounded-xl justify-center items-center bg-orange-600"
-                            style={{ minHeight: 60 }}
-                            onPress={handleAddArtwork}
-                          >
-                            <Text className="text-base text-white">
-                              Add Artwork
-                            </Text>
-                          </Pressable>
-                        </View>
-                      </View>
-                    </>
-                  )}
-                </View>
-              </ScrollView>
-            </View>
-          </TouchableWithoutFeedback>
-        </View>
-      </Modal>
+        topInset={insets.top}
+        onClose={handleModalCancel}
+        onPickImage={pickImageFromAddModal}
+      />
 
       {/* Edit Carousel Details Modal */}
       <Modal

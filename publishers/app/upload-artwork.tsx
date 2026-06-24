@@ -5,10 +5,9 @@ import { ArtworkForm, SelectedImage, UploadedArtwork } from "@/types";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { CloudUpload, Play, X } from "lucide-react-native";
+import { Play } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
 import {
-  Image,
   Keyboard,
   KeyboardAvoidingView,
   Modal,
@@ -16,12 +15,14 @@ import {
   Pressable,
   ScrollView,
   Text,
-  TextInput,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import AddArtworkModal from "./components/AddArtworkModal";
+import ArtworkFormCard from "./components/ArtworkFormCard";
 import ArtworkList from "./components/ArtworkList";
+import ArtworkUploadPrompt from "./components/ArtworkUploadPrompt";
 import ImageFitModal, { FittedImage } from "./components/ImageFitModal";
 
 export default function UploadArtwork() {
@@ -42,10 +43,9 @@ export default function UploadArtwork() {
   const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(
     null,
   );
-  const [modalSelectedImage, setModalSelectedImage] =
-    useState<SelectedImage | null>(null);
   const [imageToFit, setImageToFit] =
     useState<ImagePicker.ImagePickerAsset | null>(null);
+  const [showImageFitModal, setShowImageFitModal] = useState(false);
   const [formData, setFormData] = useState<ArtworkForm>({
     title: "",
     artist: "",
@@ -60,16 +60,12 @@ export default function UploadArtwork() {
     [],
   );
   const [showAddModal, setShowAddModal] = useState(false);
-  const [imageFitTarget, setImageFitTarget] = useState<
-    "page" | "modal" | null
-  >(null);
   const [isSaving, setIsSaving] = useState(false);
   const [carouselName, setCarouselName] = useState("");
   const [carouselTag, setCarouselTag] = useState("");
   const [carouselCountry, setCarouselCountry] = useState("");
   const [carouselDescription, setCarouselDescription] = useState("");
   const scrollViewRef = useRef<ScrollView>(null);
-  const modalScrollViewRef = useRef<ScrollView>(null);
 
   // Initialize carousel details from route params
   useEffect(() => {
@@ -114,56 +110,57 @@ export default function UploadArtwork() {
     return true;
   };
 
-  const pickImage = async (inModal: boolean = false) => {
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
+  const pickImage = async () => {
+    try {
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-    if (!permissionResult.granted) {
-      setAlertMessage(
-        "Please allow access to your photo library to upload artwork",
-      );
-      setShowAlert(true);
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
-      allowsEditing: false,
-      aspect: undefined,
-    });
-
-    if (!result.canceled && result.assets[0]) {
-      const asset = result.assets[0];
-
-      if (validateImage(asset)) {
-        setImageFitTarget(inModal ? "modal" : "page");
-        if (inModal) {
-          setShowAddModal(false);
-        }
-        setImageToFit(asset);
+      if (!permissionResult.granted) {
+        setAlertMessage(
+          "Please allow access to your photo library to upload artwork",
+        );
+        setShowAlert(true);
+        return;
       }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+        allowsEditing: false,
+        aspect: undefined,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
+
+        if (validateImage(asset)) {
+          setImageToFit(asset);
+          setShowImageFitModal(true);
+        }
+      }
+    } catch (error) {
+      console.error("Image picker failed:", error);
+      setAlertMessage("Failed to open image picker. Please try again.");
+      setShowAlert(true);
     }
   };
 
-  const handleFittedImage = (image: FittedImage) => {
-    if (imageFitTarget === "modal") {
-      setModalSelectedImage(image);
-      setShowAddModal(true);
-    } else {
-      setSelectedImage(image);
-    }
-
+  const pickImageFromAddModal = () => {
+    setShowAddModal(false);
     setImageToFit(null);
-    setImageFitTarget(null);
+    setShowImageFitModal(false);
+    void pickImage();
+  };
+
+  const handleFittedImage = (image: FittedImage) => {
+    setSelectedImage(image);
+    setImageToFit(null);
+    setShowImageFitModal(false);
   };
 
   const handleCancelImageFit = () => {
     setImageToFit(null);
-    if (imageFitTarget === "modal") {
-      setShowAddModal(true);
-    }
-    setImageFitTarget(null);
+    setShowImageFitModal(false);
   };
 
   const handleFormChange = (field: keyof ArtworkForm, value: string) => {
@@ -197,16 +194,13 @@ export default function UploadArtwork() {
     return true;
   };
 
-  const handleAddArtwork = (source: "page" | "modal" = "page") => {
-    const artworkImage =
-      source === "modal" ? modalSelectedImage : selectedImage;
-
-    if (validateForm() && artworkImage) {
+  const handleAddArtwork = () => {
+    if (validateForm() && selectedImage) {
       const newArtwork: UploadedArtwork = {
-        uri: artworkImage.uri,
-        imageWidth: artworkImage.width,
-        imageHeight: artworkImage.height,
-        fileSize: artworkImage.fileSize,
+        uri: selectedImage.uri,
+        imageWidth: selectedImage.width,
+        imageHeight: selectedImage.height,
+        fileSize: selectedImage.fileSize,
         title: formData.title,
         artist: formData.artist,
         height: formData.height,
@@ -222,7 +216,8 @@ export default function UploadArtwork() {
 
       // Reset form and image
       setSelectedImage(null);
-      setModalSelectedImage(null);
+      setImageToFit(null);
+      setShowImageFitModal(false);
       setFormData({
         title: "",
         artist: "",
@@ -232,9 +227,7 @@ export default function UploadArtwork() {
         purchasePrice: "",
       });
 
-      if (source === "modal") {
-        setShowAddModal(false);
-      }
+      setShowAddModal(false);
     }
   };
 
@@ -256,8 +249,6 @@ export default function UploadArtwork() {
 
   const handleModalCancel = () => {
     setShowAddModal(false);
-    setModalSelectedImage(null);
-    handleCancel();
   };
 
   const handlePreviewCarousel = () => {
@@ -356,7 +347,6 @@ export default function UploadArtwork() {
   const scrollToArtworkActions = () => {
     setTimeout(() => {
       scrollViewRef.current?.scrollToEnd({ animated: true });
-      modalScrollViewRef.current?.scrollToEnd({ animated: true });
     }, 250);
   };
 
@@ -470,202 +460,17 @@ export default function UploadArtwork() {
               </View>
             </>
           ) : selectedImage ? (
-            <>
-              {/* Selected Image and Form Display */}
-              <View className="bg-neutral-800 rounded-lg p-6 mb-6 border border-neutral-700">
-                {/* Selected Image Display */}
-                <Image
-                  source={{ uri: selectedImage.uri }}
-                  style={{
-                    width: "100%",
-                    height: 200,
-                    borderRadius: 8,
-                    marginBottom: 12,
-                  }}
-                  resizeMode="contain"
-                />
-                <Text className="text-gray-400 text-xs mb-6">
-                  {selectedImage.width}x{selectedImage.height}px
-                  {selectedImage.fileSize
-                    ? ` • ${(selectedImage.fileSize / (1024 * 1024)).toFixed(2)} MB`
-                    : ""}
-                </Text>
-
-                {/* Artwork Form */}
-                {/* Title */}
-                <View className="mb-4">
-                  <Text className="text-white text-sm font-semibold mb-2">
-                    Title <Text className="text-orange-600">*</Text>
-                  </Text>
-                  <TextInput
-                    placeholder="Enter artwork title"
-                    placeholderTextColor="#ffffff"
-                    value={formData.title}
-                    onChangeText={(value) => handleFormChange("title", value)}
-                    className="bg-black text-white px-4 py-3 rounded-lg"
-                  />
-                </View>
-
-                {/* Artist */}
-                <View className="mb-4">
-                  <Text className="text-white text-sm font-semibold mb-2">
-                    Artist <Text className="text-orange-600">*</Text>
-                  </Text>
-                  <TextInput
-                    placeholder="Enter artist name"
-                    placeholderTextColor="#ffffff"
-                    value={formData.artist}
-                    onChangeText={(value) => handleFormChange("artist", value)}
-                    className="bg-black text-white px-4 py-3 rounded-lg"
-                  />
-                </View>
-
-                {/* Height and Width */}
-                <View className="flex-row gap-4 mb-4">
-                  <View className="flex-1">
-                    <Text className="text-white text-sm font-semibold mb-2">
-                      Height (inches) <Text className="text-orange-600">*</Text>
-                    </Text>
-                    <TextInput
-                      placeholder="0.00"
-                      placeholderTextColor="#ffffff"
-                      value={formData.height}
-                      onChangeText={(value) =>
-                        handleFormChange("height", value)
-                      }
-                      onFocus={scrollToArtworkActions}
-                      keyboardType="decimal-pad"
-                      className="bg-black text-white px-4 py-3 rounded-lg"
-                    />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-white text-sm font-semibold mb-2">
-                      Width (inches) <Text className="text-orange-600">*</Text>
-                    </Text>
-                    <TextInput
-                      placeholder="0.00"
-                      placeholderTextColor="#ffffff"
-                      value={formData.width}
-                      onChangeText={(value) => handleFormChange("width", value)}
-                      onFocus={scrollToArtworkActions}
-                      keyboardType="decimal-pad"
-                      className="bg-black text-white px-4 py-3 rounded-lg"
-                    />
-                  </View>
-                </View>
-
-                {/* Year and Purchase Price */}
-                <View className="flex-row gap-4 mb-4">
-                  <View className="flex-1">
-                    <Text className="text-white text-sm font-semibold mb-2">
-                      Year of Creation
-                    </Text>
-                    <TextInput
-                      placeholder="YYYY"
-                      placeholderTextColor="#ffffff"
-                      value={formData.yearOfCreation}
-                      onChangeText={(value) =>
-                        handleFormChange("yearOfCreation", value)
-                      }
-                      onFocus={scrollToArtworkActions}
-                      keyboardType="number-pad"
-                      maxLength={4}
-                      className="bg-black text-white px-4 py-3 rounded-lg"
-                    />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-white text-sm font-semibold mb-2">
-                      Purchase Price
-                    </Text>
-                    <TextInput
-                      placeholder="0.00"
-                      placeholderTextColor="#ffffff"
-                      value={formData.purchasePrice}
-                      onChangeText={(value) =>
-                        handleFormChange("purchasePrice", value)
-                      }
-                      onFocus={scrollToArtworkActions}
-                      keyboardType="decimal-pad"
-                      className="bg-black text-white px-4 py-3 rounded-lg"
-                    />
-                  </View>
-                </View>
-
-                {/* Action Buttons */}
-                <View className="flex-row gap-3">
-                  <Pressable
-                    className="flex-1 rounded-xl justify-center items-center border-2 border-[#FFFFFF1A]"
-                    style={{
-                      minHeight: 60,
-                      backgroundColor: "transparent",
-                    }}
-                    onPress={handleCancel}
-                  >
-                    <Text className="text-base  text-orange-600">Cancel</Text>
-                  </Pressable>
-                  <Pressable
-                    className="flex-1 rounded-xl justify-center items-center bg-orange-600"
-                    style={{ minHeight: 60 }}
-                    onPress={() => handleAddArtwork()}
-                  >
-                    <Text className="text-base  text-white">Add Artwork</Text>
-                  </Pressable>
-                </View>
-              </View>
-            </>
+            <ArtworkFormCard
+              selectedImage={selectedImage}
+              formData={formData}
+              onFormChange={handleFormChange}
+              onCancel={handleCancel}
+              onSubmit={handleAddArtwork}
+              onInputFocus={scrollToArtworkActions}
+            />
           ) : (
             <>
-              {/* Upload Box */}
-              <Pressable
-                onPress={() => pickImage(false)}
-                className="bg-neutral-800 rounded-lg p-6 mb-4 border border-neutral-700 h-40 justify-center items-center"
-              >
-                <CloudUpload size={30} color="#ffffff" />
-                <Text className="text-white mt-4 text-center font-semibold">
-                  Tap to upload artwork
-                </Text>
-                <Text className="text-gray-400 mt-1 text-center text-xs">
-                  PNG, JPG, or TIFF (auto-fitted to 1920x1080px, max 25 MB)
-                </Text>
-              </Pressable>
-
-              <View className="bg-neutral-800 rounded-lg p-6 mb-10 border border-neutral-700">
-                <Text className="text-white font-semibold text-base mb-3">
-                  Artwork Upload Requirements:
-                </Text>
-                <View className="gap-2">
-                  <View className="flex-row items-start">
-                    <Text className="text-gray-400 mr-2">•</Text>
-                    <Text className="text-gray-400 text-sm flex-1">
-                      Images only: .JPG, .PNG, .TIFF
-                    </Text>
-                  </View>
-                  <View className="flex-row items-start">
-                    <Text className="text-gray-400 mr-2">•</Text>
-                    <Text className="text-gray-400 text-sm flex-1">
-                      Auto-fitted to 1920x1080px (Full HD)
-                    </Text>
-                  </View>
-                  <View className="flex-row items-start">
-                    <Text className="text-gray-400 mr-2">•</Text>
-                    <Text className="text-gray-400 text-sm flex-1">
-                      Min resolution: 300DPI
-                    </Text>
-                  </View>
-                  <View className="flex-row items-start">
-                    <Text className="text-gray-400 mr-2">•</Text>
-                    <Text className="text-gray-400 text-sm flex-1">
-                      No watermarks or borders
-                    </Text>
-                  </View>
-                  <View className="flex-row items-start">
-                    <Text className="text-gray-400 mr-2">•</Text>
-                    <Text className="text-gray-400 text-sm flex-1">
-                      Max file size: 25 MB
-                    </Text>
-                  </View>
-                </View>
-              </View>
+              <ArtworkUploadPrompt onPress={pickImage} />
 
               <View className="flex-row gap-3">
                 <Pressable
@@ -749,271 +554,15 @@ export default function UploadArtwork() {
           </Pressable>
         </Modal>
 
-        {/* Add Artwork Modal */}
-        <Modal
+        <AddArtworkModal
           visible={showAddModal}
-          transparent
-          animationType="slide"
-          onRequestClose={handleModalCancel}
-        >
-          <View style={{ flex: 1, backgroundColor: "rgba(0, 0, 0, 0.77)" }}>
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-              <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-                keyboardVerticalOffset={0}
-                style={{ flex: 1, paddingTop: insets.top }}
-              >
-                <ScrollView
-                  ref={modalScrollViewRef}
-                  className="flex-1"
-                  keyboardShouldPersistTaps="handled"
-                  keyboardDismissMode="interactive"
-                  showsVerticalScrollIndicator={false}
-                  contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}
-                >
-                  {/* Modal Header */}
-                  <View className="flex-row items-center justify-between px-5 py-4 ">
-                    <Text
-                      className="text-white text-lg"
-                      style={{ fontFamily: "BankGothicBold" }}
-                    >
-                      Add Artwork
-                    </Text>
-                    <Pressable onPress={handleModalCancel}>
-                      <X size={24} color="#ffffff" />
-                    </Pressable>
-                  </View>
-
-                  <View className="px-5 py-6">
-                    {!modalSelectedImage ? (
-                      <>
-                        {/* Upload Box */}
-                        <Pressable
-                          onPress={() => pickImage(true)}
-                          className="bg-neutral-800 rounded-lg p-6 mb-4 border border-neutral-700 h-40 justify-center items-center"
-                        >
-                          <CloudUpload size={30} color="#ffffff" />
-                          <Text className="text-white mt-4 text-center font-semibold">
-                            Tap to upload artwork
-                          </Text>
-                          <Text className="text-gray-400 mt-1 text-center text-xs">
-                            PNG, JPG, or TIFF (auto-fitted to 1920x1080px, max
-                            25 MB)
-                          </Text>
-                        </Pressable>
-
-                        <View className="bg-neutral-800 rounded-lg p-6 mb-10 border border-neutral-700">
-                          <Text className="text-white font-semibold text-base mb-3">
-                            Artwork Upload Requirements:
-                          </Text>
-                          <View className="gap-2">
-                            <View className="flex-row items-start">
-                              <Text className="text-gray-400 mr-2">•</Text>
-                              <Text className="text-gray-400 text-sm flex-1">
-                                Images only: .JPG, .PNG, .TIFF
-                              </Text>
-                            </View>
-                            <View className="flex-row items-start">
-                              <Text className="text-gray-400 mr-2">•</Text>
-                              <Text className="text-gray-400 text-sm flex-1">
-                                Auto-fitted to 1920x1080px (Full HD)
-                              </Text>
-                            </View>
-                            <View className="flex-row items-start">
-                              <Text className="text-gray-400 mr-2">•</Text>
-                              <Text className="text-gray-400 text-sm flex-1">
-                                Min resolution: 300DPI
-                              </Text>
-                            </View>
-                            <View className="flex-row items-start">
-                              <Text className="text-gray-400 mr-2">•</Text>
-                              <Text className="text-gray-400 text-sm flex-1">
-                                No watermarks or borders
-                              </Text>
-                            </View>
-                            <View className="flex-row items-start">
-                              <Text className="text-gray-400 mr-2">•</Text>
-                              <Text className="text-gray-400 text-sm flex-1">
-                                Max file size: 25 MB
-                              </Text>
-                            </View>
-                          </View>
-                        </View>
-                      </>
-                    ) : (
-                      <>
-                        {/* Combined Image, Form, and Buttons Box */}
-                        <View className="bg-neutral-800 rounded-lg p-6 mb-6 border border-neutral-700">
-                          {/* Selected Image Display */}
-                          <Image
-                            source={{ uri: modalSelectedImage.uri }}
-                            style={{
-                              width: "100%",
-                              height: 200,
-                              borderRadius: 8,
-                              marginBottom: 12,
-                            }}
-                            resizeMode="contain"
-                          />
-                          <Text className="text-gray-400 text-xs mb-6">
-                            {modalSelectedImage.width}x{modalSelectedImage.height}px
-                            {modalSelectedImage.fileSize
-                              ? ` • ${(modalSelectedImage.fileSize / (1024 * 1024)).toFixed(2)} MB`
-                              : ""}
-                          </Text>
-
-                          <View className="mb-4">
-                            <Text className="text-white text-sm font-semibold mb-2">
-                              Title <Text className="text-orange-600">*</Text>
-                            </Text>
-                            <TextInput
-                              placeholder="Enter artwork title"
-                              placeholderTextColor="#ffffff"
-                              value={formData.title}
-                              onChangeText={(value) =>
-                                handleFormChange("title", value)
-                              }
-                              className="bg-black text-white px-4 py-3 rounded-lg"
-                            />
-                          </View>
-
-                          {/* Artist */}
-                          <View className="mb-4">
-                            <Text className="text-white text-sm font-semibold mb-2">
-                              Artist <Text className="text-orange-600">*</Text>
-                            </Text>
-                            <TextInput
-                              placeholder="Enter artist name"
-                              placeholderTextColor="#ffffff"
-                              value={formData.artist}
-                              onChangeText={(value) =>
-                                handleFormChange("artist", value)
-                              }
-                              className="bg-black text-white px-4 py-3 rounded-lg"
-                            />
-                          </View>
-
-                          {/* Height and Width */}
-                          <View className="flex-row gap-4 mb-4">
-                            <View className="flex-1">
-                              <Text className="text-white text-sm font-semibold mb-2">
-                                Height (inches){" "}
-                                <Text className="text-orange-600">*</Text>
-                              </Text>
-                              <TextInput
-                                placeholder="0.00"
-                                placeholderTextColor="#ffffff"
-                                value={formData.height}
-                                onChangeText={(value) =>
-                                  handleFormChange("height", value)
-                                }
-                                onFocus={scrollToArtworkActions}
-                                keyboardType="decimal-pad"
-                                className="bg-black text-white px-4 py-3 rounded-lg"
-                              />
-                            </View>
-                            <View className="flex-1">
-                              <Text className="text-white text-sm font-semibold mb-2">
-                                Width (inches){" "}
-                                <Text className="text-orange-600">*</Text>
-                              </Text>
-                              <TextInput
-                                placeholder="0.00"
-                                placeholderTextColor="#ffffff"
-                                value={formData.width}
-                                onChangeText={(value) =>
-                                  handleFormChange("width", value)
-                                }
-                                onFocus={scrollToArtworkActions}
-                                keyboardType="decimal-pad"
-                                className="bg-black text-white px-4 py-3 rounded-lg"
-                              />
-                            </View>
-                          </View>
-
-                          {/* Year and Purchase Price */}
-                          <View className="flex-row gap-4 mb-4">
-                            <View className="flex-1">
-                              <Text className="text-white text-sm font-semibold mb-2">
-                                Year of Creation
-                              </Text>
-                              <TextInput
-                                placeholder="YYYY"
-                                placeholderTextColor="#ffffff"
-                                value={formData.yearOfCreation}
-                                onChangeText={(value) =>
-                                  handleFormChange("yearOfCreation", value)
-                                }
-                                onFocus={scrollToArtworkActions}
-                                keyboardType="number-pad"
-                                maxLength={4}
-                                className="bg-black text-white px-4 py-3 rounded-lg"
-                              />
-                            </View>
-                            <View className="flex-1">
-                              <Text className="text-white text-sm font-semibold mb-2">
-                                Purchase Price
-                              </Text>
-                              <TextInput
-                                placeholder="0.00"
-                                placeholderTextColor="#ffffff"
-                                value={formData.purchasePrice}
-                                onChangeText={(value) =>
-                                  handleFormChange("purchasePrice", value)
-                                }
-                                onFocus={scrollToArtworkActions}
-                                keyboardType="decimal-pad"
-                                className="bg-black text-white px-4 py-3 rounded-lg"
-                              />
-                            </View>
-                          </View>
-
-                          {/* Action Buttons */}
-                          <View className="flex-row gap-3">
-                            <Pressable
-                              className="flex-1 rounded-xl justify-center items-center border-2 border-[#FFFFFF1A]"
-                              style={{
-                                minHeight: 60,
-                                backgroundColor: "transparent",
-                              }}
-                              onPress={() => {
-                                setModalSelectedImage(null);
-                                setFormData({
-                                  title: "",
-                                  artist: "",
-                                  height: "",
-                                  width: "",
-                                  yearOfCreation: "",
-                                  purchasePrice: "",
-                                });
-                              }}
-                            >
-                              <Text className="text-base text-orange-600">
-                                Cancel
-                              </Text>
-                            </Pressable>
-                            <Pressable
-                              className="flex-1 rounded-xl justify-center items-center bg-orange-600"
-                              style={{ minHeight: 60 }}
-                              onPress={() => handleAddArtwork("modal")}
-                            >
-                              <Text className="text-base text-white">
-                                Add Artwork
-                              </Text>
-                            </Pressable>
-                          </View>
-                        </View>
-                      </>
-                    )}
-                  </View>
-                </ScrollView>
-              </KeyboardAvoidingView>
-            </TouchableWithoutFeedback>
-          </View>
-        </Modal>
+          topInset={insets.top}
+          onClose={handleModalCancel}
+          onPickImage={pickImageFromAddModal}
+        />
 
         <ImageFitModal
-          visible={!!imageToFit}
+          visible={showImageFitModal && !!imageToFit}
           image={
             imageToFit
               ? {
