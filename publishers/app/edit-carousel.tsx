@@ -11,7 +11,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { CloudUpload, Play, X } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
-  FlatList,
   Image,
   Keyboard,
   Modal,
@@ -83,10 +82,15 @@ export default function EditCarousel() {
   const router = useRouter();
   const { updateDraft } = useCarouselApi();
   const upsertCarousel = useCarouselListStore((state) => state.upsertCarousel);
+  const editingCarousel = useCarouselListStore((state) => state.editingCarousel);
+  const setEditingCarousel = useCarouselListStore(
+    (state) => state.setEditingCarousel,
+  );
   const saveDraftLocally = useCarouselStore((state) => state.saveDraftLocally);
 
   const params = useLocalSearchParams<{
     carousel?: string;
+    carouselId?: string;
   }>();
 
   const [carousel, setCarousel] = useState<Carousel | null>(null);
@@ -146,6 +150,7 @@ export default function EditCarousel() {
     fallbackArtworks: UploadedArtwork[]
   ) => {
     upsertCarousel(updatedCarousel);
+    setEditingCarousel(updatedCarousel);
     setCarousel(updatedCarousel);
     saveDraftLocally({
       id: updatedCarousel.id?.toString(),
@@ -174,42 +179,49 @@ export default function EditCarousel() {
     });
   };
 
+  const hydrateCarousel = (carouselData: Carousel) => {
+    setCarousel(carouselData);
+    setCarouselName(carouselData.name);
+    setCarouselTag(carouselData.tag || "");
+    setCarouselCountry(carouselData.country);
+    setCarouselDescription(carouselData.description || "");
+    setFrameTiming(carouselData.frameTimingSeconds);
+
+    const convertedArtworks: UploadedArtwork[] = (
+      carouselData.artworks || []
+    ).map((artwork: any) => ({
+      id: artwork.id?.toString(),
+      imageUrl: artwork.imageUrl,
+      imageWidth: artwork.widthInches,
+      imageHeight: artwork.heightInches,
+      fileSize: 0,
+      title: artwork.title,
+      artist: artwork.artist,
+      height: artwork.heightInches?.toString() || "",
+      width: artwork.widthInches?.toString() || "",
+      yearOfCreation: artwork.yearOfCreation?.toString() || "",
+      purchasePrice: artwork.purchasePrice?.toString() || "",
+    }));
+    setUploadedArtworks(convertedArtworks);
+  };
+
   // Initialize carousel data
   useEffect(() => {
+    if (editingCarousel) {
+      hydrateCarousel(editingCarousel);
+      return;
+    }
+
     if (params.carousel) {
       try {
-        const carouselData = JSON.parse(params.carousel);
-        setCarousel(carouselData);
-        setCarouselName(carouselData.name);
-        setCarouselTag(carouselData.tag || "");
-        setCarouselCountry(carouselData.country);
-        setCarouselDescription(carouselData.description || "");
-        setFrameTiming(carouselData.frameTimingSeconds);
-
-        // Convert existing artworks to UploadedArtwork format
-        const convertedArtworks: UploadedArtwork[] = (
-          carouselData.artworks || []
-        ).map((artwork: any) => ({
-          id: artwork.id?.toString(),
-          imageUrl: artwork.imageUrl,
-          imageWidth: artwork.widthInches,
-          imageHeight: artwork.heightInches,
-          fileSize: 0,
-          title: artwork.title,
-          artist: artwork.artist,
-          height: artwork.heightInches.toString(),
-          width: artwork.widthInches.toString(),
-          yearOfCreation: artwork.yearOfCreation?.toString() || "",
-          purchasePrice: artwork.purchasePrice?.toString() || "",
-        }));
-        setUploadedArtworks(convertedArtworks);
+        hydrateCarousel(JSON.parse(params.carousel));
       } catch (error) {
         console.error("Failed to parse carousel data:", error);
         setAlertMessage("Failed to load carousel data");
         setShowAlert(true);
       }
     }
-  }, [params.carousel]);
+  }, [editingCarousel, params.carousel]);
 
   const validateImage = (asset: ImagePicker.ImagePickerAsset): boolean => {
     if (asset.fileSize && asset.fileSize > MAX_FILE_SIZE) {
@@ -350,6 +362,7 @@ export default function EditCarousel() {
     setTempTag(carouselTag);
     setTempCountry(carouselCountry);
     setTempDescription(carouselDescription);
+    setShowCountryDropdown(false);
     setShowEditDetailsModal(true);
   };
 
@@ -370,6 +383,7 @@ export default function EditCarousel() {
     setCarouselTag(tempTag.trim());
     setCarouselCountry(tempCountry);
     setCarouselDescription(tempDescription.trim());
+    setShowCountryDropdown(false);
     setShowEditDetailsModal(false);
   };
 
@@ -649,7 +663,7 @@ export default function EditCarousel() {
               <Text className="text-gray-400 text-xs mb-6">
                 {selectedImage.width}x{selectedImage.height}px
                 {selectedImage.fileSize
-                  ? ` • ${(selectedImage.fileSize / (1024 * 1024)).toFixed(2)} MB`
+                  ? ` â€¢ ${(selectedImage.fileSize / (1024 * 1024)).toFixed(2)} MB`
                   : ""}
               </Text>
 
@@ -789,13 +803,13 @@ export default function EditCarousel() {
               </Text>
               <View className="gap-2">
                 <Text className="text-gray-400 text-sm">
-                  • Auto-fitted to 1920x1080px
+                  â€¢ Auto-fitted to 1920x1080px
                 </Text>
                 <Text className="text-gray-400 text-sm">
-                  • Maximum file size: 25 MB
+                  â€¢ Maximum file size: 25 MB
                 </Text>
                 <Text className="text-gray-400 text-sm">
-                  • Supported formats: PNG, JPG, TIFF
+                  â€¢ Supported formats: PNG, JPG, TIFF
                 </Text>
               </View>
             </View>
@@ -959,31 +973,31 @@ export default function EditCarousel() {
                         </Text>
                         <View className="gap-2">
                           <View className="flex-row items-start">
-                            <Text className="text-gray-400 mr-2">•</Text>
+                            <Text className="text-gray-400 mr-2">â€¢</Text>
                             <Text className="text-gray-400 text-sm flex-1">
                               Images only: .JPG, .PNG, .TIFF
                             </Text>
                           </View>
                           <View className="flex-row items-start">
-                            <Text className="text-gray-400 mr-2">•</Text>
+                            <Text className="text-gray-400 mr-2">â€¢</Text>
                             <Text className="text-gray-400 text-sm flex-1">
                               Auto-fitted to 1920x1080px (Full HD)
                             </Text>
                           </View>
                           <View className="flex-row items-start">
-                            <Text className="text-gray-400 mr-2">•</Text>
+                            <Text className="text-gray-400 mr-2">â€¢</Text>
                             <Text className="text-gray-400 text-sm flex-1">
                               Min resolution: 300DPI
                             </Text>
                           </View>
                           <View className="flex-row items-start">
-                            <Text className="text-gray-400 mr-2">•</Text>
+                            <Text className="text-gray-400 mr-2">â€¢</Text>
                             <Text className="text-gray-400 text-sm flex-1">
                               No watermarks or borders
                             </Text>
                           </View>
                           <View className="flex-row items-start">
-                            <Text className="text-gray-400 mr-2">•</Text>
+                            <Text className="text-gray-400 mr-2">â€¢</Text>
                             <Text className="text-gray-400 text-sm flex-1">
                               Max file size: 25 MB
                             </Text>
@@ -1009,7 +1023,7 @@ export default function EditCarousel() {
                         <Text className="text-gray-400 text-xs mb-6">
                           {selectedImage.width}x{selectedImage.height}px
                           {selectedImage.fileSize
-                            ? ` • ${(selectedImage.fileSize / (1024 * 1024)).toFixed(2)} MB`
+                            ? ` â€¢ ${(selectedImage.fileSize / (1024 * 1024)).toFixed(2)} MB`
                             : ""}
                         </Text>
 
@@ -1164,7 +1178,10 @@ export default function EditCarousel() {
         visible={showEditDetailsModal}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowEditDetailsModal(false)}
+        onRequestClose={() => {
+          setShowCountryDropdown(false);
+          setShowEditDetailsModal(false);
+        }}
       >
         <View className="flex-1 bg-black/95">
           <View className="flex-1 justify-end">
@@ -1186,7 +1203,12 @@ export default function EditCarousel() {
                     >
                       Carousel Information
                     </Text>
-                    <Pressable onPress={() => setShowEditDetailsModal(false)}>
+                    <Pressable
+                      onPress={() => {
+                        setShowCountryDropdown(false);
+                        setShowEditDetailsModal(false);
+                      }}
+                    >
                       <MaterialIcons name="close" size={24} color="#ffffff" />
                     </Pressable>
                   </View>
@@ -1231,7 +1253,9 @@ export default function EditCarousel() {
                     <Text className="text-sm text-white mb-2">Country</Text>
                     <Pressable
                       className="flex-row items-center justify-between rounded-lg px-4 py-4 bg-neutral-700"
-                      onPress={() => setShowCountryDropdown(true)}
+                      onPress={() =>
+                        setShowCountryDropdown((isVisible) => !isVisible)
+                      }
                     >
                       <Text
                         className={`text-base ${
@@ -1241,11 +1265,52 @@ export default function EditCarousel() {
                         {tempCountry || "Select country"}
                       </Text>
                       <MaterialIcons
-                        name="keyboard-arrow-down"
+                        name={
+                          showCountryDropdown
+                            ? "keyboard-arrow-up"
+                            : "keyboard-arrow-down"
+                        }
                         size={24}
                         color="#999999"
                       />
                     </Pressable>
+                    {showCountryDropdown && (
+                      <View
+                        className="mt-2 rounded-lg border border-neutral-700 bg-neutral-800"
+                        style={{ maxHeight: 240, overflow: "hidden" }}
+                      >
+                        <ScrollView
+                          nestedScrollEnabled
+                          keyboardShouldPersistTaps="handled"
+                          showsVerticalScrollIndicator
+                        >
+                          {COUNTRIES.map((country) => (
+                            <Pressable
+                              key={country}
+                              className={`px-4 py-3 ${
+                                tempCountry === country
+                                  ? "bg-orange-600/20"
+                                  : ""
+                              }`}
+                              onPress={() => {
+                                setTempCountry(country);
+                                setShowCountryDropdown(false);
+                              }}
+                            >
+                              <Text
+                                className={`text-base ${
+                                  tempCountry === country
+                                    ? "text-orange-600 font-semibold"
+                                    : "text-white"
+                                }`}
+                              >
+                                {country}
+                              </Text>
+                            </Pressable>
+                          ))}
+                        </ScrollView>
+                      </View>
+                    )}
                   </View>
 
                   {/* Description */}
@@ -1281,7 +1346,10 @@ export default function EditCarousel() {
                         justifyContent: "center",
                         alignItems: "center",
                       }}
-                      onPress={() => setShowEditDetailsModal(false)}
+                      onPress={() => {
+                        setShowCountryDropdown(false);
+                        setShowEditDetailsModal(false);
+                      }}
                     >
                       <Text className="text-base text-white">Cancel</Text>
                     </Pressable>
@@ -1304,53 +1372,6 @@ export default function EditCarousel() {
             </TouchableWithoutFeedback>
           </View>
         </View>
-      </Modal>
-
-      {/* Country Dropdown Modal */}
-      <Modal
-        visible={showCountryDropdown}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowCountryDropdown(false)}
-      >
-        <Pressable
-          className="flex-1 bg-black/70 justify-end"
-          onPress={() => setShowCountryDropdown(false)}
-        >
-          <View className="bg-neutral-800 rounded-t-2xl pb-8 pt-4 px-5 max-h-2/3">
-            <View className="w-10 h-1 bg-neutral-600 rounded-full self-center mb-4" />
-            <Text className="text-lg text-white font-bold mb-4">
-              Select Country
-            </Text>
-            <FlatList
-              data={COUNTRIES}
-              keyExtractor={(item) => item}
-              scrollEnabled={true}
-              nestedScrollEnabled={true}
-              renderItem={({ item }) => (
-                <Pressable
-                  className={`py-3 px-4 rounded-lg mb-1 ${
-                    tempCountry === item ? "bg-orange-600/20" : ""
-                  }`}
-                  onPress={() => {
-                    setTempCountry(item);
-                    setShowCountryDropdown(false);
-                  }}
-                >
-                  <Text
-                    className={`text-base ${
-                      tempCountry === item
-                        ? "text-orange-600 font-semibold"
-                        : "text-white"
-                    }`}
-                  >
-                    {item}
-                  </Text>
-                </Pressable>
-              )}
-            />
-          </View>
-        </Pressable>
       </Modal>
 
       {/* Custom Alert */}

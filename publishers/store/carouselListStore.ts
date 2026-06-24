@@ -5,7 +5,9 @@ type CarouselLists = Record<CarouselType, Carousel[]>;
 
 interface CarouselListStore {
   carouselsByType: CarouselLists;
+  editingCarousel: Carousel | null;
   setCarousels: (type: CarouselType, carousels: Carousel[]) => void;
+  setEditingCarousel: (carousel: Carousel | null) => void;
   upsertCarousel: (carousel: Carousel) => void;
 }
 
@@ -23,6 +25,7 @@ const getCarouselType = (carousel: Carousel): CarouselType => {
 
 export const useCarouselListStore = create<CarouselListStore>()((set) => ({
   carouselsByType: emptyLists,
+  editingCarousel: null,
 
   setCarousels: (type, carousels) =>
     set((state) => ({
@@ -31,6 +34,8 @@ export const useCarouselListStore = create<CarouselListStore>()((set) => ({
         [type]: carousels,
       },
     })),
+
+  setEditingCarousel: (carousel) => set({ editingCarousel: carousel }),
 
   upsertCarousel: (carousel) =>
     set((state) => {

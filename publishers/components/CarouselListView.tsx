@@ -1,5 +1,6 @@
 import { useCarouselApi } from "@/hooks/useCarouselApi";
 import { Carousel, CarouselType } from "@/hooks/useCarouselList";
+import { useCarouselListStore } from "@/store/carouselListStore";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -60,6 +61,9 @@ export const CarouselListView: React.FC<CarouselListProps> = ({
   const router = useRouter();
   const { moveToDraft, deleteCarousel, deleteDraft, publishScheduled } =
     useCarouselApi();
+  const setEditingCarousel = useCarouselListStore(
+    (state) => state.setEditingCarousel,
+  );
   const [selectedCarousel, setSelectedCarousel] = useState<Carousel | null>(
     null
   );
@@ -108,10 +112,11 @@ export const CarouselListView: React.FC<CarouselListProps> = ({
       return;
     }
 
+    setEditingCarousel(carousel);
     router.push({
       pathname: "/edit-carousel" as any,
       params: {
-        carousel: JSON.stringify(carousel),
+        carouselId: carousel.id.toString(),
       },
     });
   };
