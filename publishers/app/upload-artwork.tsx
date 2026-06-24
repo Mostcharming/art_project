@@ -95,18 +95,8 @@ export default function UploadArtwork() {
 
   const MIN_WIDTH = 1920;
   const MIN_HEIGHT = 1080;
-  const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
 
-  const validateImage = (asset: ImagePicker.ImagePickerAsset): boolean => {
-    // Check file size
-    if (asset.fileSize && asset.fileSize > MAX_FILE_SIZE) {
-      setAlertMessage(
-        `File size exceeds 25 MB limit. Your file is ${(asset.fileSize / (1024 * 1024)).toFixed(2)} MB`,
-      );
-      setShowAlert(true);
-      return false;
-    }
-
+  const validateImage = (_asset: ImagePicker.ImagePickerAsset): boolean => {
     return true;
   };
 

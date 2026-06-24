@@ -17,7 +17,7 @@ export default function ArtworkUploadPrompt({ onPress }: ArtworkUploadPromptProp
           Tap to upload artwork
         </Text>
         <Text className="text-gray-400 mt-1 text-center text-xs">
-          PNG, JPG, or TIFF (auto-fitted to 1920x1080px, max 25 MB)
+          PNG, JPG, or TIFF (auto-fitted to 1920x1080px)
         </Text>
       </Pressable>
 
@@ -31,7 +31,6 @@ export default function ArtworkUploadPrompt({ onPress }: ArtworkUploadPromptProp
             "Auto-fitted to 1920x1080px (Full HD)",
             "Min resolution: 300DPI",
             "No watermarks or borders",
-            "Max file size: 25 MB",
           ].map((requirement) => (
             <View key={requirement} className="flex-row items-start">
               <Text className="text-gray-400 mr-2">•</Text>
