@@ -28,7 +28,9 @@ const fileFilter = (req, file, cb) => {
     if (allowedMimes.includes(file.mimetype) && allowedExt.includes(path.extname(file.originalname).toLowerCase())) {
         cb(null, true);
     } else {
-        cb(new Error('Only JPEG, PNG, and TIFF images are allowed'), false);
+        const error = new Error('Only JPEG, PNG, and TIFF images are allowed');
+        error.status = 400;
+        cb(error, false);
     }
 };
 

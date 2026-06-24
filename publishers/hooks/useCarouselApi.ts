@@ -19,6 +19,27 @@ export interface UpdateCarouselPayload {
   artworks?: UploadedArtwork[];
 }
 
+const getArtworkUploadFile = (uri: string, index: number) => {
+  const cleanUri = uri.split("?")[0].toLowerCase();
+  const extension = cleanUri.endsWith(".jpg") || cleanUri.endsWith(".jpeg")
+    ? "jpg"
+    : cleanUri.endsWith(".tif") || cleanUri.endsWith(".tiff")
+      ? "tiff"
+      : "png";
+
+  const mimeType = extension === "jpg"
+    ? "image/jpeg"
+    : extension === "tiff"
+      ? "image/tiff"
+      : "image/png";
+
+  return {
+    uri,
+    name: `artwork-${index}.${extension}`,
+    type: mimeType,
+  };
+};
+
 export const useCarouselApi = () => {
   const { mutate } = useApiMutate();
 
@@ -53,11 +74,7 @@ export const useCarouselApi = () => {
         const artwork = payload.artworks[i];
 
         if (artwork.uri) {
-          formData.append("artworkImages", {
-            uri: artwork.uri,
-            name: `artwork-${i}.jpg`,
-            type: "image/jpeg",
-          } as any);
+          formData.append("artworkImages", getArtworkUploadFile(artwork.uri, i) as any);
         }
       }
 
@@ -124,11 +141,7 @@ export const useCarouselApi = () => {
             console.log(
               `Frontend - Appending file for artwork: ${artwork.title}`
             );
-            formData.append("artworkImages", {
-              uri: artwork.uri,
-              name: `artwork-${i}.jpg`,
-              type: "image/jpeg",
-            } as any);
+            formData.append("artworkImages", getArtworkUploadFile(artwork.uri, i) as any);
           }
         }
       }

@@ -1,23 +1,128 @@
-const { Carousel, Artwork } = require('../../models');
-const { Publisher } = require('../../models');
+const { Carousel, Artwork, Publisher, sequelize } = require('../../models');
 const { Op } = require('sequelize');
 const path = require('path');
 const { processCarouselImages, processCarouselsImages } = require('../../utils/imageUrlHelper');
+
+const parseOptionalInteger = (value) => {
+    if (value === undefined || value === null || value === '') {
+        return null;
+    }
+
+    const parsed = parseInt(value, 10);
+    return Number.isNaN(parsed) ? NaN : parsed;
+};
+
+const parseOptionalDecimal = (value) => {
+    if (value === undefined || value === null || value === '') {
+        return null;
+    }
+
+    const parsed = parseFloat(value);
+    return Number.isNaN(parsed) ? NaN : parsed;
+};
+
+const parseRequiredDecimal = (value) => {
+    const parsed = parseFloat(value);
+    return Number.isNaN(parsed) ? NaN : parsed;
+};
+
+const parseArtworksPayload = (artworks) => {
+    if (artworks === undefined || artworks === null || artworks === '') {
+        return [];
+    }
+
+    if (typeof artworks === 'string') {
+        try {
+            return JSON.parse(artworks);
+        } catch {
+            const error = new Error('Invalid artworks payload');
+            error.status = 400;
+            throw error;
+        }
+    }
+
+    return artworks;
+};
+
+const buildArtworkDraftRows = ({ artworks, files = [], carouselId, status = 'draft' }) => {
+    if (!Array.isArray(artworks)) {
+        const error = new Error('Artworks must be an array');
+        error.status = 400;
+        throw error;
+    }
+
+    return artworks.map((artwork, index) => {
+        if (!artwork || typeof artwork !== 'object') {
+            const error = new Error(`Artwork ${index + 1} must be an object`);
+            error.status = 400;
+            throw error;
+        }
+
+        const title = typeof artwork.title === 'string' ? artwork.title.trim() : '';
+        const artist = typeof artwork.artist === 'string' ? artwork.artist.trim() : '';
+        const heightInches = parseRequiredDecimal(artwork.height);
+        const widthInches = parseRequiredDecimal(artwork.width);
+        const yearOfCreation = parseOptionalInteger(artwork.yearOfCreation);
+        const purchasePrice = parseOptionalDecimal(artwork.purchasePrice);
+
+        if (!title || !artist || Number.isNaN(heightInches) || Number.isNaN(widthInches)) {
+            const error = new Error(`Artwork ${index + 1} requires title, artist, height, and width`);
+            error.status = 400;
+            throw error;
+        }
+
+        if (Number.isNaN(yearOfCreation)) {
+            const error = new Error(`Artwork ${index + 1} has an invalid year of creation`);
+            error.status = 400;
+            throw error;
+        }
+
+        if (Number.isNaN(purchasePrice)) {
+            const error = new Error(`Artwork ${index + 1} has an invalid purchase price`);
+            error.status = 400;
+            throw error;
+        }
+
+        let imageUrl = null;
+        if (files.length > index && files[index]) {
+            imageUrl = `/uploads/artworks/${files[index].filename}`;
+            console.log(`Artwork ${index} (${title}): File saved as ${files[index].filename}`);
+        } else if (artwork.imageUrl) {
+            imageUrl = artwork.imageUrl;
+            console.log(`Artwork ${index} (${title}): Using provided imageUrl`);
+        } else {
+            console.log(`Artwork ${index} (${title}): No image or imageUrl found`);
+        }
+
+        return {
+            carouselId,
+            title,
+            artist,
+            heightInches,
+            widthInches,
+            yearOfCreation,
+            purchasePrice,
+            status,
+            imageUrl
+        };
+    });
+};
 
 exports.createCarouselDraft = async (req, res, next) => {
     try {
         let { name, tag, country, description, frameTimingSeconds, artworks } = req.body;
         const publisherId = req.user.id;
 
-        if (typeof artworks === 'string') {
-            artworks = JSON.parse(artworks);
-        }
+        artworks = parseArtworksPayload(artworks);
 
         if (typeof frameTimingSeconds === 'string') {
-            frameTimingSeconds = parseInt(frameTimingSeconds);
+            frameTimingSeconds = parseInt(frameTimingSeconds, 10);
         }
 
-        if (!name || !country || !frameTimingSeconds) {
+        name = typeof name === 'string' ? name.trim() : '';
+        country = typeof country === 'string' ? country.trim() : '';
+
+        if (!name || !country || !frameTimingSeconds || Number.isNaN(frameTimingSeconds)) {
             return res.status(400).json({
                 error: 'Name, country, and frameTimingSeconds are required'
             });
@@ -34,50 +139,35 @@ exports.createCarouselDraft = async (req, res, next) => {
             return res.status(404).json({ error: 'Publisher not found' });
         }
 
-        const carousel = await Carousel.create({
-            publisherId,
-            name,
-            tag: tag && typeof tag === 'string' ? tag : null,
-            country,
-            description: description && typeof description === 'string' ? description : null,
-            frameTimingSeconds,
-            status: 'draft'
-        });
+        const completeCarousel = await sequelize.transaction(async (transaction) => {
+            const carousel = await Carousel.create({
+                publisherId,
+                name,
+                tag: tag && typeof tag === 'string' ? tag.trim() || null : null,
+                country,
+                description: description && typeof description === 'string' ? description.trim() || null : null,
+                frameTimingSeconds,
+                status: 'draft'
+            }, { transaction });
 
-        if (artworks && Array.isArray(artworks) && artworks.length > 0) {
-            const artworksToCreate = artworks.map((artwork, index) => {
-                let imageUrl = null;
-                if (req.files && req.files.length > index && req.files[index]) {
-                    imageUrl = `/uploads/artworks/${req.files[index].filename}`;
-                    console.log(`Artwork ${index} (${artwork.title}): File saved as ${req.files[index].filename}`);
-                } else if (artwork.imageUrl) {
-                    imageUrl = artwork.imageUrl;
-                    console.log(`Artwork ${index} (${artwork.title}): Using provided imageUrl`);
-                } else {
-                    console.log(`Artwork ${index} (${artwork.title}): No image or imageUrl found`);
-                }
-
-                return {
+            if (artworks.length > 0) {
+                const artworksToCreate = buildArtworkDraftRows({
+                    artworks,
+                    files: req.files || [],
                     carouselId: carousel.id,
-                    title: artwork.title,
-                    artist: artwork.artist,
-                    heightInches: parseFloat(artwork.height),
-                    widthInches: parseFloat(artwork.width),
-                    yearOfCreation: artwork.yearOfCreation ? parseInt(artwork.yearOfCreation) : null,
-                    purchasePrice: artwork.purchasePrice ? parseFloat(artwork.purchasePrice) : null,
-                    status: 'draft',
-                    imageUrl
-                };
-            });
+                    status: 'draft'
+                });
 
-            await Artwork.bulkCreate(artworksToCreate);
-        }
-
-        const completeCarousel = await Carousel.findByPk(carousel.id, {
-            include: {
-                model: Artwork,
-                as: 'artworks'
+                await Artwork.bulkCreate(artworksToCreate, { transaction });
             }
+
+            return Carousel.findByPk(carousel.id, {
+                include: {
+                    model: Artwork,
+                    as: 'artworks'
+                },
+                transaction
+            });
         });
 
         res.status(201).json({
