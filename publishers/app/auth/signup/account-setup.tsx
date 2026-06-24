@@ -5,7 +5,9 @@ import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import {
   Keyboard,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -54,6 +56,7 @@ export default function AccountSetup() {
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const bioRef = useRef<TextInput>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const isFormValid =
     persona.trim() !== "" && name.trim() !== "" && country.trim() !== "";
@@ -90,9 +93,20 @@ export default function AccountSetup() {
     }
   };
 
+  const scrollToBio = () => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 250);
+  };
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View className="flex-1 bg-black" style={{ paddingTop: insets.top }}>
+      <KeyboardAvoidingView
+        className="flex-1 bg-black"
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={0}
+        style={{ paddingTop: insets.top }}
+      >
         {/* Back button */}
         <View className="flex-row items-center py-4 px-5">
           <Pressable className="p-2" onPress={() => router.back()}>
@@ -101,9 +115,12 @@ export default function AccountSetup() {
         </View>
 
         <ScrollView
+          ref={scrollViewRef}
           className="flex-1 px-5"
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}
         >
           {/* Header */}
           <View className="mb-8">
@@ -188,6 +205,7 @@ export default function AccountSetup() {
                 placeholderTextColor="#666666"
                 value={bio}
                 onChangeText={setBio}
+                onFocus={scrollToBio}
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"
@@ -301,7 +319,7 @@ export default function AccountSetup() {
             </View>
           </Pressable>
         </Modal>
-      </View>
+      </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
 }

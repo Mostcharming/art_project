@@ -26,7 +26,7 @@ export default function SignUpPage1() {
   // Validation logic
   const hasMinLength = password.length >= 8;
   const hasSpecialChar = /[*%#@!]/.test(password);
-  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const isFormValid =
     email.trim() !== "" && hasMinLength && hasSpecialChar && isEmailValid;
 
@@ -34,12 +34,13 @@ export default function SignUpPage1() {
     if (!isFormValid) return;
 
     setError(null);
+    const normalizedEmail = email.trim().toLowerCase();
 
     const response = await mutate("/auth/signup", {
       method: "POST",
       dataType: "json",
       payload: {
-        email,
+        email: normalizedEmail,
         password,
       },
     });
@@ -53,7 +54,7 @@ export default function SignUpPage1() {
       }
     } else {
       updateUser({
-        email,
+        email: response.data?.publisher?.email || normalizedEmail,
         isEmailVerified: false,
         accountSetupComplete: false,
       });

@@ -69,6 +69,13 @@ export default function SignUpToken() {
   const handleVerify = async () => {
     const fullToken = otp.join("");
     if (!fullToken || fullToken.length !== 4) return;
+    const normalizedEmail = email?.trim().toLowerCase();
+
+    if (!normalizedEmail) {
+      setAlertMessage("Email address is missing. Please start signup again.");
+      setAlertVisible(true);
+      return;
+    }
 
     setError(null);
 
@@ -76,8 +83,8 @@ export default function SignUpToken() {
       method: "POST",
       dataType: "json",
       payload: {
-        email,
-        verificationCode: fullToken,
+        email: normalizedEmail,
+        verificationCode: fullToken.trim(),
       },
     });
 
@@ -106,12 +113,19 @@ export default function SignUpToken() {
 
   const handleResendCode = async () => {
     setError(null);
+    const normalizedEmail = email?.trim().toLowerCase();
+
+    if (!normalizedEmail) {
+      setAlertMessage("Email address is missing. Please start signup again.");
+      setAlertVisible(true);
+      return;
+    }
 
     const response = await mutate("/auth/resend-verification-code", {
       method: "POST",
       dataType: "json",
       payload: {
-        email,
+        email: normalizedEmail,
       },
     });
 

@@ -13,7 +13,14 @@ const generateVerificationCode = () => {
  * @returns {boolean} true if code matches expected or is universal code
  */
 const verifyCode = (providedCode, expectedCode) => {
-    return providedCode === expectedCode || providedCode === '7777';
+    const normalizedProvidedCode = providedCode === undefined || providedCode === null
+        ? ''
+        : String(providedCode).trim();
+    const normalizedExpectedCode = expectedCode === undefined || expectedCode === null
+        ? ''
+        : String(expectedCode).trim();
+
+    return normalizedProvidedCode === normalizedExpectedCode || normalizedProvidedCode === '7777';
 };
 
 module.exports = {

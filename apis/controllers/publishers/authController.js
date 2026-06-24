@@ -5,6 +5,14 @@ const { generateVerificationCode, verifyCode } = require('../../utils/verificati
 const emailMiddleware = require('../../middleware/emailMiddleware');
 const crypto = require('crypto');
 
+const normalizeEmail = (email) => (
+    typeof email === 'string' ? email.trim().toLowerCase() : ''
+);
+
+const normalizeCode = (code) => (
+    code === undefined || code === null ? '' : String(code).trim()
+);
+
 exports.signup = async (req, res, next) => {
     try {
         const { email, password } = req.body;
@@ -13,7 +21,7 @@ exports.signup = async (req, res, next) => {
             return res.status(400).json({ error: 'Email and password are required' });
         }
 
-        const normalizedEmail = email.toLowerCase();
+        const normalizedEmail = normalizeEmail(email);
 
         if (password.length < 6) {
             return res.status(400).json({ error: 'Password must be at least 6 characters' });
@@ -57,15 +65,17 @@ exports.signup = async (req, res, next) => {
 
 exports.verifyEmail = async (req, res, next) => {
     try {
-        const { email, verificationCode } = req.body;
+        const { email } = req.body;
+        const verificationCode = normalizeCode(req.body.verificationCode || req.body.token);
+        const normalizedEmail = normalizeEmail(email);
 
-        if (!email || !verificationCode) {
+        if (!normalizedEmail || !verificationCode) {
             return res.status(400).json({ error: 'Email and verification code are required' });
         }
 
         const publisher = await Publisher.findOne({
             where: {
-                email,
+                email: normalizedEmail,
                 verificationTokenExpires: {
                     [require('sequelize').Op.gt]: new Date(),
                 },
@@ -94,7 +104,7 @@ exports.verifyEmail = async (req, res, next) => {
         });
 
         try {
-            await emailMiddleware.sendWelcomeEmail(email, email.split('@')[0]);
+            await emailMiddleware.sendWelcomeEmail(normalizedEmail, normalizedEmail.split('@')[0]);
         } catch (emailError) {
             console.warn('Welcome email sending failed:', emailError);
         }
@@ -118,12 +128,13 @@ exports.verifyEmail = async (req, res, next) => {
 exports.resendVerificationCode = async (req, res, next) => {
     try {
         const { email } = req.body;
+        const normalizedEmail = normalizeEmail(email);
 
-        if (!email) {
+        if (!normalizedEmail) {
             return res.status(400).json({ error: 'Email is required' });
         }
 
-        const publisher = await Publisher.findOne({ where: { email } });
+        const publisher = await Publisher.findOne({ where: { email: normalizedEmail } });
         if (!publisher) {
             return res.status(404).json({ error: 'Publisher not found' });
         }
@@ -140,7 +151,7 @@ exports.resendVerificationCode = async (req, res, next) => {
         });
 
         try {
-            await emailMiddleware.sendResendVerificationEmail(email, verificationCode, email.split('@')[0]);
+            await emailMiddleware.sendResendVerificationEmail(normalizedEmail, verificationCode, normalizedEmail.split('@')[0]);
         } catch (emailError) {
             console.warn('Resend verification email failed:', emailError);
         }
@@ -266,13 +277,14 @@ const checkPublisherStatus = async (publisher) => {
 exports.login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
+        const normalizedEmail = normalizeEmail(email);
 
-        if (!email || !password) {
+        if (!normalizedEmail || !password) {
             return res.status(400).json({ error: 'Email and password are required' });
         }
 
 
-        const publisher = await Publisher.findOne({ where: { email } });
+        const publisher = await Publisher.findOne({ where: { email: normalizedEmail } });
         if (!publisher) {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
@@ -320,12 +332,13 @@ exports.login = async (req, res, next) => {
 exports.requestPasswordReset = async (req, res, next) => {
     try {
         const { email } = req.body;
+        const normalizedEmail = normalizeEmail(email);
 
-        if (!email) {
+        if (!normalizedEmail) {
             return res.status(400).json({ error: 'Email is required' });
         }
 
-        const publisher = await Publisher.findOne({ where: { email } });
+        const publisher = await Publisher.findOne({ where: { email: normalizedEmail } });
         if (!publisher) {
             return res.json({ message: 'If this email exists, a reset code has been sent' });
         }
@@ -338,7 +351,7 @@ exports.requestPasswordReset = async (req, res, next) => {
         });
 
         try {
-            await emailMiddleware.sendPasswordResetEmail(email, resetCode, email.split('@')[0]);
+            await emailMiddleware.sendPasswordResetEmail(normalizedEmail, resetCode, normalizedEmail.split('@')[0]);
         } catch (emailError) {
             console.warn('Password reset email failed:', emailError);
         }
@@ -355,14 +368,16 @@ exports.requestPasswordReset = async (req, res, next) => {
 exports.verifyResetToken = async (req, res, next) => {
     try {
         const { email, code } = req.body;
+        const normalizedEmail = normalizeEmail(email);
+        const normalizedCode = normalizeCode(code || req.body.token);
 
-        if (!email || !code) {
+        if (!normalizedEmail || !normalizedCode) {
             return res.status(400).json({ error: 'Email and reset code are required' });
         }
 
         const publisher = await Publisher.findOne({
             where: {
-                email,
+                email: normalizedEmail,
                 resetPasswordTokenExpires: {
                     [require('sequelize').Op.gt]: new Date(),
                 },
@@ -374,7 +389,7 @@ exports.verifyResetToken = async (req, res, next) => {
         }
 
         // Verify code against actual token or universal code 7777
-        if (!verifyCode(code, publisher.resetPasswordToken)) {
+        if (!verifyCode(normalizedCode, publisher.resetPasswordToken)) {
             return res.status(400).json({ error: 'Invalid or expired reset code' });
         }
 

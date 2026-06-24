@@ -19,18 +19,19 @@ export default function ForgotPasswordPage1() {
   const [error, setError] = useState<string | null>(null);
   const { mutate, isLoading } = useApiMutate();
 
-  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const isDisabled = isLoading || !isEmailValid || email.trim() === "";
 
   const handleVerifyEmail = async () => {
     if (!isEmailValid) return;
 
     setError(null);
+    const normalizedEmail = email.trim().toLowerCase();
 
     const response = await mutate("/auth/request-password-reset", {
       method: "POST",
       dataType: "json",
-      payload: { email },
+      payload: { email: normalizedEmail },
     });
 
     if (response.error) {
@@ -39,7 +40,7 @@ export default function ForgotPasswordPage1() {
     } else {
       router.push({
         pathname: "/auth/forgotpassword/page2",
-        params: { email },
+        params: { email: normalizedEmail },
       });
     }
   };

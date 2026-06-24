@@ -68,7 +68,7 @@ export default function LoginPage() {
     }
   };
 
-  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const isFormValid =
     email.trim() !== "" && password.trim() !== "" && isEmailValid;
   const isDisabled = isLoading || !isFormValid;
@@ -77,12 +77,13 @@ export default function LoginPage() {
     if (!isFormValid) return;
 
     setError(null);
+    const normalizedEmail = email.trim().toLowerCase();
 
     const response = await mutate("/auth/login", {
       method: "POST",
       dataType: "json",
       payload: {
-        email,
+        email: normalizedEmail,
         password,
       },
     });
@@ -93,7 +94,7 @@ export default function LoginPage() {
       // Email not verified — resend code and navigate to token page
       if (response.error.includes("verify your email")) {
         updateUser({
-          email,
+          email: normalizedEmail,
           isEmailVerified: false,
           accountSetupComplete: false,
         });
@@ -102,7 +103,7 @@ export default function LoginPage() {
         await mutate("/auth/resend-verification-code", {
           method: "POST",
           dataType: "json",
-          payload: { email },
+          payload: { email: normalizedEmail },
         });
 
         router.push("/auth/signup/token");

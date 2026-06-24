@@ -64,6 +64,13 @@ export default function ForgotPasswordPage2() {
   const handleVerify = async () => {
     const fullToken = otp.join("");
     if (!fullToken || fullToken.length !== 4) return;
+    const normalizedEmail = email?.trim().toLowerCase();
+
+    if (!normalizedEmail) {
+      setAlertMessage("Email address is missing. Please restart password reset.");
+      setAlertVisible(true);
+      return;
+    }
 
     setError(null);
 
@@ -71,8 +78,8 @@ export default function ForgotPasswordPage2() {
       method: "POST",
       dataType: "json",
       payload: {
-        email,
-        code: fullToken,
+        email: normalizedEmail,
+        code: fullToken.trim(),
       },
     });
 
@@ -93,11 +100,18 @@ export default function ForgotPasswordPage2() {
 
   const handleResendCode = async () => {
     setError(null);
+    const normalizedEmail = email?.trim().toLowerCase();
+
+    if (!normalizedEmail) {
+      setAlertMessage("Email address is missing. Please restart password reset.");
+      setAlertVisible(true);
+      return;
+    }
 
     const response = await mutate("/auth/request-password-reset", {
       method: "POST",
       dataType: "json",
-      payload: { email },
+      payload: { email: normalizedEmail },
     });
 
     if (response.error) {
