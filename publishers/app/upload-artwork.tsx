@@ -21,8 +21,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import ImageFitModal, { FittedImage } from "./components/ImageFitModal";
 import ArtworkList from "./components/ArtworkList";
+import ImageFitModal, { FittedImage } from "./components/ImageFitModal";
 
 export default function UploadArtwork() {
   const insets = useSafeAreaInsets();
@@ -42,6 +42,8 @@ export default function UploadArtwork() {
   const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(
     null,
   );
+  const [modalSelectedImage, setModalSelectedImage] =
+    useState<SelectedImage | null>(null);
   const [imageToFit, setImageToFit] =
     useState<ImagePicker.ImagePickerAsset | null>(null);
   const [formData, setFormData] = useState<ArtworkForm>({
@@ -58,7 +60,9 @@ export default function UploadArtwork() {
     [],
   );
   const [showAddModal, setShowAddModal] = useState(false);
-  const [isFittingModalArtwork, setIsFittingModalArtwork] = useState(false);
+  const [imageFitTarget, setImageFitTarget] = useState<
+    "page" | "modal" | null
+  >(null);
   const [isSaving, setIsSaving] = useState(false);
   const [carouselName, setCarouselName] = useState("");
   const [carouselTag, setCarouselTag] = useState("");
@@ -133,7 +137,7 @@ export default function UploadArtwork() {
       const asset = result.assets[0];
 
       if (validateImage(asset)) {
-        setIsFittingModalArtwork(inModal);
+        setImageFitTarget(inModal ? "modal" : "page");
         if (inModal) {
           setShowAddModal(false);
         }
@@ -143,20 +147,23 @@ export default function UploadArtwork() {
   };
 
   const handleFittedImage = (image: FittedImage) => {
-    setSelectedImage(image);
-    setImageToFit(null);
-    if (isFittingModalArtwork) {
+    if (imageFitTarget === "modal") {
+      setModalSelectedImage(image);
       setShowAddModal(true);
-      setIsFittingModalArtwork(false);
+    } else {
+      setSelectedImage(image);
     }
+
+    setImageToFit(null);
+    setImageFitTarget(null);
   };
 
   const handleCancelImageFit = () => {
     setImageToFit(null);
-    if (isFittingModalArtwork) {
+    if (imageFitTarget === "modal") {
       setShowAddModal(true);
-      setIsFittingModalArtwork(false);
     }
+    setImageFitTarget(null);
   };
 
   const handleFormChange = (field: keyof ArtworkForm, value: string) => {
@@ -190,13 +197,16 @@ export default function UploadArtwork() {
     return true;
   };
 
-  const handleAddArtwork = () => {
-    if (validateForm() && selectedImage) {
+  const handleAddArtwork = (source: "page" | "modal" = "page") => {
+    const artworkImage =
+      source === "modal" ? modalSelectedImage : selectedImage;
+
+    if (validateForm() && artworkImage) {
       const newArtwork: UploadedArtwork = {
-        uri: selectedImage.uri,
-        imageWidth: selectedImage.width,
-        imageHeight: selectedImage.height,
-        fileSize: selectedImage.fileSize,
+        uri: artworkImage.uri,
+        imageWidth: artworkImage.width,
+        imageHeight: artworkImage.height,
+        fileSize: artworkImage.fileSize,
         title: formData.title,
         artist: formData.artist,
         height: formData.height,
@@ -212,6 +222,7 @@ export default function UploadArtwork() {
 
       // Reset form and image
       setSelectedImage(null);
+      setModalSelectedImage(null);
       setFormData({
         title: "",
         artist: "",
@@ -221,7 +232,9 @@ export default function UploadArtwork() {
         purchasePrice: "",
       });
 
-      setShowAddModal(false);
+      if (source === "modal") {
+        setShowAddModal(false);
+      }
     }
   };
 
@@ -243,6 +256,7 @@ export default function UploadArtwork() {
 
   const handleModalCancel = () => {
     setShowAddModal(false);
+    setModalSelectedImage(null);
     handleCancel();
   };
 
@@ -592,7 +606,7 @@ export default function UploadArtwork() {
                   <Pressable
                     className="flex-1 rounded-xl justify-center items-center bg-orange-600"
                     style={{ minHeight: 60 }}
-                    onPress={handleAddArtwork}
+                    onPress={() => handleAddArtwork()}
                   >
                     <Text className="text-base  text-white">Add Artwork</Text>
                   </Pressable>
@@ -771,7 +785,7 @@ export default function UploadArtwork() {
                   </View>
 
                   <View className="px-5 py-6">
-                    {!selectedImage ? (
+                    {!modalSelectedImage ? (
                       <>
                         {/* Upload Box */}
                         <Pressable
@@ -832,7 +846,7 @@ export default function UploadArtwork() {
                         <View className="bg-neutral-800 rounded-lg p-6 mb-6 border border-neutral-700">
                           {/* Selected Image Display */}
                           <Image
-                            source={{ uri: selectedImage.uri }}
+                            source={{ uri: modalSelectedImage.uri }}
                             style={{
                               width: "100%",
                               height: 200,
@@ -842,9 +856,9 @@ export default function UploadArtwork() {
                             resizeMode="contain"
                           />
                           <Text className="text-gray-400 text-xs mb-6">
-                            {selectedImage.width}x{selectedImage.height}px
-                            {selectedImage.fileSize
-                              ? ` • ${(selectedImage.fileSize / (1024 * 1024)).toFixed(2)} MB`
+                            {modalSelectedImage.width}x{modalSelectedImage.height}px
+                            {modalSelectedImage.fileSize
+                              ? ` • ${(modalSelectedImage.fileSize / (1024 * 1024)).toFixed(2)} MB`
                               : ""}
                           </Text>
 
@@ -963,7 +977,7 @@ export default function UploadArtwork() {
                                 backgroundColor: "transparent",
                               }}
                               onPress={() => {
-                                setSelectedImage(null);
+                                setModalSelectedImage(null);
                                 setFormData({
                                   title: "",
                                   artist: "",
@@ -981,7 +995,7 @@ export default function UploadArtwork() {
                             <Pressable
                               className="flex-1 rounded-xl justify-center items-center bg-orange-600"
                               style={{ minHeight: 60 }}
-                              onPress={handleAddArtwork}
+                              onPress={() => handleAddArtwork("modal")}
                             >
                               <Text className="text-base text-white">
                                 Add Artwork

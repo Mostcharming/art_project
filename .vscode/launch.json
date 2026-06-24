@@ -8,7 +8,7 @@
       "runtimeArgs": ["run", "dev"],
       "runtimeExecutable": "npm",
       "cwd": "${workspaceFolder}/apis",
-      "console": "externalTerminal",
+      "console": "internalConsole",
       "presentation": {
         "hidden": false,
         "group": "default",
