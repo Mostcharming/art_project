@@ -6,6 +6,7 @@ import ImageFitModal, { FittedImage } from "@/app/components/ImageFitModal";
 import { Alert } from "@/components/ui/Alert";
 import { useCarouselApi } from "@/hooks/useCarouselApi";
 import { Carousel } from "@/hooks/useCarouselList";
+import { useKeyboardAwareScroll } from "@/hooks/useKeyboardAwareScroll";
 import { useCarouselListStore } from "@/store/carouselListStore";
 import { useCarouselStore } from "@/store/carouselStore";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -128,6 +129,17 @@ export default function EditCarousel() {
   const [carouselDescription, setCarouselDescription] = useState("");
   const [showEditDetailsModal, setShowEditDetailsModal] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+  const detailsScrollViewRef = useRef<ScrollView>(null);
+  const {
+    androidKeyboardPadding,
+    handleInputBlur: handleArtworkInputBlur,
+    handleInputFocus: handleArtworkInputFocus,
+  } = useKeyboardAwareScroll(scrollViewRef);
+  const {
+    androidKeyboardPadding: detailsAndroidKeyboardPadding,
+    handleInputBlur: handleDetailsInputBlur,
+    handleInputFocus: handleDetailsInputFocus,
+  } = useKeyboardAwareScroll(detailsScrollViewRef);
 
   // Temporary carousel details for modal editing
   const [tempName, setTempName] = useState("");
@@ -375,12 +387,6 @@ export default function EditCarousel() {
     setShowAddModal(false);
   };
 
-  const scrollToArtworkActions = () => {
-    setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    }, 250);
-  };
-
   const openEditDetailsModal = () => {
     setTempName(carouselName);
     setTempTag(carouselTag);
@@ -562,7 +568,7 @@ export default function EditCarousel() {
         scrollEnabled={true}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingBottom: insets.bottom + 80,
+          paddingBottom: insets.bottom + 80 + androidKeyboardPadding,
           paddingHorizontal: 20,
         }}
       >
@@ -677,7 +683,8 @@ export default function EditCarousel() {
             onFormChange={handleFormChange}
             onCancel={handleCancel}
             onSubmit={handleAddArtwork}
-            onInputFocus={scrollToArtworkActions}
+            onInputBlur={handleArtworkInputBlur}
+            onInputFocus={handleArtworkInputFocus}
           />
         ) : (
           <>
@@ -811,10 +818,16 @@ export default function EditCarousel() {
           <View className="flex-1 justify-end">
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
               <ScrollView
+                ref={detailsScrollViewRef}
                 scrollEnabled={true}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="interactive"
                 showsVerticalScrollIndicator={true}
                 className="bg-black rounded-t-2xl"
                 style={{ maxHeight: "88%" }}
+                contentContainerStyle={{
+                  paddingBottom: detailsAndroidKeyboardPadding,
+                }}
               >
                 <View className="pb-8 pt-4 px-5">
                   <View className="w-10 h-1 bg-neutral-600 rounded-full self-center mb-4" />
@@ -949,6 +962,8 @@ export default function EditCarousel() {
                         placeholderTextColor="#666666"
                         value={tempDescription}
                         onChangeText={setTempDescription}
+                        onFocus={handleDetailsInputFocus}
+                        onBlur={handleDetailsInputBlur}
                         multiline
                         numberOfLines={4}
                         textAlignVertical="top"

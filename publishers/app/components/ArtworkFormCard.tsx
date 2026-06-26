@@ -7,6 +7,7 @@ interface ArtworkFormCardProps {
   onFormChange: (field: keyof ArtworkForm, value: string) => void;
   onCancel: () => void;
   onSubmit: () => void;
+  onInputBlur?: () => void;
   onInputFocus?: () => void;
 }
 
@@ -16,6 +17,7 @@ export default function ArtworkFormCard({
   onFormChange,
   onCancel,
   onSubmit,
+  onInputBlur,
   onInputFocus,
 }: ArtworkFormCardProps) {
   return (
@@ -73,6 +75,7 @@ export default function ArtworkFormCard({
             placeholderTextColor="#ffffff"
             value={formData.height}
             onChangeText={(value) => onFormChange("height", value)}
+            onBlur={onInputBlur}
             onFocus={onInputFocus}
             keyboardType="decimal-pad"
             className="bg-black text-white px-4 py-3 rounded-lg"
@@ -87,6 +90,7 @@ export default function ArtworkFormCard({
             placeholderTextColor="#ffffff"
             value={formData.width}
             onChangeText={(value) => onFormChange("width", value)}
+            onBlur={onInputBlur}
             onFocus={onInputFocus}
             keyboardType="decimal-pad"
             className="bg-black text-white px-4 py-3 rounded-lg"
@@ -104,6 +108,7 @@ export default function ArtworkFormCard({
             placeholderTextColor="#ffffff"
             value={formData.yearOfCreation}
             onChangeText={(value) => onFormChange("yearOfCreation", value)}
+            onBlur={onInputBlur}
             onFocus={onInputFocus}
             keyboardType="number-pad"
             maxLength={4}
@@ -119,6 +124,7 @@ export default function ArtworkFormCard({
             placeholderTextColor="#ffffff"
             value={formData.purchasePrice}
             onChangeText={(value) => onFormChange("purchasePrice", value)}
+            onBlur={onInputBlur}
             onFocus={onInputFocus}
             keyboardType="decimal-pad"
             className="bg-black text-white px-4 py-3 rounded-lg"

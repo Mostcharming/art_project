@@ -1,4 +1,5 @@
 import { useApiMutate } from "@/hooks/useApiMutate";
+import { useKeyboardAwareScroll } from "@/hooks/useKeyboardAwareScroll";
 import { useUserStore } from "@/store/userStore";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -57,6 +58,11 @@ export default function AccountSetup() {
   const [error, setError] = useState<string | null>(null);
   const bioRef = useRef<TextInput>(null);
   const scrollViewRef = useRef<ScrollView>(null);
+  const {
+    androidKeyboardPadding,
+    handleInputBlur: handleBioBlur,
+    handleInputFocus: handleBioFocus,
+  } = useKeyboardAwareScroll(scrollViewRef);
 
   const isFormValid =
     persona.trim() !== "" && name.trim() !== "" && country.trim() !== "";
@@ -93,17 +99,11 @@ export default function AccountSetup() {
     }
   };
 
-  const scrollToBio = () => {
-    setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    }, 250);
-  };
-
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView
         className="flex-1 bg-black"
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={0}
         style={{ paddingTop: insets.top }}
       >
@@ -120,7 +120,9 @@ export default function AccountSetup() {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}
+          contentContainerStyle={{
+            paddingBottom: insets.bottom + 120 + androidKeyboardPadding,
+          }}
         >
           {/* Header */}
           <View className="mb-8">
@@ -205,7 +207,8 @@ export default function AccountSetup() {
                 placeholderTextColor="#666666"
                 value={bio}
                 onChangeText={setBio}
-                onFocus={scrollToBio}
+                onFocus={handleBioFocus}
+                onBlur={handleBioBlur}
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"

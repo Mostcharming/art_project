@@ -1,5 +1,6 @@
 import { Alert } from "@/components/ui/Alert";
 import { useCarouselApi } from "@/hooks/useCarouselApi";
+import { useKeyboardAwareScroll } from "@/hooks/useKeyboardAwareScroll";
 import { useCarouselStore } from "@/store/carouselStore";
 import { ArtworkForm, SelectedImage, UploadedArtwork } from "@/types";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -66,6 +67,11 @@ export default function UploadArtwork() {
   const [carouselCountry, setCarouselCountry] = useState("");
   const [carouselDescription, setCarouselDescription] = useState("");
   const scrollViewRef = useRef<ScrollView>(null);
+  const {
+    androidKeyboardPadding,
+    handleInputBlur: handleArtworkInputBlur,
+    handleInputFocus: handleArtworkInputFocus,
+  } = useKeyboardAwareScroll(scrollViewRef);
 
   // Initialize carousel details from route params
   useEffect(() => {
@@ -334,17 +340,11 @@ export default function UploadArtwork() {
     }
   };
 
-  const scrollToArtworkActions = () => {
-    setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    }, 250);
-  };
-
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView
         className="flex-1 bg-black"
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={0}
         style={{ paddingTop: insets.top }}
       >
@@ -354,7 +354,9 @@ export default function UploadArtwork() {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}
+          contentContainerStyle={{
+            paddingBottom: insets.bottom + 120 + androidKeyboardPadding,
+          }}
         >
           {/* Header with Back Button */}
           <View className="mb-8 mt-4">
@@ -456,7 +458,8 @@ export default function UploadArtwork() {
               onFormChange={handleFormChange}
               onCancel={handleCancel}
               onSubmit={handleAddArtwork}
-              onInputFocus={scrollToArtworkActions}
+              onInputBlur={handleArtworkInputBlur}
+              onInputFocus={handleArtworkInputFocus}
             />
           ) : (
             <>

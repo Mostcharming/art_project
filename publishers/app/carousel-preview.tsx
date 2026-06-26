@@ -1,5 +1,6 @@
 import { Alert } from "@/components/ui/Alert";
 import { useCarouselApi } from "@/hooks/useCarouselApi";
+import { useAndroidKeyboardHeight } from "@/hooks/useKeyboardAwareScroll";
 import { UploadedArtwork } from "@/types";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -54,6 +55,7 @@ export default function CarouselPreview() {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDateObj, setSelectedDateObj] = useState<Date>(new Date());
+  const timePickerKeyboardHeight = useAndroidKeyboardHeight(showTimePicker);
 
   const handleNextImage = () => {
     setCurrentIndex((prevIndex) => {
@@ -418,9 +420,13 @@ export default function CarouselPreview() {
             onPress={() => setShowTimePicker(false)}
           >
             <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              behavior={Platform.OS === "ios" ? "padding" : undefined}
               keyboardVerticalOffset={0}
-              style={{ flex: 1, justifyContent: "flex-end" }}
+              style={{
+                flex: 1,
+                justifyContent: "flex-end",
+                paddingBottom: timePickerKeyboardHeight,
+              }}
             >
               <Pressable
                 className="bg-neutral-800 rounded-t-2xl px-5 py-4"

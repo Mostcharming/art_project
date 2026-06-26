@@ -1,4 +1,5 @@
 import { Alert } from "@/components/ui/Alert";
+import { useKeyboardAwareScroll } from "@/hooks/useKeyboardAwareScroll";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
@@ -52,6 +53,11 @@ export default function CreateCarousel() {
   const [alertMessage, setAlertMessage] = useState("");
   const descriptionRef = useRef<TextInput>(null);
   const scrollViewRef = useRef<ScrollView>(null);
+  const {
+    androidKeyboardPadding,
+    handleInputBlur: handleDescriptionBlur,
+    handleInputFocus: handleDescriptionFocus,
+  } = useKeyboardAwareScroll(scrollViewRef);
 
   const isFormValid =
     carouselName.trim() !== "" &&
@@ -90,17 +96,11 @@ export default function CreateCarousel() {
     });
   };
 
-  const scrollToDescriptionActions = () => {
-    setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    }, 250);
-  };
-
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView
         className="flex-1 bg-black"
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={0}
         style={{ paddingTop: insets.top }}
       >
@@ -110,7 +110,9 @@ export default function CreateCarousel() {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
+          contentContainerStyle={{
+            paddingBottom: insets.bottom + 100 + androidKeyboardPadding,
+          }}
         >
           {/* Header with Back Button */}
           <View className="mb-8 mt-4">
@@ -202,7 +204,8 @@ export default function CreateCarousel() {
                 placeholderTextColor="#666666"
                 value={description}
                 onChangeText={setDescription}
-                onFocus={scrollToDescriptionActions}
+                onFocus={handleDescriptionFocus}
+                onBlur={handleDescriptionBlur}
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"
