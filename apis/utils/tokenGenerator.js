@@ -6,12 +6,21 @@ require('dotenv').config();
  * Generate a random token for email verification and password reset
  * @returns {string} Random token
  */
-const generateToken = (data) => {
+const generateToken = (data, options = {}) => {
     // If data is provided, generate JWT token
     if (data) {
-        return jwt.sign(data, process.env.JWT_SECRET || 'your-secret-key', {
-            expiresIn: process.env.JWT_EXPIRATION || '7d'
-        });
+        const signOptions = {};
+        const hasCustomExpiration = Object.prototype.hasOwnProperty.call(options, 'expiresIn');
+
+        if (hasCustomExpiration) {
+            if (options.expiresIn) {
+                signOptions.expiresIn = options.expiresIn;
+            }
+        } else {
+            signOptions.expiresIn = process.env.JWT_EXPIRATION || '7d';
+        }
+
+        return jwt.sign(data, process.env.JWT_SECRET || 'your-secret-key', signOptions);
     }
     // Otherwise, generate random token for verification/reset
     return crypto.randomBytes(32).toString('hex');

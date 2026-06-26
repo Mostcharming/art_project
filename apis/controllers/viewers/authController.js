@@ -149,7 +149,7 @@ exports.verifyEmailAndIssueToken = async (req, res, next) => {
             id: viewer.id,
             email: viewer.email,
             type: 'viewer',
-        });
+        }, { expiresIn: null });
 
         try {
             await emailMiddleware.sendWelcomeViewerEmail(
@@ -365,7 +365,7 @@ exports.login = async (req, res, next) => {
             id: viewer.id,
             email: viewer.email,
             type: 'viewer',
-        });
+        }, { expiresIn: null });
 
         try {
             await emailMiddleware.sendNewSignInDetectedEmail(

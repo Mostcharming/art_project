@@ -13,6 +13,9 @@ import {
 } from "react-native";
 import Svg, { Rect, Image as SvgImage } from "react-native-svg";
 
+const SVG_EXPORT_TIMEOUT_MS = 10000;
+const CROP_EPSILON = 0.5;
+
 export interface FittedImage {
   uri: string;
   width: number;
@@ -52,6 +55,7 @@ export default function ImageFitModal({
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isExportSvgReady, setIsExportSvgReady] = useState(false);
   const offsetRef = useRef(offset);
   const zoomRef = useRef(zoom);
   const exportSvgRef = useRef<Svg | null>(null);
@@ -65,6 +69,7 @@ export default function ImageFitModal({
     if (visible) {
       setOffset({ x: 0, y: 0 });
       setZoom(1);
+      setIsExportSvgReady(false);
     }
   }, [visible, image?.uri]);
 
@@ -248,19 +253,98 @@ export default function ImageFitModal({
     };
   };
 
+  const getSourceCrop = () => {
+    if (!image?.width || !image.height) return null;
+
+    const renderedWidth = baseSize.width * zoom;
+    const renderedHeight = baseSize.height * zoom;
+    const imageLeft = (frameWidth - renderedWidth) / 2 + offset.x;
+    const imageTop = (frameHeight - renderedHeight) / 2 + offset.y;
+    const scaleX = renderedWidth / image.width;
+    const scaleY = renderedHeight / image.height;
+
+    if (!scaleX || !scaleY) return null;
+
+    const rawOriginX = -imageLeft / scaleX;
+    const rawOriginY = -imageTop / scaleY;
+    const rawWidth = frameWidth / scaleX;
+    const rawHeight = frameHeight / scaleY;
+    const hasPadding =
+      rawOriginX < -CROP_EPSILON ||
+      rawOriginY < -CROP_EPSILON ||
+      rawOriginX + rawWidth > image.width + CROP_EPSILON ||
+      rawOriginY + rawHeight > image.height + CROP_EPSILON;
+
+    if (hasPadding) return null;
+
+    const originX = Math.max(0, Math.round(rawOriginX));
+    const originY = Math.max(0, Math.round(rawOriginY));
+
+    return {
+      originX,
+      originY,
+      width: Math.max(
+        1,
+        Math.min(image.width - originX, Math.round(rawWidth)),
+      ),
+      height: Math.max(
+        1,
+        Math.min(image.height - originY, Math.round(rawHeight)),
+      ),
+    };
+  };
+
+  const exportCroppedImage = async () => {
+    if (!image?.uri) return null;
+
+    const crop = getSourceCrop();
+    if (!crop) return null;
+
+    return ImageManipulator.manipulateAsync(
+      image.uri,
+      [
+        { crop },
+        { resize: { width: minWidth, height: minHeight } },
+      ],
+      {
+        compress: 1,
+        format: ImageManipulator.SaveFormat.PNG,
+      },
+    );
+  };
+
   const exportSvgToFile = async () => {
     const svg = exportSvgRef.current;
     if (!svg || !FileSystem.cacheDirectory) {
       throw new Error("Image export is not available on this device.");
     }
 
+    if (!isExportSvgReady) {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    }
+
     const base64 = await new Promise<string>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error("SVG export timed out."));
+      }, SVG_EXPORT_TIMEOUT_MS);
+
       try {
-        svg.toDataURL(resolve, {
+        svg.toDataURL((data) => {
+          clearTimeout(timeout);
+          const [, encodedData = data] = data.split(",");
+
+          if (!encodedData) {
+            reject(new Error("SVG export returned empty data."));
+            return;
+          }
+
+          resolve(encodedData);
+        }, {
           width: minWidth,
           height: minHeight,
         });
       } catch (error) {
+        clearTimeout(timeout);
         reject(error);
       }
     });
@@ -278,11 +362,21 @@ export default function ImageFitModal({
 
     setIsProcessing(true);
     try {
-      const exportedUri = await exportSvgToFile();
-      const result = await ImageManipulator.manipulateAsync(exportedUri, [], {
-        compress: 1,
-        format: ImageManipulator.SaveFormat.PNG,
-      });
+      let result: ImageManipulator.ImageResult | null = null;
+
+      try {
+        result = await exportCroppedImage();
+      } catch (error) {
+        console.warn("Native image crop failed, falling back to SVG:", error);
+      }
+
+      if (!result) {
+        const exportedUri = await exportSvgToFile();
+        result = await ImageManipulator.manipulateAsync(exportedUri, [], {
+          compress: 1,
+          format: ImageManipulator.SaveFormat.PNG,
+        });
+      }
 
       onConfirm({
         uri: result.uri,
@@ -340,16 +434,23 @@ export default function ImageFitModal({
         {image && (
           <View
             pointerEvents="none"
+            collapsable={false}
             style={{
               position: "absolute",
-              left: -minWidth - 20,
+              left: 0,
               top: 0,
-              width: minWidth,
-              height: minHeight,
-              opacity: 0,
+              width: 1,
+              height: 1,
+              opacity: 0.01,
+              overflow: "hidden",
             }}
           >
-            <Svg ref={exportSvgRef} width={minWidth} height={minHeight}>
+            <Svg
+              ref={exportSvgRef}
+              collapsable={false}
+              width={minWidth}
+              height={minHeight}
+            >
               <Rect width={minWidth} height={minHeight} fill="#000000" />
               <SvgImage
                 href={{ uri: image.uri }}
@@ -357,6 +458,7 @@ export default function ImageFitModal({
                 y={getExportLayout().y}
                 width={getExportLayout().width}
                 height={getExportLayout().height}
+                onLoad={() => setIsExportSvgReady(true)}
                 preserveAspectRatio="none"
               />
             </Svg>

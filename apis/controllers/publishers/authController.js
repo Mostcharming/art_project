@@ -114,7 +114,7 @@ exports.verifyEmail = async (req, res, next) => {
             id: publisher.id,
             email: publisher.email,
             type: 'publisher',
-        });
+        }, { expiresIn: null });
 
         try {
             await emailMiddleware.sendWelcomePublisherEmail(normalizedEmail, normalizedEmail.split('@')[0]);
@@ -329,7 +329,7 @@ exports.login = async (req, res, next) => {
             id: publisher.id,
             email: publisher.email,
             type: 'publisher',
-        });
+        }, { expiresIn: null });
 
         try {
             await emailMiddleware.sendNewSignInDetectedEmail(

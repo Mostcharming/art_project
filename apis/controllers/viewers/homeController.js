@@ -33,6 +33,113 @@ const formatCarousel = (carousel) => {
     };
 };
 
+const getArtworkAspectDetails = (artwork) => {
+    const width = parseFloat(artwork.widthInches);
+    const height = parseFloat(artwork.heightInches);
+
+    if (!width || !height || Number.isNaN(width) || Number.isNaN(height)) {
+        return {
+            orientation: null,
+            aspectRatio: null,
+        };
+    }
+
+    let orientation = 'landscape';
+    if (width > height) {
+        orientation = 'landscape';
+    } else if (height > width) {
+        orientation = 'landscape';
+    }
+
+    return {
+        orientation,
+        aspectRatio: Math.round((width / height) * 1000) / 1000,
+    };
+};
+
+const formatCarouselDetail = (carousel) => {
+    if (!carousel) return null;
+
+    const artworks = carousel.artworks || [];
+
+    return {
+        id: carousel.id,
+        name: carousel.name,
+        description: carousel.description,
+        imageUrl: artworks.length > 0 ? getCompleteImageUrl(artworks[0].imageUrl) : null,
+        heroImageUrl: carousel.heroImageUrl ? getCompleteImageUrl(carousel.heroImageUrl) : null,
+        artworkCount: artworks.length,
+        views: carousel.views || 0,
+        publisher: carousel.publisher ? {
+            id: carousel.publisher.id,
+            name: carousel.publisher.name,
+            profilePicture: getCompleteImageUrl(carousel.publisher.profilePicture),
+        } : null,
+        artworks: artworks.map((artwork) => ({
+            id: artwork.id,
+            title: artwork.title,
+            imageUrl: getCompleteImageUrl(artwork.imageUrl),
+            ...getArtworkAspectDetails(artwork),
+        })),
+    };
+};
+
+exports.getHomeCarouselById = async (req, res) => {
+    try {
+        const { carouselId } = req.params;
+
+        if (!/^\d+$/.test(carouselId)) {
+            return res.status(400).json({
+                success: false,
+                message: 'carouselId must be a valid numeric id',
+            });
+        }
+
+        const carousel = await db.Carousel.findOne({
+            where: {
+                id: carouselId,
+                status: 'active',
+                adminApproved: true,
+                isDeleted: false,
+            },
+            include: [
+                {
+                    model: db.Publisher,
+                    as: 'publisher',
+                    attributes: ['id', 'name', 'profilePicture'],
+                },
+                {
+                    model: db.Artwork,
+                    as: 'artworks',
+                    where: { isDeleted: false },
+                    required: false,
+                    separate: true,
+                    attributes: ['id', 'title', 'imageUrl', 'heightInches', 'widthInches'],
+                    order: [['createdAt', 'ASC']],
+                },
+            ],
+        });
+
+        if (!carousel) {
+            return res.status(404).json({
+                success: false,
+                message: 'Carousel not found',
+            });
+        }
+
+        res.json({
+            carousel: formatCarouselDetail(carousel),
+        });
+    } catch (error) {
+        console.error('Error fetching home carousel:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching carousel',
+            error: error.message,
+        });
+    }
+};
+
 exports.getHomeCarousels = async (req, res) => {
     try {
         const featuredCarousel = await db.Carousel.findOne({
@@ -169,10 +276,13 @@ exports.saveWatchingCarousel = async (req, res) => {
         });
 
         if (existingWatch) {
+            await existingWatch.increment('watchCount', { by: 1 });
             await existingWatch.update({
                 lastWatchedAt: new Date(),
-                watchCount: existingWatch.watchCount + 1,
                 progressSeconds: progressSeconds !== undefined ? progressSeconds : existingWatch.progressSeconds,
+            });
+            await existingWatch.reload({
+                attributes: ['id', 'carouselId', 'lastWatchedAt', 'watchCount', 'progressSeconds'],
             });
 
             return res.json({
@@ -252,7 +362,7 @@ exports.getRecentlyWatchedCarousels = async (req, res) => {
                 },
             ],
             order: [['lastWatchedAt', 'DESC']],
-            limit: 5,
+            limit: 3,
         });
 
         res.json({
