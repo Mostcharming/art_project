@@ -439,12 +439,11 @@ export default function ImageFitModal({
             collapsable={false}
             style={{
               position: "absolute",
-              left: 0,
-              top: 0,
-              width: 1,
-              height: 1,
+              left: -minWidth * 2,
+              top: -minHeight * 2,
+              width: minWidth,
+              height: minHeight,
               opacity: 0.01,
-              overflow: "hidden",
             }}
           >
             <Svg
@@ -452,6 +451,11 @@ export default function ImageFitModal({
               collapsable={false}
               width={minWidth}
               height={minHeight}
+              viewBox={`0 0 ${minWidth} ${minHeight}`}
+              style={{
+                width: minWidth,
+                height: minHeight,
+              }}
             >
               <Rect width={minWidth} height={minHeight} fill="#000000" />
               <SvgImage
