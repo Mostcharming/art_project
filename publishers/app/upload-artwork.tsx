@@ -62,6 +62,7 @@ export default function UploadArtwork() {
   );
   const [showAddModal, setShowAddModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isReorderingArtworks, setIsReorderingArtworks] = useState(false);
   const [carouselName, setCarouselName] = useState("");
   const [carouselTag, setCarouselTag] = useState("");
   const [carouselCountry, setCarouselCountry] = useState("");
@@ -359,6 +360,7 @@ export default function UploadArtwork() {
           className="flex-1 px-5"
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
+          scrollEnabled={!isReorderingArtworks}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingBottom: insets.bottom + 120 + androidKeyboardPadding,
@@ -414,6 +416,7 @@ export default function UploadArtwork() {
                 onArtworksChange={setUploadedArtworks}
                 onAddClick={() => setShowAddModal(true)}
                 onDelete={handleDeleteArtwork}
+                onDragStateChange={setIsReorderingArtworks}
               />
 
               {/* Create Carousel Button */}

@@ -2,9 +2,9 @@ import { UploadedArtwork } from "@/types";
 import { useEffect, useRef, useState } from "react";
 import {
   LayoutAnimation,
-  PanResponder,
   Platform,
   Pressable,
+  StyleSheet,
   Text,
   UIManager,
   View,
@@ -13,6 +13,20 @@ import ArtworkCard from "./ArtworkCard";
 
 const ROW_HEIGHT = 128;
 const LONG_PRESS_DELAY_MS = 180;
+const REORDER_ANIMATION = {
+  create: {
+    property: LayoutAnimation.Properties.opacity,
+    type: LayoutAnimation.Types.easeInEaseOut,
+  },
+  delete: {
+    property: LayoutAnimation.Properties.opacity,
+    type: LayoutAnimation.Types.easeInEaseOut,
+  },
+  duration: 180,
+  update: {
+    type: LayoutAnimation.Types.easeInEaseOut,
+  },
+};
 
 if (
   Platform.OS === "android" &&
@@ -26,6 +40,7 @@ interface ArtworkListProps {
   onArtworksChange: (artworks: UploadedArtwork[]) => void;
   onAddClick: () => void;
   onDelete: (index: number) => void;
+  onDragStateChange?: (isDragging: boolean) => void;
 }
 
 export default function ArtworkList({
@@ -33,20 +48,29 @@ export default function ArtworkList({
   onArtworksChange,
   onAddClick,
   onDelete,
+  onDragStateChange,
 }: ArtworkListProps) {
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [dragLockIndex, setDragLockIndex] = useState<number | null>(null);
   const artworksRef = useRef(artworks);
+  const onDragStateChangeRef = useRef(onDragStateChange);
   const dragStateRef = useRef<{
     active: boolean;
     currentIndex: number;
     initialIndex: number;
+    startY: number;
     timeout: ReturnType<typeof setTimeout> | null;
   }>({
     active: false,
     currentIndex: -1,
     initialIndex: -1,
+    startY: 0,
     timeout: null,
   });
+
+  useEffect(() => {
+    onDragStateChangeRef.current = onDragStateChange;
+  }, [onDragStateChange]);
 
   useEffect(() => {
     artworksRef.current = artworks;
@@ -57,6 +81,7 @@ export default function ArtworkList({
       if (dragStateRef.current.timeout) {
         clearTimeout(dragStateRef.current.timeout);
       }
+      onDragStateChangeRef.current?.(false);
     };
   }, []);
 
@@ -77,58 +102,57 @@ export default function ArtworkList({
       active: false,
       currentIndex: -1,
       initialIndex: -1,
+      startY: 0,
       timeout: null,
     };
     setDraggingIndex(null);
+    setDragLockIndex(null);
+    onDragStateChangeRef.current?.(false);
   };
 
-  const createDragHandlers = (index: number) =>
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {
-        if (dragStateRef.current.timeout) {
-          clearTimeout(dragStateRef.current.timeout);
-        }
+  const handleDragStart = (index: number, pageY: number) => {
+    if (dragStateRef.current.timeout) {
+      clearTimeout(dragStateRef.current.timeout);
+    }
 
-        dragStateRef.current = {
-          active: false,
-          currentIndex: index,
-          initialIndex: index,
-          timeout: setTimeout(() => {
-            dragStateRef.current.active = true;
-            setDraggingIndex(index);
-          }, LONG_PRESS_DELAY_MS),
-        };
-      },
-      onPanResponderMove: (_, gestureState) => {
-        if (!dragStateRef.current.active || artworksRef.current.length < 2) {
-          return;
-        }
+    setDragLockIndex(index);
+    onDragStateChangeRef.current?.(true);
+    dragStateRef.current = {
+      active: false,
+      currentIndex: index,
+      initialIndex: index,
+      startY: pageY,
+      timeout: setTimeout(() => {
+        dragStateRef.current.active = true;
+        setDraggingIndex(index);
+      }, LONG_PRESS_DELAY_MS),
+    };
+  };
 
-        const targetIndex = Math.max(
-          0,
-          Math.min(
-            artworksRef.current.length - 1,
-            dragStateRef.current.initialIndex +
-              Math.round(gestureState.dy / ROW_HEIGHT),
-          ),
-        );
+  const handleDragMove = (pageY: number) => {
+    if (!dragStateRef.current.active || artworksRef.current.length < 2) {
+      return;
+    }
 
-        if (targetIndex === dragStateRef.current.currentIndex) {
-          return;
-        }
+    const targetIndex = Math.max(
+      0,
+      Math.min(
+        artworksRef.current.length - 1,
+        dragStateRef.current.initialIndex +
+          Math.round((pageY - dragStateRef.current.startY) / ROW_HEIGHT),
+      ),
+    );
 
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        moveArtwork(dragStateRef.current.currentIndex, targetIndex);
-        dragStateRef.current.currentIndex = targetIndex;
-        setDraggingIndex(targetIndex);
-      },
-      onPanResponderRelease: finishDrag,
-      onPanResponderTerminate: finishDrag,
-      onPanResponderTerminationRequest: () => !dragStateRef.current.active,
-      onShouldBlockNativeResponder: () => true,
-    }).panHandlers;
+    if (targetIndex === dragStateRef.current.currentIndex) {
+      return;
+    }
+
+    LayoutAnimation.configureNext(REORDER_ANIMATION);
+    moveArtwork(dragStateRef.current.currentIndex, targetIndex);
+    dragStateRef.current.currentIndex = targetIndex;
+    setDragLockIndex(targetIndex);
+    setDraggingIndex(targetIndex);
+  };
 
   const getArtworkKey = (artwork: UploadedArtwork, index: number) =>
     artwork.id ||
@@ -139,26 +163,29 @@ export default function ArtworkList({
   return (
     <>
       {/* Header with Add Button */}
-      <View className="flex-row justify-between items-center mb-6">
-        <Text className="text-white">Uploaded artworks</Text>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Uploaded artworks</Text>
         <Pressable
-          className="flex-row items-center gap-2 px-4 py-2"
           onPress={onAddClick}
+          style={styles.addButton}
         >
-          <Text className="text-orange-600 text-lg font-bold">+</Text>
-          <Text className="text-orange-600 text-sm">Add artwork</Text>
+          <Text style={styles.addIcon}>+</Text>
+          <Text style={styles.addText}>Add artwork</Text>
         </Pressable>
       </View>
 
       {/* List of Uploaded Artworks */}
-      <View className="gap-4 mb-6">
+      <View style={styles.list}>
         {artworks.map((artwork, index) => (
           <View key={getArtworkKey(artwork, index)}>
             <ArtworkCard
               artwork={artwork}
               index={index}
-              dragHandlers={createDragHandlers(index)}
+              onDragEnd={finishDrag}
+              onDragMove={handleDragMove}
+              onDragStart={handleDragStart}
               onDelete={onDelete}
+              isDragLocked={dragLockIndex === index}
               isDragging={draggingIndex === index}
             />
           </View>
@@ -167,3 +194,35 @@ export default function ArtworkList({
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  addButton: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  addIcon: {
+    color: "#ea580c",
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  addText: {
+    color: "#ea580c",
+    fontSize: 14,
+  },
+  header: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 24,
+  },
+  headerText: {
+    color: "#ffffff",
+  },
+  list: {
+    gap: 16,
+    marginBottom: 24,
+  },
+});

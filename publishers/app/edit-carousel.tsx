@@ -122,6 +122,7 @@ export default function EditCarousel() {
   );
   const [showAddModal, setShowAddModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isReorderingArtworks, setIsReorderingArtworks] = useState(false);
 
   // Carousel details state
   const [carouselName, setCarouselName] = useState("");
@@ -572,7 +573,7 @@ export default function EditCarousel() {
         ref={scrollViewRef}
         className="flex-1"
         keyboardShouldPersistTaps="handled"
-        scrollEnabled={true}
+        scrollEnabled={!isReorderingArtworks}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingBottom: insets.bottom + 80 + androidKeyboardPadding,
@@ -642,6 +643,7 @@ export default function EditCarousel() {
               onArtworksChange={setUploadedArtworks}
               onAddClick={() => setShowAddModal(true)}
               onDelete={handleDeleteArtwork}
+              onDragStateChange={setIsReorderingArtworks}
             />
 
             {/* Save Changes Button */}
