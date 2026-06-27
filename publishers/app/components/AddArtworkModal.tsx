@@ -6,6 +6,7 @@ interface AddArtworkModalProps {
   visible: boolean;
   topInset: number;
   onClose: () => void;
+  onDismiss?: () => void;
   onPickImage: () => void;
 }
 
@@ -13,10 +14,9 @@ export default function AddArtworkModal({
   visible,
   topInset,
   onClose,
+  onDismiss,
   onPickImage,
 }: AddArtworkModalProps) {
-  if (!visible) return null;
-
   return (
     <Modal
       visible={visible}
@@ -24,6 +24,8 @@ export default function AddArtworkModal({
       animationType="fade"
       statusBarTranslucent
       navigationBarTranslucent
+      presentationStyle="overFullScreen"
+      onDismiss={onDismiss}
       onRequestClose={onClose}
     >
       <View

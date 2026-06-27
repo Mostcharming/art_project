@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
+  InteractionManager,
   Modal,
   Platform,
   Pressable,
@@ -63,6 +64,8 @@ export default function UploadArtwork() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isReorderingArtworks, setIsReorderingArtworks] = useState(false);
+  const [shouldPickAfterAddModalDismiss, setShouldPickAfterAddModalDismiss] =
+    useState(false);
   const [carouselName, setCarouselName] = useState("");
   const [carouselTag, setCarouselTag] = useState("");
   const [carouselCountry, setCarouselCountry] = useState("");
@@ -143,16 +146,27 @@ export default function UploadArtwork() {
   };
 
   const pickImageFromAddModal = () => {
-    setShowAddModal(false);
     setImageToFit(null);
     setShowImageFitModal(false);
+    setShowAddModal(false);
 
-    setTimeout(
-      () => {
-        void pickImage();
-      },
-      Platform.OS === "ios" ? 350 : 0,
-    );
+    if (Platform.OS === "ios") {
+      setShouldPickAfterAddModalDismiss(true);
+      return;
+    }
+
+    void pickImage();
+  };
+
+  const handleAddModalDismiss = () => {
+    if (!shouldPickAfterAddModalDismiss) {
+      return;
+    }
+
+    setShouldPickAfterAddModalDismiss(false);
+    InteractionManager.runAfterInteractions(() => {
+      void pickImage();
+    });
   };
 
   const handleFittedImage = (image: FittedImage) => {
@@ -236,6 +250,8 @@ export default function UploadArtwork() {
 
   const handleCancel = () => {
     setSelectedImage(null);
+    setImageToFit(null);
+    setShowImageFitModal(false);
     setFormData({
       title: "",
       artist: "",
@@ -562,6 +578,7 @@ export default function UploadArtwork() {
           visible={showAddModal}
           topInset={insets.top}
           onClose={handleModalCancel}
+          onDismiss={handleAddModalDismiss}
           onPickImage={pickImageFromAddModal}
         />
 

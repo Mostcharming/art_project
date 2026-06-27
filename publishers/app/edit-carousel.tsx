@@ -16,6 +16,7 @@ import { Play } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
 import {
   Keyboard,
+  InteractionManager,
   Modal,
   Platform,
   Pressable,
@@ -124,6 +125,8 @@ export default function EditCarousel() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isReorderingArtworks, setIsReorderingArtworks] = useState(false);
+  const [shouldPickAfterAddModalDismiss, setShouldPickAfterAddModalDismiss] =
+    useState(false);
 
   // Carousel details state
   const [carouselName, setCarouselName] = useState("");
@@ -294,16 +297,27 @@ export default function EditCarousel() {
   };
 
   const pickImageFromAddModal = () => {
-    setShowAddModal(false);
     setImageToFit(null);
     setShowImageFitModal(false);
+    setShowAddModal(false);
 
-    setTimeout(
-      () => {
-        void pickImage();
-      },
-      Platform.OS === "ios" ? 350 : 0,
-    );
+    if (Platform.OS === "ios") {
+      setShouldPickAfterAddModalDismiss(true);
+      return;
+    }
+
+    void pickImage();
+  };
+
+  const handleAddModalDismiss = () => {
+    if (!shouldPickAfterAddModalDismiss) {
+      return;
+    }
+
+    setShouldPickAfterAddModalDismiss(false);
+    InteractionManager.runAfterInteractions(() => {
+      void pickImage();
+    });
   };
 
   const handleFormChange = (field: keyof ArtworkForm, value: string) => {
@@ -815,6 +829,7 @@ export default function EditCarousel() {
         visible={showAddModal}
         topInset={insets.top}
         onClose={handleModalCancel}
+        onDismiss={handleAddModalDismiss}
         onPickImage={pickImageFromAddModal}
       />
 
