@@ -13,6 +13,23 @@ function getCompleteImageUrl(imageUrl, baseUrl) {
     return `${finalBaseUrl}${imageUrl}`;
 }
 
+function sortArtworksByDisplayOrder(artworks) {
+    if (!Array.isArray(artworks)) {
+        return artworks;
+    }
+
+    return [...artworks].sort((a, b) => {
+        const aOrder = Number.isFinite(Number(a.displayOrder)) ? Number(a.displayOrder) : 0;
+        const bOrder = Number.isFinite(Number(b.displayOrder)) ? Number(b.displayOrder) : 0;
+
+        if (aOrder !== bOrder) {
+            return aOrder - bOrder;
+        }
+
+        return (a.id || 0) - (b.id || 0);
+    });
+}
+
 function processCarouselImages(carousel) {
     if (!carousel) {
         return carousel;
@@ -21,7 +38,7 @@ function processCarouselImages(carousel) {
     const carouselData = carousel.toJSON ? carousel.toJSON() : carousel;
 
     if (carouselData.artworks && Array.isArray(carouselData.artworks)) {
-        carouselData.artworks = carouselData.artworks.map(artwork => ({
+        carouselData.artworks = sortArtworksByDisplayOrder(carouselData.artworks).map(artwork => ({
             ...artwork,
             imageUrl: getCompleteImageUrl(artwork.imageUrl)
         }));
@@ -42,5 +59,6 @@ function processCarouselsImages(carousels) {
 module.exports = {
     getCompleteImageUrl,
     processCarouselImages,
-    processCarouselsImages
+    processCarouselsImages,
+    sortArtworksByDisplayOrder
 };

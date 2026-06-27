@@ -12,6 +12,7 @@ export interface Artwork {
   yearOfCreation: number;
   purchasePrice: number;
   imageUrl: string;
+  displayOrder?: number;
   createdAt: string;
   updatedAt: string;
 }

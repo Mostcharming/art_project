@@ -1,5 +1,5 @@
 const db = require('../../models');
-const { getCompleteImageUrl } = require('../../utils/imageUrlHelper');
+const { getCompleteImageUrl, sortArtworksByDisplayOrder } = require('../../utils/imageUrlHelper');
 
 /**
  * Get all users (Publishers and Viewers combined) for the users management page
@@ -345,8 +345,10 @@ exports.getUserDetailsById = async (req, res) => {
                             {
                                 model: db.Artwork,
                                 as: 'artworks',
-                                attributes: ['id', 'title', 'imageUrl'],
-                                limit: 1
+                                attributes: ['id', 'title', 'imageUrl', 'displayOrder'],
+                                limit: 1,
+                                order: [['displayOrder', 'ASC'], ['id', 'ASC']],
+                                separate: true
                             }
                         ]
                     }
@@ -390,7 +392,8 @@ exports.getUserDetailsById = async (req, res) => {
                     website: userData.website,
                     carousels: activeCarousels.length,
                     projects: activeCarousels.map(c => {
-                        const firstArtwork = c.artworks && c.artworks.length > 0 ? c.artworks[0] : null;
+                        const artworks = sortArtworksByDisplayOrder(c.artworks || []);
+                        const firstArtwork = artworks.length > 0 ? artworks[0] : null;
                         return {
                             id: c.id,
                             views: c.views,

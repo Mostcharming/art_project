@@ -47,6 +47,7 @@ interface UploadedArtwork {
   id?: string; // Original artwork ID from server
   uri?: string;
   imageUrl?: string;
+  displayOrder?: number;
   imageWidth: number;
   imageHeight: number;
   fileSize: number;
@@ -183,6 +184,7 @@ export default function EditCarousel() {
         updatedCarousel.artworks?.map((artwork) => ({
           id: artwork.id?.toString(),
           imageUrl: artwork.imageUrl,
+          displayOrder: artwork.displayOrder,
           imageWidth: artwork.widthInches,
           imageHeight: artwork.heightInches,
           fileSize: 0,
@@ -209,6 +211,7 @@ export default function EditCarousel() {
     ).map((artwork: any) => ({
       id: artwork.id?.toString(),
       imageUrl: artwork.imageUrl,
+      displayOrder: artwork.displayOrder,
       imageWidth: artwork.widthInches,
       imageHeight: artwork.heightInches,
       fileSize: 0,

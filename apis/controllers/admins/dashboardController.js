@@ -1,6 +1,6 @@
 const db = require('../../models');
 const { Op, Sequelize } = require('sequelize');
-const { getCompleteImageUrl } = require('../../utils/imageUrlHelper');
+const { getCompleteImageUrl, sortArtworksByDisplayOrder } = require('../../utils/imageUrlHelper');
 
 /**
  * Get dashboard statistics (total users, carousels, views, favorites)
@@ -277,7 +277,7 @@ exports.getTopCarousels = async (req, res) => {
                 {
                     model: db.Artwork,
                     as: 'artworks',
-                    attributes: ['id', 'imageUrl'],
+                    attributes: ['id', 'imageUrl', 'displayOrder'],
                     where: { isDeleted: false, },
                     required: false
                 }
@@ -296,7 +296,7 @@ exports.getTopCarousels = async (req, res) => {
         // Transform the data
         const transformedCarousels = carousels.map(carousel => {
             // Count active artworks
-            const activeArtworks = carousel.artworks || [];
+            const activeArtworks = sortArtworksByDisplayOrder(carousel.artworks || []);
 
             return {
                 id: carousel.id,

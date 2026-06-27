@@ -60,13 +60,14 @@ export const useCarouselApi = () => {
       if (payload.description) {
         formData.append("description", payload.description);
       }
-      const artworksData = payload.artworks.map((artwork) => ({
+      const artworksData = payload.artworks.map((artwork, index) => ({
         title: artwork.title,
         artist: artwork.artist,
         height: artwork.height,
         width: artwork.width,
         yearOfCreation: artwork.yearOfCreation,
         purchasePrice: artwork.purchasePrice,
+        displayOrder: index,
       }));
       formData.append("artworks", JSON.stringify(artworksData));
 
@@ -120,7 +121,7 @@ export const useCarouselApi = () => {
       }
 
       if (payload.artworks) {
-        const artworksData = payload.artworks.map((artwork) => ({
+        const artworksData = payload.artworks.map((artwork, index) => ({
           id: artwork.id || undefined,
           imageUrl: artwork.imageUrl || undefined,
           title: artwork.title,
@@ -129,6 +130,7 @@ export const useCarouselApi = () => {
           width: artwork.width,
           yearOfCreation: artwork.yearOfCreation,
           purchasePrice: artwork.purchasePrice,
+          displayOrder: index,
         }));
 
         console.log("Frontend - Sending artworks:", artworksData);

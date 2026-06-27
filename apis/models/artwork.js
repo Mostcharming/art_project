@@ -76,6 +76,12 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: true,
             comment: 'URL or path to the artwork image file'
+        },
+        displayOrder: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 0,
+            comment: 'Position of the artwork inside its carousel'
         }
     }, {
         sequelize,

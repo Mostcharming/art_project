@@ -194,7 +194,8 @@ const buildArtworkDraftRows = ({ artworks, files = [], carouselId, status = 'dra
             yearOfCreation,
             purchasePrice,
             status,
-            imageUrl
+            imageUrl,
+            displayOrder: index
         };
     });
 };
@@ -361,10 +362,27 @@ exports.updateCarouselDraft = async (req, res, next) => {
             let fileIndex = 0;
             const newArtworksToCreate = [];
 
-            for (const artwork of artworksArray) {
-                // Skip existing artworks (they have an ID)
+            for (const [index, artwork] of artworksArray.entries()) {
+                const artworkData = {
+                    title: typeof artwork.title === 'string' ? artwork.title.trim() : artwork.title,
+                    artist: typeof artwork.artist === 'string' ? artwork.artist.trim() : artwork.artist,
+                    heightInches: parseFloat(artwork.height),
+                    widthInches: parseFloat(artwork.width),
+                    yearOfCreation: artwork.yearOfCreation ? parseInt(artwork.yearOfCreation) : null,
+                    purchasePrice: artwork.purchasePrice ? parseFloat(artwork.purchasePrice) : null,
+                    status: 'draft',
+                    displayOrder: index
+                };
+
+                // Existing artworks keep their image and get their metadata/order refreshed.
                 if (artwork.id && artwork.id !== 'undefined') {
-                    console.log(`Skipping existing artwork ${artwork.id}`);
+                    await Artwork.update(artworkData, {
+                        where: {
+                            id: artwork.id,
+                            carouselId
+                        }
+                    });
+                    console.log(`Updated existing artwork ${artwork.id} order to ${index}`);
                     continue;
                 }
 
@@ -381,13 +399,7 @@ exports.updateCarouselDraft = async (req, res, next) => {
 
                 newArtworksToCreate.push({
                     carouselId,
-                    title: artwork.title,
-                    artist: artwork.artist,
-                    heightInches: parseFloat(artwork.height),
-                    widthInches: parseFloat(artwork.width),
-                    yearOfCreation: artwork.yearOfCreation ? parseInt(artwork.yearOfCreation) : null,
-                    purchasePrice: artwork.purchasePrice ? parseFloat(artwork.purchasePrice) : null,
-                    status: 'draft',
+                    ...artworkData,
                     imageUrl
                 });
             }
@@ -790,7 +802,8 @@ exports.updateCarousel = async (req, res, next) => {
                         yearOfCreation: artwork.yearOfCreation ? parseInt(artwork.yearOfCreation) : null,
                         purchasePrice: artwork.purchasePrice ? parseFloat(artwork.purchasePrice) : null,
                         status: carousel.status === 'draft' ? 'draft' : 'active',
-                        imageUrl
+                        imageUrl,
+                        displayOrder: index
                     };
                 });
 

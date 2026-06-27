@@ -1,5 +1,5 @@
 const db = require('../../models');
-const { getCompleteImageUrl } = require('../../utils/imageUrlHelper');
+const { getCompleteImageUrl, sortArtworksByDisplayOrder } = require('../../utils/imageUrlHelper');
 const emailMiddleware = require('../../middleware/emailMiddleware');
 
 const isViewMilestone = (views) => (
@@ -11,20 +11,22 @@ const getFrontendUrl = () => (process.env.FRONTEND_URL || 'https://joincarsl.com
 const formatCarousel = (carousel) => {
     if (!carousel) return null;
 
+    const artworks = sortArtworksByDisplayOrder(carousel.artworks || []);
+
     return {
         id: carousel.id,
         name: carousel.name,
         description: carousel.description,
         tag: carousel.tag,
-        imageUrl: carousel.artworks && carousel.artworks.length > 0
-            ? getCompleteImageUrl(carousel.artworks[0].imageUrl)
+        imageUrl: artworks.length > 0
+            ? getCompleteImageUrl(artworks[0].imageUrl)
             : null,
         publisher: carousel.publisher ? {
             id: carousel.publisher.id,
             name: carousel.publisher.name,
         } : null,
         views: carousel.views || 0,
-        artworks: (carousel.artworks || []).map(artwork => ({
+        artworks: artworks.map(artwork => ({
             id: artwork.id,
             title: artwork.title,
             imageUrl: getCompleteImageUrl(artwork.imageUrl),
@@ -60,7 +62,7 @@ const getArtworkAspectDetails = (artwork) => {
 const formatCarouselDetail = (carousel) => {
     if (!carousel) return null;
 
-    const artworks = carousel.artworks || [];
+    const artworks = sortArtworksByDisplayOrder(carousel.artworks || []);
 
     return {
         id: carousel.id,
@@ -114,8 +116,8 @@ exports.getHomeCarouselById = async (req, res) => {
                     where: { isDeleted: false },
                     required: false,
                     separate: true,
-                    attributes: ['id', 'title', 'imageUrl', 'heightInches', 'widthInches'],
-                    order: [['createdAt', 'ASC']],
+                    attributes: ['id', 'title', 'imageUrl', 'heightInches', 'widthInches', 'displayOrder'],
+                    order: [['displayOrder', 'ASC'], ['id', 'ASC']],
                 },
             ],
         });
@@ -159,8 +161,10 @@ exports.getHomeCarousels = async (req, res) => {
                     as: 'artworks',
                     where: { isDeleted: false },
                     required: false,
-                    attributes: ['id', 'title', 'imageUrl', 'artist'],
+                    attributes: ['id', 'title', 'imageUrl', 'artist', 'displayOrder'],
+                    separate: true,
                     limit: 1,
+                    order: [['displayOrder', 'ASC'], ['id', 'ASC']],
                 },
             ],
             order: [['views', 'DESC']],
@@ -189,8 +193,10 @@ exports.getHomeCarousels = async (req, res) => {
                     as: 'artworks',
                     where: { isDeleted: false },
                     required: false,
-                    attributes: ['id', 'title', 'imageUrl', 'artist'],
+                    attributes: ['id', 'title', 'imageUrl', 'artist', 'displayOrder'],
+                    separate: true,
                     limit: 1,
+                    order: [['displayOrder', 'ASC'], ['id', 'ASC']],
                 },
             ],
             order: [['views', 'DESC']],
@@ -355,8 +361,10 @@ exports.getRecentlyWatchedCarousels = async (req, res) => {
                             as: 'artworks',
                             where: { isDeleted: false },
                             required: false,
-                            attributes: ['id', 'title', 'imageUrl', 'artist'],
+                            attributes: ['id', 'title', 'imageUrl', 'artist', 'displayOrder'],
+                            separate: true,
                             limit: 1,
+                            order: [['displayOrder', 'ASC'], ['id', 'ASC']],
                         },
                     ],
                 },
@@ -406,7 +414,7 @@ exports.getHomePublishers = async (req, res) => {
                             as: 'artworks',
                             where: { isDeleted: false },
                             required: false,
-                            attributes: ['id', 'title', 'imageUrl', 'artist'],
+                            attributes: ['id', 'title', 'imageUrl', 'artist', 'displayOrder'],
                         },
                     ],
                     order: [['views', 'DESC']],
@@ -418,20 +426,22 @@ exports.getHomePublishers = async (req, res) => {
         const formatCarousel = (carousel) => {
             if (!carousel) return null;
 
+            const artworks = sortArtworksByDisplayOrder(carousel.artworks || []);
+
             return {
                 id: carousel.id,
                 name: carousel.name,
                 description: carousel.description,
                 tag: carousel.tag,
-                imageUrl: carousel.artworks && carousel.artworks.length > 0
-                    ? getCompleteImageUrl(carousel.artworks[0].imageUrl)
+                imageUrl: artworks.length > 0
+                    ? getCompleteImageUrl(artworks[0].imageUrl)
                     : null,
                 publisher: {
                     id: carousel.publisher?.id,
                     name: carousel.publisher?.name,
                 },
                 views: carousel.views || 0,
-                artworks: (carousel.artworks || []).map(artwork => ({
+                artworks: artworks.map(artwork => ({
                     id: artwork.id,
                     title: artwork.title,
                     imageUrl: getCompleteImageUrl(artwork.imageUrl),

@@ -89,8 +89,12 @@ export default function ArtworkList({
     const nextArtworks = [...artworksRef.current];
     const [movedArtwork] = nextArtworks.splice(fromIndex, 1);
     nextArtworks.splice(toIndex, 0, movedArtwork);
-    artworksRef.current = nextArtworks;
-    onArtworksChange(nextArtworks);
+    const reorderedArtworks = nextArtworks.map((artwork, index) => ({
+      ...artwork,
+      displayOrder: index,
+    }));
+    artworksRef.current = reorderedArtworks;
+    onArtworksChange(reorderedArtworks);
   };
 
   const finishDrag = () => {

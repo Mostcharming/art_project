@@ -17,6 +17,7 @@ export interface ArtworkForm {
 export interface UploadedArtwork {
   uri?: string;
   imageUrl?: string;
+  displayOrder?: number;
   imageWidth: number;
   imageHeight: number;
   fileSize: number;

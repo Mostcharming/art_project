@@ -1,5 +1,5 @@
 const db = require('../../models');
-const { getCompleteImageUrl } = require('../../utils/imageUrlHelper');
+const { getCompleteImageUrl, sortArtworksByDisplayOrder } = require('../../utils/imageUrlHelper');
 
 const activeCarouselWhere = {
     status: 'active',
@@ -27,21 +27,25 @@ const carouselInclude = [
         as: 'artworks',
         where: { isDeleted: false },
         required: false,
-        attributes: ['id', 'title', 'imageUrl', 'artist'],
+        attributes: ['id', 'title', 'imageUrl', 'artist', 'displayOrder'],
+        separate: true,
         limit: 1,
+        order: [['displayOrder', 'ASC'], ['id', 'ASC']],
     },
 ];
 
 const formatCarousel = (carousel) => {
     if (!carousel) return null;
 
+    const artworks = sortArtworksByDisplayOrder(carousel.artworks || []);
+
     return {
         id: carousel.id,
         name: carousel.name,
         description: carousel.description,
         tag: carousel.tag,
-        imageUrl: carousel.artworks && carousel.artworks.length > 0
-            ? getCompleteImageUrl(carousel.artworks[0].imageUrl)
+        imageUrl: artworks.length > 0
+            ? getCompleteImageUrl(artworks[0].imageUrl)
             : null,
         publisher: carousel.publisher ? {
             id: carousel.publisher.id,
@@ -49,7 +53,7 @@ const formatCarousel = (carousel) => {
         } : null,
         views: carousel.views || 0,
         numberOfFavorites: carousel.numberOfFavorites || 0,
-        artworks: (carousel.artworks || []).map(artwork => ({
+        artworks: artworks.map(artwork => ({
             id: artwork.id,
             title: artwork.title,
             imageUrl: getCompleteImageUrl(artwork.imageUrl),

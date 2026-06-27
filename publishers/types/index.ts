@@ -18,6 +18,7 @@ export interface UploadedArtwork {
   id?: string;
   uri?: string;
   imageUrl?: string;
+  displayOrder?: number;
   imageWidth: number;
   imageHeight: number;
   fileSize: number;

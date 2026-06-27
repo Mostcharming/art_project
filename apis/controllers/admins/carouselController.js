@@ -1,6 +1,6 @@
 const db = require('../../models');
 const { logActivity } = require('../../utils/adminActivityService');
-const { getCompleteImageUrl } = require('../../utils/imageUrlHelper');
+const { getCompleteImageUrl, sortArtworksByDisplayOrder } = require('../../utils/imageUrlHelper');
 
 /**
  * Get single carousel details with publisher info and artworks
@@ -57,6 +57,7 @@ exports.getCarouselDetails = async (req, res) => {
         const averageViewDuration = Math.round((totalViews * carousel.frameTimingSeconds) / 60); // Convert to minutes
 
         // Format the response
+        const artworks = sortArtworksByDisplayOrder(carousel.artworks || []);
         const carouselData = {
             id: carousel.id,
             name: carousel.name,
@@ -85,7 +86,7 @@ exports.getCarouselDetails = async (req, res) => {
                 carouselCount: parseInt(publisherStats?.carouselCount) || 0,
                 totalViews: parseInt(publisherStats?.totalViews) || 0
             },
-            artworks: (carousel.artworks || []).map(artwork => ({
+            artworks: artworks.map(artwork => ({
                 id: artwork.id,
                 title: artwork.title,
                 artist: artwork.artist,
@@ -221,7 +222,7 @@ exports.getPendingApprovalCarousels = async (req, res) => {
                     as: 'artworks',
                     where: { isDeleted: false },
                     required: false,
-                    attributes: ['id', 'imageUrl']
+                    attributes: ['id', 'imageUrl', 'displayOrder']
                 }
             ],
             order: [['createdAt', 'DESC']],
@@ -229,20 +230,24 @@ exports.getPendingApprovalCarousels = async (req, res) => {
             subQuery: false
         });
 
-        const formattedCarousels = rows.map(carousel => ({
-            id: carousel.id,
-            title: carousel.name,
-            img: carousel.artworks && carousel.artworks.length > 0
-                ? getCompleteImageUrl(carousel.artworks[0].imageUrl)
-                : null,
-            creator: carousel.publisher?.name || 'Unknown',
-            creatorType: carousel.publisher?.personaType || 'Artist',
-            length: carousel.artworks?.length || 0,
-            category: carousel.tag || 'Uncategorized',
-            date: new Date(carousel.createdAt).toLocaleDateString('en-US'),
-            status: carousel.status,
-            adminApproved: carousel.adminApproved
-        }));
+        const formattedCarousels = rows.map(carousel => {
+            const artworks = sortArtworksByDisplayOrder(carousel.artworks || []);
+
+            return {
+                id: carousel.id,
+                title: carousel.name,
+                img: artworks.length > 0
+                    ? getCompleteImageUrl(artworks[0].imageUrl)
+                    : null,
+                creator: carousel.publisher?.name || 'Unknown',
+                creatorType: carousel.publisher?.personaType || 'Artist',
+                length: artworks.length,
+                category: carousel.tag || 'Uncategorized',
+                date: new Date(carousel.createdAt).toLocaleDateString('en-US'),
+                status: carousel.status,
+                adminApproved: carousel.adminApproved
+            };
+        });
 
         res.json({
             success: true,
@@ -295,7 +300,7 @@ exports.getFlaggedCarousels = async (req, res) => {
                     as: 'artworks',
                     where: { isDeleted: false },
                     required: false,
-                    attributes: ['id', 'imageUrl']
+                    attributes: ['id', 'imageUrl', 'displayOrder']
                 }
             ],
             order: [['createdAt', 'DESC']],
@@ -303,19 +308,23 @@ exports.getFlaggedCarousels = async (req, res) => {
             subQuery: false
         });
 
-        const formattedCarousels = rows.map(carousel => ({
-            id: carousel.id,
-            title: carousel.name,
-            img: carousel.artworks && carousel.artworks.length > 0
-                ? getCompleteImageUrl(carousel.artworks[0].imageUrl)
-                : null,
-            creator: carousel.publisher?.name || 'Unknown',
-            creatorType: carousel.publisher?.personaType || 'Artist',
-            reportCount: carousel.flaggedCount || 0,
-            dateReported: new Date(carousel.createdAt).toLocaleDateString('en-US'),
-            reason: carousel.flaggedReason || 'Not specified',
-            status: carousel.status
-        }));
+        const formattedCarousels = rows.map(carousel => {
+            const artworks = sortArtworksByDisplayOrder(carousel.artworks || []);
+
+            return {
+                id: carousel.id,
+                title: carousel.name,
+                img: artworks.length > 0
+                    ? getCompleteImageUrl(artworks[0].imageUrl)
+                    : null,
+                creator: carousel.publisher?.name || 'Unknown',
+                creatorType: carousel.publisher?.personaType || 'Artist',
+                reportCount: carousel.flaggedCount || 0,
+                dateReported: new Date(carousel.createdAt).toLocaleDateString('en-US'),
+                reason: carousel.flaggedReason || 'Not specified',
+                status: carousel.status
+            };
+        });
 
         res.json({
             success: true,
