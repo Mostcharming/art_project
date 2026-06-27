@@ -3,11 +3,11 @@ import { useCarouselApi } from "@/hooks/useCarouselApi";
 import { useAndroidKeyboardHeight } from "@/hooks/useKeyboardAwareScroll";
 import { UploadedArtwork } from "@/types";
 import { MaterialIcons } from "@expo/vector-icons";
+import { Image as ExpoImage } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Dimensions,
-  Image,
   KeyboardAvoidingView,
   Modal,
   PanResponder,
@@ -22,6 +22,9 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width: screenWidth } = Dimensions.get("window");
+
+const getArtworkUri = (artwork: UploadedArtwork) =>
+  artwork.uri || artwork.imageUrl || "";
 
 interface PreviewCarousel {
   id: string;
@@ -56,19 +59,25 @@ export default function CarouselPreview() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDateObj, setSelectedDateObj] = useState<Date>(new Date());
   const timePickerKeyboardHeight = useAndroidKeyboardHeight(showTimePicker);
+  const artworkCount = carousel?.artworks.length ?? 0;
+  const artworkUris = useMemo(
+    () => carousel?.artworks.map(getArtworkUri).filter(Boolean) ?? [],
+    [carousel?.artworks],
+  );
 
-  const handleNextImage = () => {
+  const handleNextImage = useCallback(() => {
     setCurrentIndex((prevIndex) => {
-      if (carousel) {
-        if (prevIndex < carousel.artworks.length - 1) {
-          return prevIndex + 1;
-        } else {
-          return 0;
-        }
+      if (artworkCount === 0) {
+        return prevIndex;
       }
-      return prevIndex;
+
+      return prevIndex < artworkCount - 1 ? prevIndex + 1 : 0;
     });
-  };
+  }, [artworkCount]);
+
+  const handlePreviousImage = useCallback(() => {
+    setCurrentIndex((prevIndex) => (prevIndex > 0 ? prevIndex - 1 : prevIndex));
+  }, []);
 
   const handleDatePick = () => {
     setShowDatePicker(true);
@@ -99,26 +108,28 @@ export default function CarouselPreview() {
     });
   };
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderRelease: (evt, gestureState) => {
-        if (gestureState.dx > 50) {
-          // Swiped right - go to previous
-          setCurrentIndex((prevIndex) => {
-            if (prevIndex > 0) {
-              return prevIndex - 1;
-            }
-            return prevIndex;
-          });
-        } else if (gestureState.dx < -50) {
-          // Swiped left - go to next
-          handleNextImage();
-        }
-      },
-    })
-  ).current;
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => false,
+        onStartShouldSetPanResponderCapture: () => false,
+        onMoveShouldSetPanResponder: (_, gestureState) =>
+          Math.abs(gestureState.dx) > 12 &&
+          Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 1.2,
+        onMoveShouldSetPanResponderCapture: (_, gestureState) =>
+          Math.abs(gestureState.dx) > 12 &&
+          Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 1.2,
+        onShouldBlockNativeResponder: () => false,
+        onPanResponderRelease: (_, gestureState) => {
+          if (gestureState.dx > 50) {
+            handlePreviousImage();
+          } else if (gestureState.dx < -50) {
+            handleNextImage();
+          }
+        },
+      }),
+    [handleNextImage, handlePreviousImage],
+  );
 
   useEffect(() => {
     if (params.carousel) {
@@ -165,6 +176,14 @@ export default function CarouselPreview() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.carousel, params.isNew]);
+
+  useEffect(() => {
+    if (artworkUris.length === 0) return;
+
+    void ExpoImage.prefetch(artworkUris, "memory-disk").catch((error) => {
+      console.warn("Failed to prefetch carousel preview images:", error);
+    });
+  }, [artworkUris]);
 
   const handlePublish = async () => {
     if (!carousel || !carouselId) {
@@ -276,6 +295,7 @@ export default function CarouselPreview() {
   }
 
   const currentArtwork = carousel.artworks[currentIndex];
+  const currentArtworkUri = getArtworkUri(currentArtwork);
 
   return (
     <View className="flex-1 bg-black" style={{ paddingTop: insets.top }}>
@@ -313,17 +333,19 @@ export default function CarouselPreview() {
           {...panResponder.panHandlers}
         >
           <Pressable onPress={handleNextImage}>
-            <Image
-              source={{
-                uri: currentArtwork.uri || currentArtwork.imageUrl || "",
-              }}
+            <ExpoImage
+              source={{ uri: currentArtworkUri }}
               style={{
                 width: screenWidth - 40,
                 height: 400,
                 borderRadius: 16,
                 backgroundColor: "#000000",
               }}
-              resizeMode="contain"
+              cachePolicy="memory-disk"
+              contentFit="contain"
+              priority="high"
+              recyclingKey={currentArtworkUri}
+              transition={0}
             />
             {/* Title and Info Overlay on Image - Bottom Full Width */}
             <View className="absolute bottom-0 left-0 right-0 bg-black/70 px-4 py-3">

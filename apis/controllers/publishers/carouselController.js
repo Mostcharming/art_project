@@ -961,6 +961,7 @@ exports.scheduleCarouselForPublish = async (req, res, next) => {
             }
         });
 
+        const publisher = await Publisher.findByPk(publisherId);
         await sendScheduledPublishEmail(publisher, scheduledCarousel);
 
         res.status(200).json({
