@@ -145,7 +145,13 @@ export default function UploadArtwork() {
     setShowAddModal(false);
     setImageToFit(null);
     setShowImageFitModal(false);
-    void pickImage();
+
+    setTimeout(
+      () => {
+        void pickImage();
+      },
+      Platform.OS === "ios" ? 350 : 0,
+    );
   };
 
   const handleFittedImage = (image: FittedImage) => {

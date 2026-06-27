@@ -1,10 +1,12 @@
 import { UploadedArtwork } from "@/types";
 import { Grip, Trash2 } from "lucide-react-native";
+import type { GestureResponderHandlers } from "react-native";
 import { Image, Pressable, Text, View } from "react-native";
 
 interface ArtworkCardProps {
   artwork: UploadedArtwork;
   index: number;
+  dragHandlers?: GestureResponderHandlers;
   onDelete: (index: number) => void;
   isDragging?: boolean;
 }
@@ -12,6 +14,7 @@ interface ArtworkCardProps {
 export default function ArtworkCard({
   artwork,
   index,
+  dragHandlers,
   onDelete,
   isDragging = false,
 }: ArtworkCardProps) {
@@ -35,6 +38,8 @@ export default function ArtworkCard({
         className={`justify-center items-center ${
           isDragging ? "opacity-100" : "opacity-60"
         }`}
+        style={{ width: 36, height: 48 }}
+        {...dragHandlers}
       >
         <Grip
           size={20}
@@ -65,7 +70,7 @@ export default function ArtworkCard({
       </View>
 
       {/* Delete Button */}
-      <Pressable onPress={() => onDelete(index)}>
+      <Pressable disabled={isDragging} onPress={() => onDelete(index)}>
         <Trash2 size={20} color="red" />
       </Pressable>
     </View>
