@@ -513,6 +513,8 @@ export default function UploadArtwork() {
           visible={showFrameDropdown}
           transparent
           animationType="fade"
+          statusBarTranslucent
+          navigationBarTranslucent
           onRequestClose={() => setShowFrameDropdown(false)}
         >
           <Pressable

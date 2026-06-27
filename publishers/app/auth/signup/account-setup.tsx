@@ -245,6 +245,8 @@ export default function AccountSetup() {
           visible={showPersonaDropdown}
           transparent
           animationType="fade"
+          statusBarTranslucent
+          navigationBarTranslucent
           onRequestClose={() => setShowPersonaDropdown(false)}
         >
           <Pressable
@@ -284,6 +286,8 @@ export default function AccountSetup() {
           visible={showCountryDropdown}
           transparent
           animationType="fade"
+          statusBarTranslucent
+          navigationBarTranslucent
           onRequestClose={() => setShowCountryDropdown(false)}
         >
           <Pressable

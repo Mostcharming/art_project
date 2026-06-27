@@ -27,6 +27,8 @@ export const CancelScheduleModal: React.FC<CancelScheduleModalProps> = ({
       visible={visible}
       transparent
       animationType="slide"
+      statusBarTranslucent
+      navigationBarTranslucent
       onRequestClose={onClose}
     >
       <Pressable

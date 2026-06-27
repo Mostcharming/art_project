@@ -413,6 +413,8 @@ export default function CarouselPreview() {
           visible={showTimePicker}
           transparent
           animationType="slide"
+          statusBarTranslucent
+          navigationBarTranslucent
           onRequestClose={() => setShowTimePicker(false)}
         >
           <Pressable
@@ -560,6 +562,8 @@ export default function CarouselPreview() {
           visible={showDatePicker}
           transparent
           animationType="slide"
+          statusBarTranslucent
+          navigationBarTranslucent
           onRequestClose={() => setShowDatePicker(false)}
         >
           <Pressable

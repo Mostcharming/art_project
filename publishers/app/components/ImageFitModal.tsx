@@ -397,6 +397,8 @@ export default function ImageFitModal({
       visible={visible}
       transparent
       animationType="slide"
+      statusBarTranslucent
+      navigationBarTranslucent
       onRequestClose={onCancel}
     >
       <View className="flex-1 bg-black/90 justify-center px-5">

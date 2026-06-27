@@ -237,6 +237,8 @@ export default function CreateCarousel() {
           visible={showCountryDropdown}
           transparent
           animationType="fade"
+          statusBarTranslucent
+          navigationBarTranslucent
           onRequestClose={() => setShowCountryDropdown(false)}
         >
           <Pressable

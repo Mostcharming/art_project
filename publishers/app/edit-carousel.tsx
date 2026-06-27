@@ -760,6 +760,8 @@ export default function EditCarousel() {
         visible={showFrameDropdown}
         transparent
         animationType="fade"
+        statusBarTranslucent
+        navigationBarTranslucent
         onRequestClose={() => setShowFrameDropdown(false)}
       >
         <Pressable
@@ -809,6 +811,8 @@ export default function EditCarousel() {
         visible={showEditDetailsModal}
         transparent
         animationType="slide"
+        statusBarTranslucent
+        navigationBarTranslucent
         onRequestClose={() => {
           setShowCountryDropdown(false);
           setShowEditDetailsModal(false);

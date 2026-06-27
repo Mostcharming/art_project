@@ -27,6 +27,8 @@ export const CarouselActionMenu: React.FC<CarouselActionMenuProps> = ({
       visible={visible}
       transparent
       animationType="fade"
+      statusBarTranslucent
+      navigationBarTranslucent
       onRequestClose={onClose}
     >
       <Pressable

@@ -323,6 +323,8 @@ export default function Profile() {
           visible={showPersonaDropdown}
           transparent
           animationType="fade"
+          statusBarTranslucent
+          navigationBarTranslucent
           onRequestClose={() => setShowPersonaDropdown(false)}
         >
           <Pressable
@@ -362,6 +364,8 @@ export default function Profile() {
           visible={showCountryDropdown}
           transparent
           animationType="fade"
+          statusBarTranslucent
+          navigationBarTranslucent
           onRequestClose={() => setShowCountryDropdown(false)}
         >
           <Pressable
