@@ -32,6 +32,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'viewerId',
         as: 'carouselFavorites'
       });
+      Viewer.hasMany(models.ViewerSearchHistory, {
+        foreignKey: 'viewerId',
+        as: 'searchHistories'
+      });
     }
   }
   Viewer.init({
