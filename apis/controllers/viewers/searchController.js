@@ -37,16 +37,20 @@ const parseLimit = (value, fallback, max) => {
     return Math.min(parsed, max);
 };
 
-const validateQuery = (query) => {
-    if (!query) {
-        return 'query is required';
-    }
-
+const validateOptionalQuery = (query) => {
     if (query.length > MAX_QUERY_LENGTH) {
         return `query must be ${MAX_QUERY_LENGTH} characters or fewer`;
     }
 
     return null;
+};
+
+const validateRequiredQuery = (query) => {
+    if (!query) {
+        return 'query is required';
+    }
+
+    return validateOptionalQuery(query);
 };
 
 const saveViewerSearch = async (viewerId, query) => {
@@ -137,11 +141,19 @@ const formatSearchResult = (artwork, type, carouselArtworks = []) => {
 };
 
 const buildSearchWhere = (query, type) => {
+    const where = {
+        isDeleted: false,
+    };
+
+    if (!query) {
+        return where;
+    }
+
     const likeQuery = `%${query}%`;
 
     if (type === 'artists') {
         return {
-            isDeleted: false,
+            ...where,
             [Op.or]: [
                 { artist: { [Op.iLike]: likeQuery } },
                 { '$carousel.publisher.name$': { [Op.iLike]: likeQuery } },
@@ -150,7 +162,7 @@ const buildSearchWhere = (query, type) => {
     }
 
     return {
-        isDeleted: false,
+        ...where,
         [Op.or]: [
             { title: { [Op.iLike]: likeQuery } },
             { artist: { [Op.iLike]: likeQuery } },
@@ -184,7 +196,7 @@ exports.search = async (req, res) => {
         const query = normalizeSearchQuery(req.query.query);
         const type = req.query.type || 'artworks';
         const limit = parseLimit(req.query.limit, DEFAULT_SEARCH_LIMIT, MAX_SEARCH_LIMIT);
-        const queryError = validateQuery(query);
+        const queryError = validateOptionalQuery(query);
 
         if (queryError) {
             return res.status(400).json({
@@ -207,7 +219,7 @@ exports.search = async (req, res) => {
             });
         }
 
-        if (req.user?.id) {
+        if (req.user?.id && query) {
             await saveViewerSearch(req.user.id, query).catch((error) => {
                 console.warn('Failed to save viewer search history:', error.message);
             });
@@ -293,7 +305,7 @@ exports.getSearchHistory = async (req, res) => {
 exports.saveSearchHistory = async (req, res) => {
     try {
         const query = normalizeSearchQuery(req.body.query);
-        const queryError = validateQuery(query);
+        const queryError = validateRequiredQuery(query);
 
         if (queryError) {
             return res.status(400).json({
