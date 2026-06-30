@@ -6,7 +6,26 @@ const isViewMilestone = (views) => (
     [100, 500, 1000, 5000].includes(views) || (views >= 10000 && views % 10000 === 0)
 );
 
+const activeCarouselWhere = {
+    status: 'active',
+    adminApproved: true,
+    isDeleted: false,
+};
+
 const getFrontendUrl = () => (process.env.FRONTEND_URL || 'https://joincarsl.com').replace(/\/$/, '');
+
+const parseLimit = (value, fallback = 20, max = 100) => {
+    if (value === undefined || value === null || value === '') {
+        return fallback;
+    }
+
+    const parsed = Number(value);
+    if (!Number.isInteger(parsed) || parsed < 1) {
+        return null;
+    }
+
+    return Math.min(parsed, max);
+};
 
 const formatCarousel = (carousel) => {
     if (!carousel) return null;
@@ -32,6 +51,41 @@ const formatCarousel = (carousel) => {
             imageUrl: getCompleteImageUrl(artwork.imageUrl),
             artist: artwork.artist,
         })),
+    };
+};
+
+const formatNewArrivalCarousel = (carousel) => {
+    if (!carousel) return null;
+
+    const artworks = sortArtworksByDisplayOrder(carousel.artworks || []);
+    const firstArtworkImageUrl = artworks.length > 0
+        ? getCompleteImageUrl(artworks[0].imageUrl)
+        : null;
+    const heroImageUrl = carousel.heroImageUrl
+        ? getCompleteImageUrl(carousel.heroImageUrl)
+        : firstArtworkImageUrl;
+
+    return {
+        id: carousel.id,
+        name: carousel.name,
+        description: carousel.description,
+        tag: carousel.tag,
+        tags: carousel.tag ? [carousel.tag] : [],
+        imageUrl: firstArtworkImageUrl,
+        heroImageUrl,
+        views: carousel.views || 0,
+        artworkCount: artworks.length,
+        publisher: carousel.publisher ? {
+            id: carousel.publisher.id,
+            name: carousel.publisher.name,
+            profilePicture: getCompleteImageUrl(carousel.publisher.profilePicture),
+        } : null,
+        artworks: artworks.map((artwork) => ({
+            id: artwork.id,
+            title: artwork.title,
+            imageUrl: getCompleteImageUrl(artwork.imageUrl),
+        })),
+        createdAt: carousel.createdAt,
     };
 };
 
@@ -213,6 +267,56 @@ exports.getHomeCarousels = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error fetching carousels',
+            error: error.message,
+        });
+    }
+};
+
+exports.getNewArrivalCarousels = async (req, res) => {
+    try {
+        const limit = parseLimit(req.query.limit);
+
+        if (!limit) {
+            return res.status(400).json({
+                success: false,
+                message: 'limit must be a positive integer',
+            });
+        }
+
+        const { count, rows } = await db.Carousel.findAndCountAll({
+            where: activeCarouselWhere,
+            distinct: true,
+            include: [
+                {
+                    model: db.Publisher,
+                    as: 'publisher',
+                    attributes: ['id', 'name', 'profilePicture'],
+                },
+                {
+                    model: db.Artwork,
+                    as: 'artworks',
+                    where: { isDeleted: false },
+                    required: false,
+                    separate: true,
+                    attributes: ['id', 'title', 'imageUrl', 'displayOrder'],
+                    order: [['displayOrder', 'ASC'], ['id', 'ASC']],
+                },
+            ],
+            order: [['createdAt', 'DESC'], ['id', 'DESC']],
+            limit,
+        });
+
+        res.json({
+            success: true,
+            limit,
+            total: count,
+            carousels: rows.map(formatNewArrivalCarousel),
+        });
+    } catch (error) {
+        console.error('Error fetching new arrival carousels:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching new arrival carousels',
             error: error.message,
         });
     }

@@ -40,6 +40,28 @@ const verifyViewerToken = (req, res, next) => {
     }
 };
 
+const optionalVerifyViewerToken = (req, res, next) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+
+        if (!token) {
+            return next();
+        }
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+
+        if (decoded.type !== 'viewer') {
+            return res.status(403).json({ error: 'Only viewers can access this resource' });
+        }
+
+        req.user = decoded;
+        next();
+    } catch (error) {
+        console.error('Optional viewer token verification error:', error.message);
+        res.status(403).json({ error: 'Invalid or expired token' });
+    }
+};
+
 const verifyPublisherToken = (req, res, next) => {
     try {
         const token = req.headers.authorization?.split(' ')[1];
@@ -65,6 +87,7 @@ const verifyPublisherToken = (req, res, next) => {
 module.exports = {
     verifyToken,
     verifyViewerToken,
+    optionalVerifyViewerToken,
     verifyPublisherToken,
     // Aliases for convenience
     authenticateViewer: verifyViewerToken,

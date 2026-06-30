@@ -4,13 +4,17 @@ const {
     getHomeCarouselById,
     getHomeCarousels,
     getHomePublishers,
+    getNewArrivalCarousels,
     getRecentlyWatchedCarousels,
     saveWatchingCarousel,
 } = require('../../controllers/viewers/homeController');
-const { verifyViewerToken } = require('../../middleware/auth');
+const { optionalVerifyViewerToken, verifyViewerToken } = require('../../middleware/auth');
 
 // Get featured carousel and trending carousels
 router.get('/carousels', getHomeCarousels);
+
+// Get newest active carousels for the viewer home experience
+router.get('/carousels/new-arrivals', optionalVerifyViewerToken, getNewArrivalCarousels);
 
 // Save/update the carousel the viewer is currently watching
 router.post('/carousels/watching', verifyViewerToken, saveWatchingCarousel);
