@@ -103,8 +103,11 @@ const getCarouselArtworkMap = async (carouselIds) => {
     }, new Map());
 };
 
-const formatSearchResult = (artwork, type, carouselArtworks = []) => {
-    const carousel = artwork.carousel;
+const formatCarouselSummary = (carousel, carouselArtworks = []) => {
+    if (!carousel) {
+        return null;
+    }
+
     const sortedCarouselArtworks = sortArtworksByDisplayOrder(carouselArtworks);
     const firstCarouselArtwork = sortedCarouselArtworks[0];
     const carouselImageUrl = firstCarouselArtwork
@@ -115,32 +118,67 @@ const formatSearchResult = (artwork, type, carouselArtworks = []) => {
         : carouselImageUrl;
 
     return {
-        id: artwork.id,
-        type,
-        title: artwork.title,
-        artist: artwork.artist || carousel?.publisher?.name || null,
+        id: carousel.id,
+        name: carousel.name,
+        description: carousel.description,
+        imageUrl: carouselImageUrl,
+        heroImageUrl,
+        views: carousel.views || 0,
         artworkCount: sortedCarouselArtworks.length,
-        imageUrl: getCompleteImageUrl(artwork.imageUrl),
-        carouselId: artwork.carouselId,
-        carousel: carousel ? {
-            id: carousel.id,
-            name: carousel.name,
-            description: carousel.description,
-            imageUrl: carouselImageUrl,
-            heroImageUrl,
-            views: carousel.views || 0,
-            artworkCount: sortedCarouselArtworks.length,
-            tag: carousel.tag,
-            publisher: carousel.publisher ? {
-                id: carousel.publisher.id,
-                name: carousel.publisher.name,
-                profilePicture: getCompleteImageUrl(carousel.publisher.profilePicture),
-            } : null,
+        tag: carousel.tag,
+        publisher: carousel.publisher ? {
+            id: carousel.publisher.id,
+            name: carousel.publisher.name,
+            profilePicture: getCompleteImageUrl(carousel.publisher.profilePicture),
         } : null,
     };
 };
 
-const buildSearchWhere = (query, type) => {
+const formatArtworkSearchResult = (artwork, carouselArtworks = []) => {
+    return {
+        id: artwork.id,
+        type: 'artworks',
+        title: artwork.title,
+        artist: artwork.artist || artwork.carousel?.publisher?.name || null,
+        artworkCount: carouselArtworks.length,
+        imageUrl: getCompleteImageUrl(artwork.imageUrl),
+        carouselId: artwork.carouselId,
+        carousel: formatCarouselSummary(artwork.carousel, carouselArtworks),
+    };
+};
+
+const formatArtistSearchResult = (publisher) => {
+    const carousels = [...(publisher.carousels || [])].sort((a, b) => (
+        new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+    ));
+    const primaryCarousel = carousels[0] || null;
+    const primaryCarouselArtworks = sortArtworksByDisplayOrder(primaryCarousel?.artworks || []);
+    const allArtworks = carousels.flatMap((carousel) => carousel.artworks || []);
+    const primaryImageUrl = getCompleteImageUrl(publisher.profilePicture)
+        || (primaryCarouselArtworks[0] ? getCompleteImageUrl(primaryCarouselArtworks[0].imageUrl) : null);
+    const carousel = formatCarouselSummary(primaryCarousel, primaryCarouselArtworks);
+
+    if (carousel) {
+        carousel.publisher = {
+            id: publisher.id,
+            name: publisher.name,
+            profilePicture: getCompleteImageUrl(publisher.profilePicture),
+        };
+    }
+
+    return {
+        id: publisher.id,
+        type: 'artists',
+        title: publisher.name,
+        artist: publisher.name,
+        artworkCount: allArtworks.length,
+        imageUrl: primaryImageUrl,
+        carouselId: primaryCarousel?.id || null,
+        carousel,
+    };
+};
+
+const buildArtworkSearchWhere = (query) => {
     const where = {
         isDeleted: false,
     };
@@ -150,16 +188,6 @@ const buildSearchWhere = (query, type) => {
     }
 
     const likeQuery = `%${query}%`;
-
-    if (type === 'artists') {
-        return {
-            ...where,
-            [Op.or]: [
-                { artist: { [Op.iLike]: likeQuery } },
-                { '$carousel.publisher.name$': { [Op.iLike]: likeQuery } },
-            ],
-        };
-    }
 
     return {
         ...where,
@@ -190,6 +218,68 @@ const searchInclude = [
         ],
     },
 ];
+
+const artistInclude = [
+    {
+        model: db.Carousel,
+        as: 'carousels',
+        required: true,
+        where: activeCarouselWhere,
+        attributes: ['id', 'name', 'description', 'tag', 'views', 'createdAt'],
+        include: [
+            {
+                model: db.Artwork,
+                as: 'artworks',
+                where: { isDeleted: false },
+                required: false,
+                attributes: ['id', 'title', 'imageUrl', 'displayOrder'],
+            },
+        ],
+    },
+];
+
+const searchArtworks = async ({ query, limit }) => {
+    const { count, rows } = await db.Artwork.findAndCountAll({
+        where: buildArtworkSearchWhere(query),
+        include: searchInclude,
+        attributes: ['id', 'title', 'artist', 'imageUrl', 'carouselId', 'createdAt'],
+        distinct: true,
+        subQuery: false,
+        order: [['createdAt', 'DESC'], ['id', 'DESC']],
+        limit,
+    });
+
+    const carouselIds = [...new Set(rows.map((artwork) => artwork.carouselId).filter(Boolean))];
+    const carouselArtworkMap = await getCarouselArtworkMap(carouselIds);
+
+    return {
+        total: count,
+        results: rows.map((artwork) => formatArtworkSearchResult(
+            artwork,
+            carouselArtworkMap.get(artwork.carouselId) || []
+        )),
+    };
+};
+
+const searchArtists = async ({ query, limit }) => {
+    const publisherWhere = query
+        ? { name: { [Op.iLike]: `%${query}%` } }
+        : {};
+
+    const { count, rows } = await db.Publisher.findAndCountAll({
+        where: publisherWhere,
+        include: artistInclude,
+        attributes: ['id', 'name', 'profilePicture', 'createdAt'],
+        distinct: true,
+        order: [['createdAt', 'DESC'], ['id', 'DESC']],
+        limit,
+    });
+
+    return {
+        total: count,
+        results: rows.map(formatArtistSearchResult),
+    };
+};
 
 exports.search = async (req, res) => {
     try {
@@ -225,33 +315,16 @@ exports.search = async (req, res) => {
             });
         }
 
-        const searchOptions = {
-            where: buildSearchWhere(query, type),
-            include: searchInclude,
-            distinct: true,
-            subQuery: false,
-        };
-
-        const { count, rows } = await db.Artwork.findAndCountAll({
-            ...searchOptions,
-            attributes: ['id', 'title', 'artist', 'imageUrl', 'carouselId', 'createdAt'],
-            order: [['createdAt', 'DESC'], ['id', 'DESC']],
-            limit,
-        });
-
-        const carouselIds = [...new Set(rows.map((artwork) => artwork.carouselId).filter(Boolean))];
-        const carouselArtworkMap = await getCarouselArtworkMap(carouselIds);
+        const searchResults = type === 'artists'
+            ? await searchArtists({ query, limit })
+            : await searchArtworks({ query, limit });
 
         res.json({
             success: true,
             query,
             type,
-            total: count,
-            results: rows.map((artwork) => formatSearchResult(
-                artwork,
-                type,
-                carouselArtworkMap.get(artwork.carouselId) || []
-            )),
+            total: searchResults.total,
+            results: searchResults.results,
         });
     } catch (error) {
         console.error('Viewer search error:', error);
