@@ -140,6 +140,62 @@ const formatCarouselDetail = (carousel) => {
     };
 };
 
+const formatPublisherSummary = (publisher) => {
+    if (!publisher) return null;
+
+    return {
+        id: publisher.id,
+        name: publisher.name,
+        profilePicture: getCompleteImageUrl(publisher.profilePicture),
+    };
+};
+
+const formatPublisherCarousel = (carousel, publisher) => {
+    if (!carousel) return null;
+
+    const artworks = sortArtworksByDisplayOrder(carousel.artworks || []);
+    const imageUrl = artworks.length > 0
+        ? getCompleteImageUrl(artworks[0].imageUrl)
+        : null;
+
+    return {
+        id: carousel.id,
+        name: carousel.name,
+        description: carousel.description,
+        tag: carousel.tag,
+        imageUrl,
+        heroImageUrl: carousel.heroImageUrl
+            ? getCompleteImageUrl(carousel.heroImageUrl)
+            : imageUrl,
+        views: carousel.views || 0,
+        artworkCount: artworks.length,
+        publisher: formatPublisherSummary(publisher || carousel.publisher),
+        artworks: artworks.map((artwork) => ({
+            id: artwork.id,
+            title: artwork.title,
+            imageUrl: getCompleteImageUrl(artwork.imageUrl),
+        })),
+    };
+};
+
+const formatPublisherDetail = (publisher, carousels = []) => {
+    const formattedCarousels = carousels.map((carousel) => formatPublisherCarousel(carousel, publisher));
+    const totalViews = formattedCarousels.reduce((sum, carousel) => (
+        sum + (Number(carousel.views) || 0)
+    ), 0);
+
+    return {
+        id: publisher.id,
+        name: publisher.name,
+        bio: publisher.bio || '',
+        location: publisher.country || null,
+        profilePicture: getCompleteImageUrl(publisher.profilePicture),
+        carouselCount: formattedCarousels.length,
+        totalViews,
+        carousels: formattedCarousels,
+    };
+};
+
 exports.getHomeCarouselById = async (req, res) => {
     try {
         const { carouselId } = req.params;
@@ -496,6 +552,62 @@ exports.getRecentlyWatchedCarousels = async (req, res) => {
     }
 };
 
+exports.getHomePublisherById = async (req, res) => {
+    try {
+        const { publisherId } = req.params;
+
+        if (!/^\d+$/.test(publisherId)) {
+            return res.status(400).json({
+                success: false,
+                message: 'publisherId must be a valid numeric id',
+            });
+        }
+
+        const publisher = await db.Publisher.findByPk(publisherId, {
+            attributes: ['id', 'name', 'bio', 'country', 'profilePicture'],
+        });
+
+        if (!publisher) {
+            return res.status(404).json({
+                success: false,
+                message: 'Publisher not found',
+            });
+        }
+
+        const carousels = await db.Carousel.findAll({
+            where: {
+                ...activeCarouselWhere,
+                publisherId,
+            },
+            attributes: ['id', 'name', 'description', 'tag', 'views', 'createdAt'],
+            include: [
+                {
+                    model: db.Artwork,
+                    as: 'artworks',
+                    where: { isDeleted: false },
+                    required: false,
+                    separate: true,
+                    attributes: ['id', 'title', 'imageUrl', 'displayOrder'],
+                    order: [['displayOrder', 'ASC'], ['id', 'ASC']],
+                },
+            ],
+            order: [['views', 'DESC'], ['createdAt', 'DESC'], ['id', 'DESC']],
+        });
+
+        res.json({
+            success: true,
+            publisher: formatPublisherDetail(publisher, carousels),
+        });
+    } catch (error) {
+        console.error('Error fetching home publisher:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching publisher',
+            error: error.message,
+        });
+    }
+};
+
 exports.getHomePublishers = async (req, res) => {
     try {
         const publishers = await db.Publisher.findAll({
@@ -567,6 +679,7 @@ exports.getHomePublishers = async (req, res) => {
                     publisher: {
                         id: publisher.id,
                         name: publisher.name,
+                        profilePicture: getCompleteImageUrl(publisher.profilePicture),
                     },
                 })),
             }));

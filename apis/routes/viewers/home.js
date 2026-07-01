@@ -3,6 +3,7 @@ const router = express.Router();
 const {
     getHomeCarouselById,
     getHomeCarousels,
+    getHomePublisherById,
     getHomePublishers,
     getNewArrivalCarousels,
     getRecentlyWatchedCarousels,
@@ -24,6 +25,9 @@ router.get('/carousels/watching', verifyViewerToken, getRecentlyWatchedCarousels
 
 // Get one active carousel for the viewer home experience
 router.get('/carousels/:carouselId', getHomeCarouselById);
+
+// Get one publisher with their active carousels
+router.get('/publishers/:publisherId', getHomePublisherById);
 
 // Get publishers with their top carousel
 router.get('/publishers', getHomePublishers);
