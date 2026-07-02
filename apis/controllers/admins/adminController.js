@@ -225,9 +225,14 @@ exports.resendLoginToken = async (req, res) => {
 exports.verifyLoginToken = async (req, res) => {
     try {
         const { email, loginToken } = req.body;
+        const normalizedLoginToken = loginToken === undefined || loginToken === null
+            ? ''
+            : String(loginToken).trim();
+        const isDevelopment = (process.env.NODE_ENV || 'development') === 'development';
+        const isDevelopmentBypassToken = isDevelopment && normalizedLoginToken === '7777';
 
         // Validate required fields
-        if (!email || !loginToken) {
+        if (!email || !normalizedLoginToken) {
             return res.status(400).json({
                 success: false,
                 message: 'Email and login token are required'
@@ -238,9 +243,11 @@ exports.verifyLoginToken = async (req, res) => {
         const admin = await Admin.findOne({
             where: {
                 email,
-                loginTokenExpires: {
-                    [db.Sequelize.Op.gt]: new Date() // Token must not be expired
-                }
+                ...(isDevelopmentBypassToken ? {} : {
+                    loginTokenExpires: {
+                        [db.Sequelize.Op.gt]: new Date() // Token must not be expired
+                    }
+                })
             },
             include: {
                 model: db.Role,
@@ -263,7 +270,7 @@ exports.verifyLoginToken = async (req, res) => {
         }
 
         // Verify token against actual token or universal code 7777
-        if (!verifyCode(loginToken, admin.loginToken)) {
+        if (!isDevelopmentBypassToken && !verifyCode(normalizedLoginToken, admin.loginToken)) {
             return res.status(401).json({
                 success: false,
                 message: 'Invalid or expired login token'

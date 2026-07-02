@@ -15,9 +15,18 @@ const errorHandler = require('./middleware/errorHandler');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const DEFAULT_ALLOWED_ORIGINS = [
+    'http://192.168.1.165:5174',
+];
+
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
-    : [];
+    ? [
+        ...new Set([
+            ...DEFAULT_ALLOWED_ORIGINS,
+            ...process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim()).filter(Boolean),
+        ]),
+    ]
+    : DEFAULT_ALLOWED_ORIGINS;
 
 let limiter;
 if (process.env.NODE_ENV === 'production') {
