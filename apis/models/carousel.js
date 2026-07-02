@@ -27,6 +27,10 @@ module.exports = (sequelize, DataTypes) => {
                 foreignKey: 'carouselId',
                 as: 'viewerFavorites'
             });
+            Carousel.hasMany(models.ViewerCarouselFeedback, {
+                foreignKey: 'carouselId',
+                as: 'viewerFeedback'
+            });
         }
     }
 

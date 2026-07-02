@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {
+    getCarouselRecommendations,
     getHomeCarouselById,
     getHomeCarousels,
     getHomePublisherById,
@@ -8,6 +9,7 @@ const {
     getNewArrivalCarousels,
     getRecentlyWatchedCarousels,
     saveWatchingCarousel,
+    submitCarouselFeedback,
 } = require('../../controllers/viewers/homeController');
 const { optionalVerifyViewerToken, verifyViewerToken } = require('../../middleware/auth');
 
@@ -22,6 +24,12 @@ router.post('/carousels/watching', verifyViewerToken, saveWatchingCarousel);
 
 // Get the 3 most recently watched carousels for the viewer
 router.get('/carousels/watching', verifyViewerToken, getRecentlyWatchedCarousels);
+
+// Get recommended carousels related to one active carousel
+router.get('/carousels/:carouselId/recommendations', getCarouselRecommendations);
+
+// Save/update viewer feedback for one active carousel
+router.post('/carousels/:carouselId/feedback', verifyViewerToken, submitCarouselFeedback);
 
 // Get one active carousel for the viewer home experience
 router.get('/carousels/:carouselId', getHomeCarouselById);

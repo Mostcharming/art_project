@@ -12,6 +12,10 @@ const activeCarouselWhere = {
     isDeleted: false,
 };
 
+const ALLOWED_FEEDBACK_RATINGS = ['dislike', 'like', 'love'];
+const DEFAULT_RECOMMENDATION_LIMIT = 6;
+const MAX_RECOMMENDATION_LIMIT = 24;
+
 const getFrontendUrl = () => (process.env.FRONTEND_URL || 'https://joincarsl.com').replace(/\/$/, '');
 
 const parseLimit = (value, fallback = 20, max = 100) => {
@@ -25,6 +29,15 @@ const parseLimit = (value, fallback = 20, max = 100) => {
     }
 
     return Math.min(parsed, max);
+};
+
+const parseCarouselId = (value) => {
+    if (value === undefined || value === null || value === '') {
+        return null;
+    }
+
+    const parsed = Number(value);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
 };
 
 const formatCarousel = (carousel) => {
@@ -196,6 +209,31 @@ const formatPublisherDetail = (publisher, carousels = []) => {
     };
 };
 
+const recommendationInclude = [
+    {
+        model: db.Publisher,
+        as: 'publisher',
+        attributes: ['id', 'name', 'profilePicture'],
+    },
+    {
+        model: db.Artwork,
+        as: 'artworks',
+        where: { isDeleted: false },
+        required: false,
+        separate: true,
+        attributes: ['id', 'title', 'imageUrl', 'displayOrder'],
+        order: [['displayOrder', 'ASC'], ['id', 'ASC']],
+    },
+];
+
+const formatCarouselFeedback = (feedback) => ({
+    id: feedback.id,
+    carouselId: feedback.carouselId,
+    rating: feedback.rating,
+    createdAt: feedback.createdAt,
+    updatedAt: feedback.updatedAt,
+});
+
 exports.getHomeCarouselById = async (req, res) => {
     try {
         const { carouselId } = req.params;
@@ -247,6 +285,169 @@ exports.getHomeCarouselById = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error fetching carousel',
+            error: error.message,
+        });
+    }
+};
+
+exports.getCarouselRecommendations = async (req, res) => {
+    try {
+        const carouselId = parseCarouselId(req.params.carouselId);
+        const limit = parseLimit(req.query.limit, DEFAULT_RECOMMENDATION_LIMIT, MAX_RECOMMENDATION_LIMIT);
+
+        if (!carouselId) {
+            return res.status(400).json({
+                success: false,
+                message: 'carouselId must be a valid positive integer',
+            });
+        }
+
+        if (!limit) {
+            return res.status(400).json({
+                success: false,
+                message: 'limit must be a positive integer',
+            });
+        }
+
+        const carousel = await db.Carousel.findOne({
+            where: {
+                id: carouselId,
+                ...activeCarouselWhere,
+            },
+            attributes: ['id', 'publisherId', 'tag'],
+        });
+
+        if (!carousel) {
+            return res.status(404).json({
+                success: false,
+                message: 'Carousel not found',
+            });
+        }
+
+        const recommendations = [];
+        const excludedIds = new Set([carousel.id]);
+        const addRecommendations = async (where = {}) => {
+            if (recommendations.length >= limit) {
+                return;
+            }
+
+            const rows = await db.Carousel.findAll({
+                where: {
+                    ...activeCarouselWhere,
+                    ...where,
+                    id: {
+                        [db.Sequelize.Op.notIn]: [...excludedIds],
+                    },
+                },
+                attributes: ['id', 'name', 'description', 'tag', 'views', 'createdAt'],
+                include: recommendationInclude,
+                order: [['views', 'DESC'], ['createdAt', 'DESC'], ['id', 'DESC']],
+                limit: limit - recommendations.length,
+            });
+
+            rows.forEach((row) => {
+                if (!excludedIds.has(row.id)) {
+                    excludedIds.add(row.id);
+                    recommendations.push(row);
+                }
+            });
+        };
+
+        if (carousel.tag) {
+            await addRecommendations({ tag: carousel.tag });
+        }
+
+        await addRecommendations({ publisherId: carousel.publisherId });
+        await addRecommendations();
+
+        res.json({
+            success: true,
+            carouselId,
+            limit,
+            recommendations: recommendations.map(formatNewArrivalCarousel),
+        });
+    } catch (error) {
+        console.error('Error fetching carousel recommendations:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching carousel recommendations',
+            error: error.message,
+        });
+    }
+};
+
+exports.submitCarouselFeedback = async (req, res) => {
+    try {
+        const viewerId = req.user.id;
+        const carouselId = parseCarouselId(req.params.carouselId);
+        const rating = typeof req.body.rating === 'string'
+            ? req.body.rating.trim().toLowerCase()
+            : '';
+
+        if (!carouselId) {
+            return res.status(400).json({
+                success: false,
+                message: 'carouselId must be a valid positive integer',
+            });
+        }
+
+        if (!ALLOWED_FEEDBACK_RATINGS.includes(rating)) {
+            return res.status(400).json({
+                success: false,
+                message: 'rating must be one of: dislike, like, love',
+            });
+        }
+
+        const carousel = await db.Carousel.findOne({
+            where: {
+                id: carouselId,
+                ...activeCarouselWhere,
+            },
+            attributes: ['id'],
+        });
+
+        if (!carousel) {
+            return res.status(404).json({
+                success: false,
+                message: 'Carousel not found',
+            });
+        }
+
+        const { feedback, created, changed } = await db.sequelize.transaction(async (transaction) => {
+            const [viewerFeedback, wasCreated] = await db.ViewerCarouselFeedback.findOrCreate({
+                where: { viewerId, carouselId },
+                defaults: { viewerId, carouselId, rating },
+                transaction,
+            });
+
+            const ratingChanged = !wasCreated && viewerFeedback.rating !== rating;
+            if (ratingChanged) {
+                await viewerFeedback.update({ rating }, { transaction });
+            }
+
+            return {
+                feedback: viewerFeedback,
+                created: wasCreated,
+                changed: ratingChanged,
+            };
+        });
+
+        const message = created
+            ? 'Feedback saved successfully'
+            : changed
+                ? 'Feedback updated successfully'
+                : 'Feedback already saved';
+
+        res.status(created ? 201 : 200).json({
+            success: true,
+            message,
+            feedback: formatCarouselFeedback(feedback),
+        });
+    } catch (error) {
+        console.error('Error saving carousel feedback:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error saving carousel feedback',
             error: error.message,
         });
     }
