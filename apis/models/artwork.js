@@ -13,7 +13,8 @@ module.exports = (sequelize, DataTypes) => {
         static associate(models) {
             Artwork.belongsTo(models.Carousel, {
                 foreignKey: 'carouselId',
-                as: 'carousel'
+                as: 'carousel',
+                onDelete: 'CASCADE'
             });
         }
     }
@@ -25,7 +26,8 @@ module.exports = (sequelize, DataTypes) => {
             references: {
                 model: 'Carousels',
                 key: 'id'
-            }
+            },
+            onDelete: 'CASCADE'
         },
         title: {
             type: DataTypes.STRING,

@@ -1,4 +1,14 @@
-const { Carousel, Artwork, Publisher, Subscriber, Viewer, sequelize } = require('../../models');
+const {
+    Carousel,
+    Artwork,
+    Publisher,
+    Subscriber,
+    Viewer,
+    ViewerCarouselFavorite,
+    ViewerCarouselFeedback,
+    ViewerCarouselWatch,
+    sequelize
+} = require('../../models');
 const { Op } = require('sequelize');
 const path = require('path');
 const { processCarouselImages, processCarouselsImages } = require('../../utils/imageUrlHelper');
@@ -198,6 +208,32 @@ const buildArtworkDraftRows = ({ artworks, files = [], carouselId, status = 'dra
             displayOrder: index
         };
     });
+};
+
+const deleteCarouselWithDependencies = async (carousel, transaction) => {
+    const carouselId = carousel.id;
+
+    await ViewerCarouselFeedback.destroy({
+        where: { carouselId },
+        transaction
+    });
+
+    await ViewerCarouselFavorite.destroy({
+        where: { carouselId },
+        transaction
+    });
+
+    await ViewerCarouselWatch.destroy({
+        where: { carouselId },
+        transaction
+    });
+
+    await Artwork.destroy({
+        where: { carouselId },
+        transaction
+    });
+
+    await carousel.destroy({ transaction });
 };
 
 exports.createCarouselDraft = async (req, res, next) => {
@@ -570,11 +606,9 @@ exports.deleteCarouselDraft = async (req, res, next) => {
             });
         }
 
-        await Artwork.destroy({
-            where: { carouselId }
+        await sequelize.transaction(async (transaction) => {
+            await deleteCarouselWithDependencies(carousel, transaction);
         });
-
-        await carousel.destroy();
 
         res.status(200).json({
             message: 'Carousel draft deleted successfully'
@@ -856,11 +890,9 @@ exports.deleteCarousel = async (req, res, next) => {
             return res.status(404).json({ error: 'Carousel not found' });
         }
 
-        await Artwork.destroy({
-            where: { carouselId }
+        await sequelize.transaction(async (transaction) => {
+            await deleteCarouselWithDependencies(carousel, transaction);
         });
-
-        await carousel.destroy();
 
         res.status(200).json({
             message: 'Carousel deleted successfully'

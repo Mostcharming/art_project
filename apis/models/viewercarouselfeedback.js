@@ -8,11 +8,13 @@ module.exports = (sequelize, DataTypes) => {
         static associate(models) {
             ViewerCarouselFeedback.belongsTo(models.Viewer, {
                 foreignKey: 'viewerId',
-                as: 'viewer'
+                as: 'viewer',
+                onDelete: 'CASCADE'
             });
             ViewerCarouselFeedback.belongsTo(models.Carousel, {
                 foreignKey: 'carouselId',
-                as: 'carousel'
+                as: 'carousel',
+                onDelete: 'CASCADE'
             });
         }
     }
@@ -24,7 +26,8 @@ module.exports = (sequelize, DataTypes) => {
             references: {
                 model: 'Viewers',
                 key: 'id'
-            }
+            },
+            onDelete: 'CASCADE'
         },
         carouselId: {
             type: DataTypes.INTEGER,
@@ -32,7 +35,8 @@ module.exports = (sequelize, DataTypes) => {
             references: {
                 model: 'Carousels',
                 key: 'id'
-            }
+            },
+            onDelete: 'CASCADE'
         },
         rating: {
             type: DataTypes.ENUM('dislike', 'like', 'love'),

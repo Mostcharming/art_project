@@ -17,19 +17,23 @@ module.exports = (sequelize, DataTypes) => {
             });
             Carousel.hasMany(models.Artwork, {
                 foreignKey: 'carouselId',
-                as: 'artworks'
+                as: 'artworks',
+                onDelete: 'CASCADE'
             });
             Carousel.hasMany(models.ViewerCarouselWatch, {
                 foreignKey: 'carouselId',
-                as: 'viewerWatches'
+                as: 'viewerWatches',
+                onDelete: 'CASCADE'
             });
             Carousel.hasMany(models.ViewerCarouselFavorite, {
                 foreignKey: 'carouselId',
-                as: 'viewerFavorites'
+                as: 'viewerFavorites',
+                onDelete: 'CASCADE'
             });
             Carousel.hasMany(models.ViewerCarouselFeedback, {
                 foreignKey: 'carouselId',
-                as: 'viewerFeedback'
+                as: 'viewerFeedback',
+                onDelete: 'CASCADE'
             });
         }
     }
