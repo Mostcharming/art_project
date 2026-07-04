@@ -9,6 +9,7 @@ const stylesRoutes = require('./styles');
 const homeRoutes = require('./home');
 const setupRoutes = require('./setup');
 const searchRoutes = require('./search');
+const settingsRoutes = require('./settings');
 
 // Register sub-routes
 router.use('/', authRoutes);
@@ -18,5 +19,6 @@ router.use('/styles', stylesRoutes);
 router.use('/home', homeRoutes);
 router.use('/setup', setupRoutes);
 router.use('/search', searchRoutes);
+router.use('/settings', settingsRoutes);
 
 module.exports = router;

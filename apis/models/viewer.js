@@ -152,6 +152,26 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true,
       comment: 'Viewer website URL'
+    },
+    accessibilityPreferences: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      comment: 'Viewer accessibility preference settings'
+    },
+    accessibilityPreferencesUpdatedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: 'Timestamp when accessibility preferences were last saved'
+    },
+    contentPreferences: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      comment: 'Viewer content preference settings'
+    },
+    contentPreferencesUpdatedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: 'Timestamp when content preferences were last saved'
     }
   }, {
     sequelize,

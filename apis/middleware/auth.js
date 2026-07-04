@@ -32,14 +32,14 @@ const verifyViewerToken = (req, res, next) => {
         const decoded = jwt.verify(token, JWT_SECRET, VIEWER_JWT_VERIFY_OPTIONS);
 
         if (decoded.type !== 'viewer') {
-            return res.status(403).json({ error: 'Only viewers can access this resource' });
+            return res.status(401).json({ error: 'Invalid token' });
         }
 
         req.user = decoded;
         next();
     } catch (error) {
         console.error('Viewer token verification error:', error.message);
-        res.status(403).json({ error: 'Invalid token' });
+        res.status(401).json({ error: 'Invalid token' });
     }
 };
 
