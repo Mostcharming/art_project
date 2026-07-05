@@ -11,8 +11,8 @@ router.get('/', verifyViewerToken, profileController.getProfile);
 
 /**
  * PUT /api/viewers/profile
- * Update viewer profile (secured)
- * Body: { firstName, lastName, vibePreference, appUsage }
+ * Update viewer name (secured)
+ * Body: { firstName, lastName }
  */
 router.put('/', verifyViewerToken, profileController.updateProfile);
 
@@ -39,7 +39,7 @@ router.put('/styles', verifyViewerToken, profileController.updateStyles);
 /**
  * POST /api/viewers/profile/change-password
  * Change password (secured)
- * Body: { currentPassword, newPassword }
+ * Body: { currentPassword, newPassword, confirmPassword }
  */
 router.post('/change-password', verifyViewerToken, profileController.changePassword);
 

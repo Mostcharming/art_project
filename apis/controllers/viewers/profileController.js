@@ -1,6 +1,29 @@
 const { Viewer, Style, sequelize } = require('../../models');
-const { hashPassword } = require('../../utils/passwordHash');
+const { hashPassword, comparePassword } = require('../../utils/passwordHash');
 const emailMiddleware = require('../../middleware/emailMiddleware');
+const { getCompleteImageUrl } = require('../../utils/imageUrlHelper');
+
+const formatViewerProfile = (viewer) => {
+    const firstName = viewer.firstName || '';
+    const lastName = viewer.lastName || '';
+    const fullName = `${firstName} ${lastName}`.trim();
+
+    return {
+        id: viewer.id,
+        email: viewer.email,
+        firstName,
+        lastName,
+        fullName,
+        profilePicture: getCompleteImageUrl(viewer.profilePicture),
+        updatedAt: viewer.updatedAt ? viewer.updatedAt.toISOString() : null,
+    };
+};
+
+const sendProfileValidationError = (res, errors) => res.status(422).json({
+    success: false,
+    message: 'Invalid profile details',
+    errors,
+});
 
 /**
  * Get viewer profile
@@ -10,20 +33,20 @@ exports.getProfile = async (req, res, next) => {
         const viewerId = req.user.id;
 
         const viewer = await Viewer.findByPk(viewerId, {
-            include: {
-                model: Style,
-                as: 'styles',
-                attributes: ['id', 'name', 'description'],
-                through: { attributes: [] }, // Don't include join table attributes
-            },
-            attributes: { exclude: ['password', 'verificationToken', 'resetPasswordToken'] },
+            attributes: ['id', 'email', 'firstName', 'lastName', 'profilePicture', 'updatedAt'],
         });
 
         if (!viewer) {
-            return res.status(404).json({ error: 'Viewer not found' });
+            return res.status(404).json({
+                success: false,
+                message: 'Viewer not found',
+            });
         }
 
-        res.json(viewer);
+        res.json({
+            success: true,
+            viewer: formatViewerProfile(viewer),
+        });
     } catch (error) {
         console.error('Get profile error:', error);
         next(error);
@@ -36,40 +59,77 @@ exports.getProfile = async (req, res, next) => {
 exports.updateProfile = async (req, res, next) => {
     try {
         const viewerId = req.user.id;
-        const { firstName, lastName, vibePreference, appUsage } = req.body;
+        const { firstName, lastName } = req.body;
+
+        const errors = {};
+        if (typeof firstName !== 'string' || firstName.trim() === '') {
+            errors.firstName = 'First name is required';
+        }
+
+        if (lastName !== undefined && lastName !== null && typeof lastName !== 'string') {
+            errors.lastName = 'Last name must be a string';
+        }
+
+        if (Object.keys(errors).length > 0) {
+            return sendProfileValidationError(res, errors);
+        }
 
         const viewer = await Viewer.findByPk(viewerId);
         if (!viewer) {
-            return res.status(404).json({ error: 'Viewer not found' });
+            return res.status(404).json({
+                success: false,
+                message: 'Viewer not found',
+            });
         }
 
-        // Update allowed fields
-        const updates = {};
-        if (firstName !== undefined) updates.firstName = firstName;
-        if (lastName !== undefined) updates.lastName = lastName;
-        if (vibePreference !== undefined) {
-            if (vibePreference < 0 || vibePreference > 100) {
-                return res.status(400).json({ error: 'vibePreference must be between 0 and 100' });
-            }
-            updates.vibePreference = vibePreference;
-        }
-        if (appUsage !== undefined) updates.appUsage = appUsage;
-
-        await viewer.update(updates);
+        await viewer.update({
+            firstName: firstName.trim(),
+            lastName: lastName ? lastName.trim() : '',
+        });
 
         res.json({
-            message: 'Profile updated successfully',
-            viewer: {
-                id: viewer.id,
-                email: viewer.email,
-                firstName: viewer.firstName,
-                lastName: viewer.lastName,
-                vibePreference: viewer.vibePreference,
-                appUsage: viewer.appUsage,
-            },
+            success: true,
+            message: 'Name updated successfully',
+            viewer: formatViewerProfile(viewer),
         });
     } catch (error) {
         console.error('Update profile error:', error);
+        next(error);
+    }
+};
+
+/**
+ * Upload viewer profile picture
+ */
+exports.uploadProfilePicture = async (req, res, next) => {
+    try {
+        const viewerId = req.user.id;
+
+        if (!req.file) {
+            return res.status(422).json({
+                success: false,
+                message: 'Please select a valid image file',
+            });
+        }
+
+        const viewer = await Viewer.findByPk(viewerId);
+        if (!viewer) {
+            return res.status(404).json({
+                success: false,
+                message: 'Viewer not found',
+            });
+        }
+
+        const profilePicture = `/uploads/profile-pictures/${req.file.filename}`;
+        await viewer.update({ profilePicture });
+
+        res.json({
+            success: true,
+            message: 'Profile picture updated successfully',
+            viewer: formatViewerProfile(viewer),
+        });
+    } catch (error) {
+        console.error('Upload profile picture error:', error);
         next(error);
     }
 };
@@ -267,25 +327,51 @@ exports.getStyles = async (req, res, next) => {
 exports.changePassword = async (req, res, next) => {
     try {
         const viewerId = req.user.id;
-        const { currentPassword, newPassword } = req.body;
+        const { currentPassword, newPassword, confirmPassword } = req.body;
 
-        if (!currentPassword || !newPassword) {
-            return res.status(400).json({ error: 'Current password and new password are required' });
+        const errors = {};
+        if (!currentPassword) errors.currentPassword = 'Current password is required';
+        if (!newPassword) errors.newPassword = 'New password is required';
+        if (!confirmPassword) errors.confirmPassword = 'Confirm password is required';
+
+        if (Object.keys(errors).length > 0) {
+            return res.status(422).json({
+                success: false,
+                message: 'Invalid password details',
+                errors,
+            });
+        }
+
+        if (newPassword !== confirmPassword) {
+            return res.status(422).json({
+                success: false,
+                message: 'New passwords do not match',
+            });
+        }
+
+        if (newPassword.length < 8) {
+            return res.status(422).json({
+                success: false,
+                message: 'New password must be at least 8 characters',
+            });
         }
 
         const viewer = await Viewer.findByPk(viewerId);
         if (!viewer) {
-            return res.status(404).json({ error: 'Viewer not found' });
+            return res.status(404).json({
+                success: false,
+                message: 'Viewer not found',
+            });
         }
 
-        // Verify current password
-        const { comparePassword } = require('../../utils/passwordHash');
         const isPasswordValid = await comparePassword(currentPassword, viewer.password);
         if (!isPasswordValid) {
-            return res.status(401).json({ error: 'Current password is incorrect' });
+            return res.status(400).json({
+                success: false,
+                message: 'Current password is incorrect',
+            });
         }
 
-        // Hash new password
         const hashedPassword = await hashPassword(newPassword);
 
         await viewer.update({ password: hashedPassword });
@@ -299,7 +385,10 @@ exports.changePassword = async (req, res, next) => {
             console.warn('Password changed email sending failed:', emailError);
         }
 
-        res.json({ message: 'Password changed successfully' });
+        res.json({
+            success: true,
+            message: 'Password changed successfully',
+        });
     } catch (error) {
         console.error('Change password error:', error);
         next(error);

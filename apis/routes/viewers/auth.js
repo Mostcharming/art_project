@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../../controllers/viewers/authController');
+const profileController = require('../../controllers/viewers/profileController');
 const { verifyViewerToken } = require('../../middleware/auth');
 
 // Step 1: Register with email and password
@@ -23,6 +24,9 @@ router.post('/auth/setup/complete', verifyViewerToken, authController.submitAppU
 
 // Login (only works after setup is complete)
 router.post('/auth/login', authController.login);
+
+// Change password for authenticated viewers
+router.post('/auth/change-password', verifyViewerToken, profileController.changePassword);
 
 // Password reset endpoints
 router.post('/auth/forgot-password', authController.requestPasswordReset);
