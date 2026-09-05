@@ -1,16 +1,46 @@
 const { MailtrapClient } = require('mailtrap');
+const nodemailer = require('nodemailer');
 const fs = require('fs');
 const path = require('path');
 const emailTemplates = require('../config/emailTemplates');
 
 let client;
+let smtpTransport;
 let sharedEmailCss;
 
 const APP_URL = process.env.FRONTEND_URL || 'https://joincarsl.com';
 const API_URL = process.env.API_BASE_URL || process.env.BACKEND_URL || APP_URL;
 const EMAIL_ASSET_BASE_URL = process.env.EMAIL_ASSET_BASE_URL || `${API_URL.replace(/\/$/, '')}/email-assets`;
 
+const usesSmtp = () => process.env.EMAIL_TRANSPORT === 'smtp'
+    || (!process.env.MAILTRAP_API_KEY && Boolean(process.env.SMTP_HOST));
+
 const initializeEmailService = () => {
+    if (usesSmtp()) {
+        if (!smtpTransport) {
+            if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
+                throw new Error('SMTP_HOST, SMTP_USER, and SMTP_PASSWORD are required to send email');
+            }
+            const port = Number(process.env.SMTP_PORT || 587);
+            if (!Number.isInteger(port) || port < 1 || port > 65535) {
+                throw new Error('SMTP_PORT must be a valid port number');
+            }
+            smtpTransport = nodemailer.createTransport({
+                host: process.env.SMTP_HOST,
+                port,
+                secure: process.env.SMTP_SECURE === undefined
+                    ? port === 465 : process.env.SMTP_SECURE === 'true',
+                auth: {
+                    user: process.env.SMTP_USER,
+                    pass: process.env.SMTP_PASSWORD,
+                },
+                connectionTimeout: 15000,
+                greetingTimeout: 15000,
+                socketTimeout: 30000,
+            });
+        }
+        return smtpTransport;
+    }
     if (!client) {
         if (!process.env.MAILTRAP_API_KEY) {
             throw new Error('MAILTRAP_API_KEY is required to send email');
@@ -290,12 +320,27 @@ const renderTemplate = (template, variables) => {
 
 const sendEmail = async (to, templateName, variables = {}) => {
     try {
-        const mailtrapClient = initializeEmailService();
+        const emailClient = initializeEmailService();
         const template = getTemplate(templateName);
         const { html, text } = renderTemplate(template, variables);
         const subject = renderString(template.subject, buildDefaultVariables(variables));
 
-        const response = await mailtrapClient.send({
+        if (usesSmtp()) {
+            const response = await emailClient.sendMail({
+                from: {
+                    address: process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER,
+                    name: process.env.SMTP_FROM_NAME || 'Carsl',
+                },
+                to,
+                subject,
+                text,
+                html,
+            });
+            console.log('Email sent:', response.messageId);
+            return { success: true, messageId: response.messageId };
+        }
+
+        const response = await emailClient.send({
             from: {
                 email: process.env.MAILTRAP_FROM_EMAIL || process.env.SMTP_FROM_EMAIL || 'hello@joincarsl.com',
                 name: process.env.MAILTRAP_FROM_NAME || process.env.SMTP_FROM_NAME || 'Carsl',

@@ -23,10 +23,10 @@ if (config.use_env_variable) {
     dbPort = process.env.DB_PORT_PROD;
   } else if (env === 'test') {
     dbName = process.env.DB_NAME_TEST;
-    dbUser = process.env.DB_USER;
-    dbPassword = process.env.DB_PASSWORD;
-    dbHost = process.env.DB_HOST;
-    dbPort = process.env.DB_PORT;
+    dbUser = process.env.DB_TEST_USER || process.env.DB_USER;
+    dbPassword = process.env.DB_TEST_PASSWORD || process.env.DB_PASSWORD;
+    dbHost = process.env.DB_TEST_HOST || process.env.DB_HOST;
+    dbPort = process.env.DB_TEST_PORT || process.env.DB_PORT;
   } else {
     dbName = process.env.DB_NAME;
     dbUser = process.env.DB_USER;

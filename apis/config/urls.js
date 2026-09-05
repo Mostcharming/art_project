@@ -1,9 +1,9 @@
 
 
 const urlConfig = {
-    development: 'http://192.168.1.165:3000',
+    development: process.env.BACKEND_URL || 'http://localhost:3000',
     production: 'https://joincarsl.com/api',
-    test: 'http://192.168.1.165:3000'
+    test: process.env.BACKEND_URL || 'http://localhost:3000'
 };
 
 const currentEnv = process.env.NODE_ENV || 'development';
