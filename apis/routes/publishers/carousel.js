@@ -1,18 +1,19 @@
+const { requirePublisherTerms } = require('../../utils/legal');
 const express = require('express');
 const router = express.Router();
 const carouselController = require('../../controllers/publishers/carouselController');
 const { authenticatePublisher } = require('../../middleware/auth');
 const upload = require('../../middleware/uploadMiddleware');
 
-router.post('/draft', authenticatePublisher, upload.array('artworkImages'), carouselController.createCarouselDraft);
+router.post('/draft', authenticatePublisher, requirePublisherTerms, upload.array('artworkImages'), carouselController.createCarouselDraft);
 
 router.get('/drafts', authenticatePublisher, carouselController.getAllCarouselDrafts);
 
 router.get('/draft/:carouselId', authenticatePublisher, carouselController.getCarouselDraft);
 
-router.patch('/draft/:carouselId', authenticatePublisher, upload.array('artworkImages'), carouselController.updateCarouselDraft);
+router.patch('/draft/:carouselId', authenticatePublisher, requirePublisherTerms, upload.array('artworkImages'), carouselController.updateCarouselDraft);
 
-router.patch('/draft/:carouselId/publish', authenticatePublisher, carouselController.publishCarouselDraft);
+router.patch('/draft/:carouselId/publish', authenticatePublisher, requirePublisherTerms, carouselController.publishCarouselDraft);
 
 router.delete('/draft/:carouselId', authenticatePublisher, carouselController.deleteCarouselDraft);
 
@@ -22,13 +23,13 @@ router.get('/active', authenticatePublisher, carouselController.getActiveCarouse
 
 router.get('/scheduled', authenticatePublisher, carouselController.getScheduledCarousels);
 
-router.patch('/:carouselId/move-to-draft', authenticatePublisher, carouselController.moveToDraft);
+router.patch('/:carouselId/move-to-draft', authenticatePublisher, requirePublisherTerms, carouselController.moveToDraft);
 
-router.patch('/:carouselId/schedule', authenticatePublisher, carouselController.scheduleCarouselForPublish);
+router.patch('/:carouselId/schedule', authenticatePublisher, requirePublisherTerms, carouselController.scheduleCarouselForPublish);
 
 router.get('/:carouselId', authenticatePublisher, carouselController.getOneCarousel);
 
-router.patch('/:carouselId', authenticatePublisher, upload.array('artworkImages'), carouselController.updateCarousel);
+router.patch('/:carouselId', authenticatePublisher, requirePublisherTerms, upload.array('artworkImages'), carouselController.updateCarousel);
 
 router.delete('/:carouselId', authenticatePublisher, carouselController.deleteCarousel);
 

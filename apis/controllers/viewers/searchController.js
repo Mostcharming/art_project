@@ -1,3 +1,4 @@
+const { visibleCarouselWhere, visiblePublisherWhere } = require('../../utils/contentVisibility');
 const db = require('../../models');
 const { getCompleteImageUrl, sortArtworksByDisplayOrder } = require('../../utils/imageUrlHelper');
 
@@ -10,11 +11,6 @@ const DEFAULT_HISTORY_LIMIT = 4;
 const MAX_HISTORY_LIMIT = 20;
 const MAX_QUERY_LENGTH = 255;
 
-const activeCarouselWhere = {
-    status: 'active',
-    adminApproved: true,
-    isDeleted: false,
-};
 
 const normalizeSearchQuery = (value) => {
     if (typeof value !== 'string') {
@@ -202,12 +198,12 @@ const buildArtworkSearchWhere = (query) => {
     };
 };
 
-const searchInclude = [
+const searchInclude = (viewerId) => [
     {
         model: db.Carousel,
         as: 'carousel',
         required: true,
-        where: activeCarouselWhere,
+        where: visibleCarouselWhere(viewerId),
         attributes: ['id', 'name', 'description', 'tag', 'views', 'createdAt'],
         include: [
             {
@@ -219,12 +215,12 @@ const searchInclude = [
     },
 ];
 
-const artistInclude = [
+const artistInclude = (viewerId) => [
     {
         model: db.Carousel,
         as: 'carousels',
         required: true,
-        where: activeCarouselWhere,
+        where: visibleCarouselWhere(viewerId),
         attributes: ['id', 'name', 'description', 'tag', 'views', 'createdAt'],
         include: [
             {
@@ -238,10 +234,10 @@ const artistInclude = [
     },
 ];
 
-const searchArtworks = async ({ query, limit }) => {
+const searchArtworks = async ({ query, limit, viewerId }) => {
     const { count, rows } = await db.Artwork.findAndCountAll({
         where: buildArtworkSearchWhere(query),
-        include: searchInclude,
+        include: searchInclude(viewerId),
         attributes: ['id', 'title', 'artist', 'imageUrl', 'carouselId', 'createdAt'],
         distinct: true,
         subQuery: false,
@@ -261,14 +257,14 @@ const searchArtworks = async ({ query, limit }) => {
     };
 };
 
-const searchArtists = async ({ query, limit }) => {
+const searchArtists = async ({ query, limit, viewerId }) => {
     const publisherWhere = query
         ? { name: { [Op.iLike]: `%${query}%` } }
         : {};
 
     const { count, rows } = await db.Publisher.findAndCountAll({
-        where: publisherWhere,
-        include: artistInclude,
+        where: { [Op.and]: [publisherWhere, visiblePublisherWhere(viewerId)] },
+        include: artistInclude(viewerId),
         attributes: ['id', 'name', 'profilePicture', 'createdAt'],
         distinct: true,
         order: [['createdAt', 'DESC'], ['id', 'DESC']],
@@ -316,8 +312,8 @@ exports.search = async (req, res) => {
         }
 
         const searchResults = type === 'artists'
-            ? await searchArtists({ query, limit })
-            : await searchArtworks({ query, limit });
+            ? await searchArtists({ query, limit, viewerId: req.user?.id })
+            : await searchArtworks({ query, limit, viewerId: req.user?.id });
 
         res.json({
             success: true,

@@ -18,6 +18,8 @@ import NotFound from "./pages/NotFound";
 import PendingApprovalDetails from "./pages/PendingApprovalDetails";
 import Profile from "./pages/Profile";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfUse from "./pages/TermsOfUse";
+import SafetyOperations from "./pages/SafetyOperations";
 import ProtectedRoute from "./pages/ProtectedRoute";
 import ResetPassword from "./pages/ResetPassword";
 import UserDetails from "./pages/UserDetails";
@@ -26,6 +28,8 @@ import Users from "./pages/Users";
 const routeComponents: Record<string, React.FC> = {
   Home,
   PrivacyPolicy,
+  TermsOfUse,
+  SafetyOperations,
   DeleteAccount,
   Login,
   ForgotPassword,
@@ -56,6 +60,7 @@ interface AppProps {
 
 function App({ routes }: AppProps) {
   const protectedRoutes = [
+    "SafetyOperations",
     "Dashboard",
     "Content",
     "CarouselDetails",

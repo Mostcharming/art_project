@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
+const { JWT_SECRET } = require('./jwtSecret');
 require('dotenv').config();
 
 /**
@@ -20,7 +21,8 @@ const generateToken = (data, options = {}) => {
             signOptions.expiresIn = process.env.JWT_EXPIRATION || '7d';
         }
 
-        return jwt.sign(data, process.env.JWT_SECRET || 'your-secret-key', signOptions);
+        if (!signOptions.expiresIn) signOptions.expiresIn = '7d';
+        return jwt.sign(data, JWT_SECRET, signOptions);
     }
     // Otherwise, generate random token for verification/reset
     return crypto.randomBytes(32).toString('hex');

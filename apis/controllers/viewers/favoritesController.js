@@ -1,3 +1,5 @@
+const db = require('../../models');
+const { visibleFavoriteWhere, visiblePublisherWhere, visibleCarouselWhere } = require('../../utils/contentVisibility');
 const { Favorite, Viewer } = require('../../models');
 
 /**
@@ -24,10 +26,16 @@ exports.addFavorite = async (req, res, next) => {
             return res.status(400).json({ error: 'artistId is required for artist favorites' });
         }
 
+        const visible = favoriteType === 'artist'
+            ? await db.Publisher.findOne({ where: { [db.Sequelize.Op.and]: [visiblePublisherWhere(viewerId), { id: artistId }] } })
+            : await db.Artwork.findOne({ where: { id: artworkId, isDeleted: false }, include: [{ model: db.Carousel, as: 'carousel', required: true, where: visibleCarouselWhere(viewerId) }] });
+        if (!visible) return res.status(404).json({ error: 'Content unavailable.' });
+
         // Check if favorite already exists
         const existingFavorite = await Favorite.findOne({
             where: {
                 viewerId,
+                ...visibleFavoriteWhere(viewerId),
                 artworkId: favoriteType === 'artwork' ? artworkId : null,
                 artistId: favoriteType === 'artist' ? artistId : null,
                 favoriteType,
@@ -64,7 +72,7 @@ exports.getFavorites = async (req, res, next) => {
         const viewerId = req.user.id;
         const { favoriteType } = req.query;
 
-        const where = { viewerId };
+        const where = { viewerId, ...visibleFavoriteWhere(viewerId) };
         if (favoriteType) {
             if (!['artwork', 'artist'].includes(favoriteType)) {
                 return res.status(400).json({ error: 'favoriteType must be "artwork" or "artist"' });
@@ -103,6 +111,7 @@ exports.isFavorited = async (req, res, next) => {
         const favorite = await Favorite.findOne({
             where: {
                 viewerId,
+                ...visibleFavoriteWhere(viewerId),
                 artworkId: favoriteType === 'artwork' ? artworkId : null,
                 artistId: favoriteType === 'artist' ? artistId : null,
                 favoriteType,
@@ -154,11 +163,11 @@ exports.getFavoriteCounts = async (req, res, next) => {
         const viewerId = req.user.id;
 
         const artworkCount = await Favorite.count({
-            where: { viewerId, favoriteType: 'artwork' },
+            where: { viewerId, favoriteType: 'artwork', ...visibleFavoriteWhere(viewerId) },
         });
 
         const artistCount = await Favorite.count({
-            where: { viewerId, favoriteType: 'artist' },
+            where: { viewerId, favoriteType: 'artist', ...visibleFavoriteWhere(viewerId) },
         });
 
         res.json({

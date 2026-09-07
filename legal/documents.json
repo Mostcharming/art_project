@@ -1,0 +1,147 @@
+{
+  "version": "2026-09-07",
+  "contact": "carsl.ssfo@gmail.com",
+  "privacy": {
+    "title": "Privacy Policy",
+    "intro": "Carsl operates the publisher app, CARSL TV viewer app and website. This policy covers all three. Privacy and deletion contact: carsl.ssfo@gmail.com. Last updated: 7 September 2026.",
+    "sections": [
+      {
+        "title": "1. Information we handle",
+        "paragraphs": [
+          "Accounts and profiles",
+          "When you register or manage an account, we process your email address, account identifier, password for authentication, verification and password-reset information, account status, and the profile details you provide. Passwords are hashed on our server.",
+          "Publisher profiles may include a name, creator or organisation type, country, biography, website, and profile image. Viewer profiles may include a name, website, and profile image. Optional profile fields depend on the app and features you use.",
+          "Artwork and publishing",
+          "We store the images you upload and related information, such as artwork title, artist, year, dimensions, stated price, carousel descriptions, tags, display timing, and publishing schedules. We also keep publication, review, and moderation status. An artwork's stated price is listing information; it is not a payment-card record.",
+          "Viewing activity and preferences",
+          "For viewers, we process saved favourites, followed artists or publishers, searches, viewing history, watch counts and progress, and feedback such as likes and dislikes. We store the style, language, content, display, and accessibility preferences you choose. This includes accessibility settings rather than a medical diagnosis.",
+          "Technical information and correspondence",
+          "Our services receive connection and request information, including IP address, browser or app user-agent information, request time, and server response details. Account security emails may include sign-in device and IP information. If you contact us, we receive your email address, message, and any attachments you choose to send.",
+          "Reports, blocks, and terms acceptance: we store your report reason and optional details, the publishers you block, and the version and time of Terms of Use acceptance. Deletion requests temporarily store the email, account selection and a hashed confirmation code; codes expire after 15 minutes."
+        ]
+      },
+      {
+        "title": "2. How we use information",
+        "paragraphs": [
+          "Create and verify accounts, authenticate sign-ins, recover access, and manage profiles.",
+          "Store, review, publish, schedule, and display artwork and carousels.",
+          "Remember preferences, personalise browsing, restore viewing progress, and provide favourites and followed content.",
+          "Calculate engagement measures such as views and favourites, and help publishers understand how their content is used.",
+          "Send account, security, verification, and service-related emails, and respond to support or privacy requests.",
+          "Operate and troubleshoot the service, investigate misuse, moderate content, and protect accounts."
+        ]
+      },
+      {
+        "title": "3. Visibility and sharing",
+        "paragraphs": [
+          "Public content: published artwork, carousel information, and publisher details displayed with that content can be viewed by other people. Do not include private information in material you intend to publish. Account passwords and verification codes are not public profile information.",
+          "Service providers: hosting, database, file-storage, and email providers process information needed to run Carsl. This includes delivering account emails and handling correspondence sent to our support mailbox. Authorised administrators can access information needed for support, moderation, and service operation.",
+          "Other disclosures: information may be disclosed when necessary to meet a legal obligation, respond to a lawful request, investigate abuse, or protect the rights and safety of users and Carsl.",
+          "Service providers may process information in countries other than where you live. Information you independently share with an external website is governed by that website's policy. Carsl does not use the app activity described here to serve third-party targeted advertisements."
+        ]
+      },
+      {
+        "title": "4. Your device and permissions",
+        "paragraphs": [
+          "The apps save session tokens in operating-system protected credential storage on Android. Basic profile data, preferences, and drafts may be stored separately on your device. Signing out clears the saved session. Uninstalling does not delete your server account. Passwords and verification or recovery codes are not stored in your saved profile.",
+          "When you choose an image for artwork or a profile, an app may request access to your photo library or open your device's image picker. Selected images are sent to Carsl when you upload or save them. You can manage permissions in your device settings; refusing image access may prevent image uploads.",
+          "If you enable biometric sign-in in the publisher app, your operating system performs the biometric check. Carsl does not receive or store your fingerprint or face template.",
+          "Saving a voice-command accessibility preference does not itself record audio. A country you enter in your profile and an IP address received by our server are different from permission to access your device's precise GPS location."
+        ]
+      },
+      {
+        "title": "5. Security",
+        "paragraphs": [
+          "Carsl uses HTTPS for production API connections, hashed server-side passwords, operating-system protected app token storage on Android, and authenticated access for restricted account functions. Public artwork is intended to be accessible to viewers. These measures do not mean every record or backup is encrypted at rest. No system guarantees absolute security; contact us if you suspect unauthorised access."
+        ]
+      },
+      {
+        "title": "6. How long information is kept",
+        "paragraphs": [
+          "Account information, uploaded content and saved activity are kept while needed to provide your account and its features. Unpublishing artwork or signing out does not erase stored records.",
+          "After you verify and confirm a deletion request, account records and associated activity are removed from the active database. Uploaded-file deletion starts immediately and failed removals are retried automatically. Contact support with your deletion reference if cleanup remains pending.",
+          "Unconfirmed deletion requests expire after 15 minutes and are purged by scheduled maintenance. A minimal deletion ledger containing a request reference and deleted account identifiers, without the account email or verification code, is kept for 90 days to prevent accidental restoration. Resolved moderation reports are removed after 90 days and administrative activity logs after 30 days.",
+          "Hosting logs, email-provider records and backups have separate retention settings. Where copies remain, access is restricted and deletion must be carried forward before any backup is returned to service. Contact carsl.ssfo@gmail.com for the retention period applicable to a particular request or any required legal exception."
+        ]
+      },
+      {
+        "title": "7. Your choices and account deletion",
+        "paragraphs": [
+          "You can edit available profile and preference settings. Contact us to request access, correction, or other privacy rights available under the law that applies to you.",
+          "To delete your account, open https://joincarsl.com/delete-account. Choose publisher, TV viewer, or both, request a code using your registered email, then enter the code and confirm permanent deletion. The publisher app also provides this flow in Settings. Publisher and viewer accounts are separate.",
+          "If you cannot access your account email, contact carsl.ssfo@gmail.com for help verifying ownership. Do not send your password or sign-in codes. We respond without undue delay and explain the expected completion time for requests needing manual assistance, subject to applicable legal deadlines.",
+          "Blocking a publisher hides their profile and content for your signed-in viewer account. You can manage blocked publishers in the TV app. Deletion cannot erase copies other people independently saved or shared."
+        ]
+      },
+      {
+        "title": "8. Children and privacy",
+        "paragraphs": [
+          "If you are a parent or guardian and believe a child has provided personal information to Carsl without the authorisation required by applicable law, contact us at carsl.ssfo@gmail.com. We will review the request and take appropriate steps, including deletion where required."
+        ]
+      },
+      {
+        "title": "9. Updates and contact",
+        "paragraphs": [
+          "We may update this policy as Carsl's features and practices change. The date above identifies the latest revision. Where required, we will give additional notice of material changes.",
+          "Operator: Carsl Privacy and account deletion: carsl.ssfo@gmail.com"
+        ]
+      }
+    ]
+  },
+  "terms": {
+    "title": "Terms of Use",
+    "intro": "Carsl community and publishing rules. Version: 7 September 2026.",
+    "sections": [
+      {
+        "title": "1. Carsl and these terms",
+        "paragraphs": [
+          "Carsl operates the publisher app, CARSL TV viewer app and Carsl website. Contact carsl.ssfo@gmail.com for support, privacy, copyright or moderation questions. By selecting the acceptance control, you agree to these Terms of Use and acknowledge the Privacy Policy.",
+          "You must be legally able to agree to these terms or have any parent or guardian permission required by applicable law. Keep account information accurate and credentials private."
+        ]
+      },
+      {
+        "title": "2. Your artwork and permission to publish",
+        "paragraphs": [
+          "Upload only content you own or have permission to publish, including the necessary rights to images, names and descriptions. You retain ownership of your artwork.",
+          "You give Carsl permission to host, reproduce for technical delivery, and display your submitted content through the service. This permission lasts while the content is provided through Carsl, subject to technical cleanup and any lawful retention. Viewing artwork does not grant others permission to copy or commercially use it."
+        ]
+      },
+      {
+        "title": "3. Prohibited content and behaviour",
+        "paragraphs": [
+          "Do not upload, promote or share child sexual abuse or exploitation, pornographic or sexually explicit content, hateful content, harassment, threats, graphic violence intended to shock, terrorist promotion, or instructions encouraging harmful or illegal acts.",
+          "Do not impersonate others, publish private information without permission, infringe copyright or other rights, post scams or spam, or misuse reporting and account systems. These rules apply to artwork, profiles, names and descriptions."
+        ]
+      },
+      {
+        "title": "4. Review, reporting and blocking",
+        "paragraphs": [
+          "Publisher content is subject to moderation and approval before public display. Carsl may restrict content or accounts that violate these rules.",
+          "Viewers can report artwork/carousels or publishers using the Report controls on their detail pages and block publishers to hide their profiles and content. Manage blocked publishers in Settings. To report copyright or urgent safety concerns, email carsl.ssfo@gmail.com and identify the content. Do not attach illegal material.",
+          "Carsl reviews reports and can remove content, restrict accounts or dismiss reports that do not establish a violation. Contact support with the report reference to ask about a decision or appeal a restriction."
+        ]
+      },
+      {
+        "title": "5. Account deletion and privacy",
+        "paragraphs": [
+          "You may request deletion of your publisher account, TV viewer account or both at https://joincarsl.com/delete-account. The request requires ownership verification and a separate permanent-deletion confirmation.",
+          "The Privacy Policy explains account information, uploads, viewing history, preferences, reporting, retention and deletion. Account suspension and uninstalling an app are not account deletion."
+        ]
+      },
+      {
+        "title": "6. Availability and responsible use",
+        "paragraphs": [
+          "Carsl may change features, perform maintenance or resolve service issues. Do not interfere with the service, bypass access controls or access another person?s account.",
+          "Artwork prices shown in metadata do not themselves create a sale or process a payment through Carsl. Only rely on payment or purchase features that are actually offered and explained in the app."
+        ]
+      },
+      {
+        "title": "7. Changes and your rights",
+        "paragraphs": [
+          "We may revise these terms and show an updated version. Publishers must accept the current terms before uploading or publishing. Nothing in these terms removes rights that applicable law does not allow to be excluded.",
+          "For questions, complaints or appeals, contact Carsl at carsl.ssfo@gmail.com."
+        ]
+      }
+    ]
+  }
+}

@@ -1,11 +1,7 @@
+const { visibleCarouselWhere } = require('../../utils/contentVisibility');
 const db = require('../../models');
 const { getCompleteImageUrl, sortArtworksByDisplayOrder } = require('../../utils/imageUrlHelper');
 
-const activeCarouselWhere = {
-    status: 'active',
-    adminApproved: true,
-    isDeleted: false,
-};
 
 const parseCarouselId = (value) => {
     if (value === undefined || value === null || value === '') {
@@ -76,7 +72,7 @@ const getFavoriteWithCarousel = (viewerId, carouselId) => db.ViewerCarouselFavor
             model: db.Carousel,
             as: 'carousel',
             required: true,
-            where: activeCarouselWhere,
+            where: visibleCarouselWhere(viewerId),
             include: carouselInclude,
         },
     ],
@@ -97,7 +93,7 @@ exports.addCarouselFavorite = async (req, res, next) => {
         const carousel = await db.Carousel.findOne({
             where: {
                 id: carouselId,
-                ...activeCarouselWhere,
+                ...visibleCarouselWhere(viewerId),
             },
             attributes: ['id'],
         });
@@ -151,7 +147,7 @@ exports.getCarouselFavorites = async (req, res, next) => {
                     model: db.Carousel,
                     as: 'carousel',
                     required: true,
-                    where: activeCarouselWhere,
+                    where: visibleCarouselWhere(viewerId),
                     include: carouselInclude,
                 },
             ],
@@ -183,7 +179,7 @@ exports.isCarouselFavorite = async (req, res, next) => {
         const carousel = await db.Carousel.findOne({
             where: {
                 id: carouselId,
-                ...activeCarouselWhere,
+                ...visibleCarouselWhere(viewerId),
             },
             attributes: ['id'],
         });

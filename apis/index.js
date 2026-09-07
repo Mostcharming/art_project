@@ -5,6 +5,7 @@ const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
 const path = require('path');
 const db = require('./models');
+const { privacyMaintenance } = require('./utils/accountDeletion');
 
 const viewersRoutes = require('./routes/viewers');
 const publishersRoutes = require('./routes/publishers');
@@ -13,9 +14,13 @@ const adminRoutes = require('./routes/admins');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
+// Trust the local reverse proxy, not arbitrary client-supplied forwarding headers.
+app.set('trust proxy', 'loopback');
 const PORT = process.env.PORT || 3000;
 
 const DEFAULT_ALLOWED_ORIGINS = [
+    'https://joincarsl.com',
+    'https://www.joincarsl.com',
     'http://192.168.1.165:5174',
 ];
 
@@ -59,7 +64,9 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.use(morgan('combined'));
+// Exclude query strings, credentials, and email addresses from request logging.
+morgan.token('safe-path', req => req.path);
+app.use(morgan(':method :safe-path :status :response-time ms'));
 app.use(express.json());
 
 // Serve uploaded files as static
@@ -78,6 +85,7 @@ app.get('/api/', (req, res) => {
 app.use('/api/publishers', publishersRoutes);
 app.use('/api/viewers', viewersRoutes);
 app.use('/api/admins', adminRoutes);
+app.use('/api/privacy', require('./routes/privacy'));
 
 app.use((req, res) => {
     res.status(404).json({ error: 'Route not found' });
@@ -92,6 +100,16 @@ db.sequelize.authenticate()
     })
     .then(() => {
         console.log('Database synchronized.');
+        let maintenanceRunning = false;
+        const runPrivacyMaintenance = async () => {
+            if (maintenanceRunning) return;
+            maintenanceRunning = true;
+            try { await privacyMaintenance(); }
+            catch { console.error('Privacy maintenance failed; inspect the privacy operations queue.'); }
+            finally { maintenanceRunning = false; }
+        };
+        runPrivacyMaintenance();
+        setInterval(runPrivacyMaintenance, 60000).unref();
         app.listen(PORT, '0.0.0.0', () => {
             console.log(`Server is running on port ${PORT}`);
             console.log(`Accessible at http://0.0.0.0:${PORT}`);

@@ -4,6 +4,7 @@ const {
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
     class Publisher extends Model {
+        toJSON() { return require('../utils/safeAccount').safeAccount(this); }
         /**
          * Helper method for defining associations.
          * This method is not a part of Sequelize lifecycle.
@@ -21,6 +22,8 @@ module.exports = (sequelize, DataTypes) => {
         }
     }
     Publisher.init({
+        termsVersion: { type: DataTypes.STRING, allowNull: true },
+        termsAcceptedAt: { type: DataTypes.DATE, allowNull: true },
         email: {
             type: DataTypes.STRING,
             allowNull: false,

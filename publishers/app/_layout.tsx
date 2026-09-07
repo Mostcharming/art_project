@@ -15,7 +15,7 @@ import "../globals.css";
 
 import BottomNavbar from "@/components/BottomNavbar";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { useUserStore } from "@/store/userStore";
+import { hydrateUserSession, useUserStore } from "@/store/userStore";
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -59,23 +59,25 @@ const toastConfig = {
 function useProtectedRoute() {
   const segments = useSegments();
   const router = useRouter();
-  const isAuthenticated = useUserStore((state) => state.isAuthenticated);
-  const hasHydrated = useUserStore.persist.hasHydrated;
+  const authenticated = useUserStore((state) => !!state.token && !!state.user?.isEmailVerified);
+  const hydrated = useUserStore((state) => state.hydrated);
 
   useEffect(() => {
-    if (!hasHydrated()) return;
+    if (!hydrated) return;
 
     const inProtectedRoute = NAVBAR_SEGMENTS.some((seg) =>
       segments.includes(seg as never)
     );
 
-    if (!isAuthenticated() && inProtectedRoute) {
+    if (!authenticated && inProtectedRoute) {
       router.replace("/splash/splash1");
     }
-  }, [segments, isAuthenticated, hasHydrated, router]);
+  }, [segments, authenticated, hydrated, router]);
 }
 
 export default function RootLayout() {
+  const hydrated = useUserStore((state) => state.hydrated);
+  useEffect(() => { void hydrateUserSession(); }, []);
   const colorScheme = useColorScheme();
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const pathname = usePathname();
@@ -105,7 +107,7 @@ export default function RootLayout() {
     NAVBAR_SEGMENTS.some((seg) => pathname.includes(seg)) &&
     !HIDE_NAVBAR_SEGMENTS.some((seg) => pathname.includes(seg));
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded || !hydrated) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" />

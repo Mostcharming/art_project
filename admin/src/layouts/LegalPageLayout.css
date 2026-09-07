@@ -43,6 +43,14 @@
 .legal-page .callout p:last-child { margin-bottom: 0; }
 .legal-page .button { display: inline-block; background: #ffad91; color: #26160f; font-weight: 700; padding: 12px 20px; border-radius: 8px; text-decoration: none; margin-bottom: 16px; }
 .legal-page .button:hover { background: #ffcfbd; color: #26160f; }
+.legal-page .button { cursor: pointer; border: 0; }
+.legal-page .button:disabled { opacity: .5; cursor: wait; }
+.legal-page .legal-form { display: grid; gap: 18px; margin-bottom: 32px; }
+.legal-page .legal-form label { display: grid; gap: 6px; }
+.legal-page .legal-form :is(input:not([type="checkbox"]), select) { width: 100%; background: #181e29; color: #fff; padding: 12px; border: 1px solid #78869b; border-radius: 6px; }
+.legal-page .legal-form .confirmation { display: flex; align-items: flex-start; gap: 12px; }
+.legal-page .confirmation input { margin-top: 7px; width: 18px; height: 18px; flex-shrink: 0; }
+.legal-page .form-error { color: #ffafaf; }
 .legal-page .single-column { max-width: 800px; }
 .legal-page .site-footer { border-top: 1px solid #323c4c; margin-top: 24px; padding-block: 28px 40px; color: #a8b4c5; font-size: 14px; }
 @media (max-width: 760px) {

@@ -13,7 +13,8 @@
     "create:migration": "sequelize-cli migration:generate --name",
     "create:model": "sequelize-cli model:generate --name",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test:email": "node --test tests/emailService.test.js"
+    "test:email": "node --test tests/emailService.test.js",
+    "privacy:maintenance": "node scripts/privacy-maintenance.js"
   },
   "keywords": [],
   "author": "",

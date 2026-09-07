@@ -33,6 +33,7 @@ const uploadViewerProfilePicture = (req, res, next) => {
 
 // Register sub-routes
 router.use('/', authRoutes);
+router.use('/safety', require('./safety'));
 router.put('/profile-picture', verifyViewerToken, uploadViewerProfilePicture, profileController.uploadProfilePicture);
 router.use('/profile', profileRoutes);
 router.use('/favorites', favoritesRoutes);

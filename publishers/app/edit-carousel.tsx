@@ -252,19 +252,10 @@ export default function EditCarousel() {
 
   const pickImage = async () => {
     try {
-      const permissionResult =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-      if (!permissionResult.granted) {
-        setAlertMessage(
-          "Please allow access to your photo library to upload artwork",
-        );
-        setShowAlert(true);
-        return;
-      }
+      // The system picker grants access only to the image the user selects.
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ["images"],
         quality: 1,
         allowsEditing: false,
         aspect: undefined,

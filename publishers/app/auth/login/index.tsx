@@ -54,6 +54,8 @@ export default function LoginPage() {
 
     const result = await authenticateWithBiometrics();
     if (result.success) {
+      const session = await mutate("/auth/profile", { method: "GET" });
+      if (session.error) { setError(session.error); return; }
       // Biometric verified — user is who they say they are
       // Navigate based on their account state
       if (user.accountSetupComplete) {
@@ -113,7 +115,8 @@ export default function LoginPage() {
     } else {
       const { token, publisher } = response.data;
 
-      setToken(token);
+      try { await setToken(token); }
+      catch { setError("Could not save your session securely. Please try again."); return; }
       updateUser({
         id: publisher.id,
         email: publisher.email,

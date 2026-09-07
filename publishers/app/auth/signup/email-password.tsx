@@ -1,3 +1,5 @@
+import LegalLinks from "@/components/LegalLinks";
+import documents from "@/constants/legalDocuments.json";
 import { useApiMutate } from "@/hooks/useApiMutate";
 import { useUserStore } from "@/store/userStore";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -19,6 +21,7 @@ export default function SignUpPage1() {
   const updateUser = useUserStore((state) => state.updateUser);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { mutate, isLoading } = useApiMutate();
@@ -28,7 +31,7 @@ export default function SignUpPage1() {
   const hasSpecialChar = /[*%#@!]/.test(password);
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const isFormValid =
-    email.trim() !== "" && hasMinLength && hasSpecialChar && isEmailValid;
+    email.trim() !== "" && hasMinLength && hasSpecialChar && isEmailValid && acceptedTerms;
 
   const handleCreateAccount = async () => {
     if (!isFormValid) return;
@@ -42,6 +45,8 @@ export default function SignUpPage1() {
       payload: {
         email: normalizedEmail,
         password,
+        acceptTerms: acceptedTerms,
+        termsVersion: documents.version,
       },
     });
 
@@ -188,25 +193,7 @@ export default function SignUpPage1() {
           </Text>
         </Pressable>
 
-        <View className="mt-5 items-center">
-          <Text
-            className="text-gray-400 text-center px-5 leading-5"
-            style={{ fontSize: 13 }}
-          >
-            By clicking &quot;Create Account&quot;, you agree to our
-          </Text>
-          <View className="flex-row items-center justify-center mt-1">
-            <Text className="text-white underline" style={{ fontSize: 13 }}>
-              Terms of Service
-            </Text>
-            <Text className="text-gray-400 mx-1" style={{ fontSize: 13 }}>
-              and
-            </Text>
-            <Text className="text-white underline" style={{ fontSize: 13 }}>
-              Privacy Policy
-            </Text>
-          </View>
-        </View>
+        <LegalLinks accepted={acceptedTerms} onAcceptedChange={setAcceptedTerms} />
 
         <View className="mt-auto mb-12 items-center">
           <Pressable onPress={() => router.push("/auth/login")}>

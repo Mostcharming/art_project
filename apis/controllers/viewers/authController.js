@@ -56,15 +56,18 @@ const checkViewerStatus = async (viewer) => {
     };
 };
 
+const { TERMS_VERSION, termsAccepted } = require('../../utils/legal');
+
 exports.register = async (req, res, next) => {
     try {
+        if (!termsAccepted(req.body)) return res.status(400).json({ error: 'Read and accept the current Terms of Use to create an account.', termsVersion: TERMS_VERSION });
         const { email, password } = req.body;
 
         if (!email || !password) {
             return res.status(400).json({ error: 'Email and password are required' });
         }
 
-        const normalizedEmail = email.toLowerCase();
+        const normalizedEmail = email.trim().toLowerCase();
 
         if (password.length < 6) {
             return res.status(400).json({ error: 'Password must be at least 6 characters' });
@@ -80,6 +83,8 @@ exports.register = async (req, res, next) => {
         const verificationCodeExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
         const viewer = await Viewer.create({
+            termsVersion: TERMS_VERSION,
+            termsAcceptedAt: new Date(),
             email: normalizedEmail,
             password: hashedPassword,
             verificationToken: verificationCode,
@@ -91,7 +96,7 @@ exports.register = async (req, res, next) => {
         try {
             await emailMiddleware.sendVerificationEmail(normalizedEmail, verificationCode, normalizedEmail.split('@')[0]);
         } catch (emailError) {
-            console.warn('Email sending failed, but account created:', emailError);
+            console.warn('Email sending failed, but account created:', emailError?.name || 'Error');
         }
 
         res.status(201).json({
@@ -103,7 +108,7 @@ exports.register = async (req, res, next) => {
             },
         });
     } catch (error) {
-        console.error('Register error:', error);
+        console.error('Register error:', error?.name || 'Error');
         next(error);
     }
 };
@@ -112,8 +117,6 @@ exports.register = async (req, res, next) => {
 exports.verifyEmailAndIssueToken = async (req, res, next) => {
     try {
         const { email, token } = req.body;
-        console.log(req.body)
-        console.log(email + ' space ' + token)
 
         if (!email || !token) {
             return res.status(400).json({ error: 'Email and token are required' });
@@ -127,9 +130,9 @@ exports.verifyEmailAndIssueToken = async (req, res, next) => {
         }
 
         // Check if token is expired
-        // if (!viewer.verificationTokenExpires || viewer.verificationTokenExpires < new Date()) {
-        //     return res.status(400).json({ error: 'Verification code has expired' });
-        // }
+        if (!viewer.verificationTokenExpires || viewer.verificationTokenExpires < new Date()) {
+            return res.status(400).json({ error: 'Verification code has expired' });
+        }
 
         // Verify code
         if (!verifyCode(token, viewer.verificationToken)) {
@@ -157,7 +160,7 @@ exports.verifyEmailAndIssueToken = async (req, res, next) => {
                 getViewerDisplayName(viewer)
             );
         } catch (emailError) {
-            console.warn('Viewer welcome email sending failed:', emailError);
+            console.warn('Viewer welcome email sending failed:', emailError?.name || 'Error');
         }
 
         res.json({
@@ -171,7 +174,7 @@ exports.verifyEmailAndIssueToken = async (req, res, next) => {
             },
         });
     } catch (error) {
-        console.error('Verify email error:', error);
+        console.error('Verify email error:', error?.name || 'Error');
         next(error);
     }
 };
@@ -205,14 +208,14 @@ exports.resendVerificationCode = async (req, res, next) => {
         try {
             await emailMiddleware.sendResendVerificationEmail(normalizedEmail, verificationCode, normalizedEmail.split('@')[0]);
         } catch (emailError) {
-            console.warn('Resend verification email failed:', emailError);
+            console.warn('Resend verification email failed:', emailError?.name || 'Error');
         }
 
         res.json({
             message: 'Verification code has been resent to your email.',
         });
     } catch (error) {
-        console.error('Resend verification code error:', error);
+        console.error('Resend verification code error:', error?.name || 'Error');
         next(error);
     }
 };
@@ -243,7 +246,7 @@ exports.submitStyles = async (req, res, next) => {
             viewerId: viewer.id,
         });
     } catch (error) {
-        console.error('Submit styles error:', error);
+        console.error('Submit styles error:', error?.name || 'Error');
         next(error);
     }
 };
@@ -279,7 +282,7 @@ exports.submitVibePreference = async (req, res, next) => {
             vibePreference: viewer.vibePreference,
         });
     } catch (error) {
-        console.error('Submit vibe preference error:', error);
+        console.error('Submit vibe preference error:', error?.name || 'Error');
         next(error);
     }
 };
@@ -324,7 +327,7 @@ exports.submitAppUsageAndCompleteSetup = async (req, res, next) => {
             },
         });
     } catch (error) {
-        console.error('Submit app usage error:', error);
+        console.error('Submit app usage error:', error?.name || 'Error');
         next(error);
     }
 };
@@ -374,7 +377,7 @@ exports.login = async (req, res, next) => {
                 buildSignInDetails(req)
             );
         } catch (emailError) {
-            console.warn('New sign-in email sending failed:', emailError);
+            console.warn('New sign-in email sending failed:', emailError?.name || 'Error');
         }
 
         res.json({
@@ -395,7 +398,7 @@ exports.login = async (req, res, next) => {
             },
         });
     } catch (error) {
-        console.error('Login error:', error);
+        console.error('Login error:', error?.name || 'Error');
         next(error);
     }
 };
@@ -429,7 +432,7 @@ exports.requestPasswordReset = async (req, res, next) => {
 
         res.json({ message: 'Reset code sent' });
     } catch (error) {
-        console.error('Request password reset error:', error);
+        console.error('Request password reset error:', error?.name || 'Error');
         res.status(500).json({ message: 'Internal server error' });
     }
 };
@@ -458,7 +461,7 @@ exports.verifyResetToken = async (req, res, next) => {
 
         res.json({ message: 'Token verified' });
     } catch (error) {
-        console.error('Verify reset token error:', error);
+        console.error('Verify reset token error:', error?.name || 'Error');
         res.status(400).json({ message: 'Invalid or expired token' });
     }
 };
@@ -504,12 +507,12 @@ exports.resetPassword = async (req, res, next) => {
                 getViewerDisplayName(viewer)
             );
         } catch (emailError) {
-            console.warn('Password changed email sending failed:', emailError);
+            console.warn('Password changed email sending failed:', emailError?.name || 'Error');
         }
 
         res.json({ message: 'Password changed successfully' });
     } catch (error) {
-        console.error('Reset password error:', error);
+        console.error('Reset password error:', error?.name || 'Error');
         res.status(400).json({ message: 'Invalid or expired token' });
     }
 };

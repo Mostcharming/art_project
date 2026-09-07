@@ -1,3 +1,4 @@
+const { visibleCarouselWhere, visiblePublisherWhere } = require('../../utils/contentVisibility');
 const db = require('../../models');
 const { getCompleteImageUrl, sortArtworksByDisplayOrder } = require('../../utils/imageUrlHelper');
 const emailMiddleware = require('../../middleware/emailMiddleware');
@@ -6,11 +7,6 @@ const isViewMilestone = (views) => (
     [100, 500, 1000, 5000].includes(views) || (views >= 10000 && views % 10000 === 0)
 );
 
-const activeCarouselWhere = {
-    status: 'active',
-    adminApproved: true,
-    isDeleted: false,
-};
 
 const ALLOWED_FEEDBACK_RATINGS = ['dislike', 'like', 'love'];
 const DEFAULT_RECOMMENDATION_LIMIT = 6;
@@ -248,9 +244,7 @@ exports.getHomeCarouselById = async (req, res) => {
         const carousel = await db.Carousel.findOne({
             where: {
                 id: carouselId,
-                status: 'active',
-                adminApproved: true,
-                isDeleted: false,
+                ...visibleCarouselWhere(req.user?.id),
             },
             include: [
                 {
@@ -312,7 +306,7 @@ exports.getCarouselRecommendations = async (req, res) => {
         const carousel = await db.Carousel.findOne({
             where: {
                 id: carouselId,
-                ...activeCarouselWhere,
+                ...visibleCarouselWhere(req.user?.id),
             },
             attributes: ['id', 'publisherId', 'tag'],
         });
@@ -333,7 +327,7 @@ exports.getCarouselRecommendations = async (req, res) => {
 
             const rows = await db.Carousel.findAll({
                 where: {
-                    ...activeCarouselWhere,
+                    ...visibleCarouselWhere(req.user?.id),
                     ...where,
                     id: {
                         [db.Sequelize.Op.notIn]: [...excludedIds],
@@ -401,7 +395,7 @@ exports.submitCarouselFeedback = async (req, res) => {
         const carousel = await db.Carousel.findOne({
             where: {
                 id: carouselId,
-                ...activeCarouselWhere,
+                ...visibleCarouselWhere(req.user?.id),
             },
             attributes: ['id'],
         });
@@ -457,9 +451,7 @@ exports.getHomeCarousels = async (req, res) => {
     try {
         const featuredCarousel = await db.Carousel.findOne({
             where: {
-                status: 'active',
-                adminApproved: true,
-                isDeleted: false,
+                ...visibleCarouselWhere(req.user?.id),
             },
             include: [
                 {
@@ -484,9 +476,7 @@ exports.getHomeCarousels = async (req, res) => {
 
         const trendingCarousels = await db.Carousel.findAll({
             where: {
-                status: 'active',
-                adminApproved: true,
-                isDeleted: false,
+                ...visibleCarouselWhere(req.user?.id),
                 ...(featuredCarousel && {
                     id: {
                         [db.Sequelize.Op.ne]: featuredCarousel.id,
@@ -541,7 +531,7 @@ exports.getNewArrivalCarousels = async (req, res) => {
         }
 
         const { count, rows } = await db.Carousel.findAndCountAll({
-            where: activeCarouselWhere,
+            where: visibleCarouselWhere(req.user?.id),
             distinct: true,
             include: [
                 {
@@ -601,9 +591,7 @@ exports.saveWatchingCarousel = async (req, res) => {
         const carousel = await db.Carousel.findOne({
             where: {
                 id: carouselId,
-                status: 'active',
-                // adminApproved: true,
-                isDeleted: false,
+                ...visibleCarouselWhere(req.user?.id),
             },
         });
 
@@ -707,9 +695,7 @@ exports.getRecentlyWatchedCarousels = async (req, res) => {
                     as: 'carousel',
                     required: true,
                     where: {
-                        status: 'active',
-                        adminApproved: true,
-                        isDeleted: false,
+                        ...visibleCarouselWhere(req.user?.id),
                     },
                     include: [
                         {
@@ -764,7 +750,8 @@ exports.getHomePublisherById = async (req, res) => {
             });
         }
 
-        const publisher = await db.Publisher.findByPk(publisherId, {
+        const publisher = await db.Publisher.findOne({
+            where: { ...visiblePublisherWhere(req.user?.id), [db.Sequelize.Op.and]: [{ id: publisherId }] },
             attributes: ['id', 'name', 'bio', 'country', 'profilePicture'],
         });
 
@@ -777,7 +764,7 @@ exports.getHomePublisherById = async (req, res) => {
 
         const carousels = await db.Carousel.findAll({
             where: {
-                ...activeCarouselWhere,
+                ...visibleCarouselWhere(req.user?.id),
                 publisherId,
             },
             attributes: ['id', 'name', 'description', 'tag', 'views', 'createdAt'],
@@ -812,6 +799,7 @@ exports.getHomePublisherById = async (req, res) => {
 exports.getHomePublishers = async (req, res) => {
     try {
         const publishers = await db.Publisher.findAll({
+            where: visiblePublisherWhere(req.user?.id),
 
             attributes: ['id', 'name', 'profilePicture', 'bio', 'personaType'],
             include: [
@@ -819,9 +807,7 @@ exports.getHomePublishers = async (req, res) => {
                     model: db.Carousel,
                     as: 'carousels',
                     where: {
-                        status: 'active',
-                        adminApproved: true,
-                        isDeleted: false,
+                        ...visibleCarouselWhere(req.user?.id),
                     },
                     required: false,
                     attributes: ['id', 'name', 'description', 'tag', 'views'],

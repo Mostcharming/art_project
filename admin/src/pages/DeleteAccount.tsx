@@ -1,52 +1,67 @@
+import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import LegalPageLayout from "../layouts/LegalPageLayout";
+import { privacyRequest } from "../utils/privacyApi";
 
+type RequestResult = { requestId: string; message: string };
+type ConfirmationResult = { message: string; reference: string; status: string };
 export default function DeleteAccount() {
+  const [email, setEmail] = useState("");
+  const [accountType, setAccountType] = useState("publisher");
+  const [requestId, setRequestId] = useState<string | null>(null);
+  const [code, setCode] = useState("");
+  const [confirmed, setConfirmed] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [result, setResult] = useState<ConfirmationResult | null>(null);
+
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    if (busy) return;
+    setBusy(true); setError("");
+    try {
+      if (!requestId) {
+        const data = await privacyRequest<RequestResult>("/deletion/request", { email, accountType });
+        setRequestId(data.requestId); setMessage(data.message);
+      } else {
+        const data = await privacyRequest<ConfirmationResult>("/deletion/confirm", { requestId, code, confirm: confirmed });
+        setResult(data); setCode(""); setEmail("");
+      }
+    } catch (failure) { setError(failure instanceof Error ? failure.message : "Request failed. Please try again."); }
+    finally { setBusy(false); }
+  };
+
   return (
-    <LegalPageLayout
-      title="Delete Your Account"
-      description="Request deletion of your Carsl publisher account, CARSL TV viewer account, and associated personal data by contacting Carsl support."
-    >
+    <LegalPageLayout title="Delete Your Account" description="Verify and permanently delete your Carsl publisher or CARSL TV viewer account and associated data.">
       <main className="page single-column" id="main">
-      <div className="hero">
-        <p className="eyebrow">Account &amp; data requests</p>
-        <h1>Delete your Carsl account</h1>
-        <p className="lead">Request deletion of your Carsl publisher account, CARSL TV viewer account, or both.</p>
-        <p>You can make this request without signing into this website or reinstalling either app. Carsl handles requests through <a href="mailto:carsl.ssfo@gmail.com">carsl.ssfo@gmail.com</a>.</p>
-      </div>
-      <article aria-label="Account deletion instructions">
-        <section id="request">
-          <h2>1. Send your request</h2>
-          <ol>
-            <li>Email <a href="mailto:carsl.ssfo@gmail.com">carsl.ssfo@gmail.com</a>, preferably from the email address registered to your Carsl account.</li>
-            <li>Use the subject <strong>Carsl account deletion request</strong>.</li>
-            <li>State whether you want to delete your <strong>publisher account</strong>, <strong>TV viewer account</strong>, or <strong>both</strong>. Include the registered email address if it differs from the address you are writing from.</li>
-          </ol>
-          <a className="button" href="mailto:carsl.ssfo@gmail.com?subject=Carsl%20account%20deletion%20request&amp;body=Hello%20Carsl%2C%0D%0A%0D%0APlease%20delete%20my%20Carsl%20account%20and%20associated%20personal%20data.%0D%0A%0D%0AAccount%20type%20%28publisher%2C%20TV%20viewer%2C%20or%20both%29%3A%20%0D%0ARegistered%20email%20address%3A%20%0D%0A">Open email request</a>
-          <p className="meta">This button opens a draft in your email app. You must send the email to submit the request. If no email app opens, copy the address and send the request using your usual email service.</p>
-          <div className="callout"><p>Never include your password, verification code, or authentication token. If you no longer have access to your registered email, tell us so we can discuss an alternative ownership check.</p></div>
-        </section>
-        <section id="verification">
-          <h2>2. We verify and process it</h2>
-          <p>We verify account ownership before deleting information. We then confirm the scope and expected completion time, process the request without undue delay and within applicable legal deadlines, and send a completion response. Opening this page or sending an email does not immediately delete your account.</p>
-        </section>
-        <section id="data">
-          <h2>3. What deletion covers</h2>
-          <ul>
-            <li><strong>Both account types:</strong> the account record, profile and profile image, sign-in credentials and verification/reset records, and saved account preferences.</li>
-            <li><strong>Publisher accounts:</strong> associated uploaded artwork files, carousels, and publishing information. Deleting your publisher account removes its published content from Carsl.</li>
-            <li><strong>TV viewer accounts:</strong> saved favourites, followed artists or publishers, search and viewing history, watch progress, feedback, and viewing or accessibility preferences.</li>
-          </ul>
-          <p>Publisher and viewer accounts are separate. Specify both if you use the same email for each and want both removed. Deleting an account ends access to its saved information. Uninstalling the app, logging out, or unpublishing content alone does not delete your account.</p>
-        </section>
-        <section id="retained">
-          <h2>Information that may be retained</h2>
-          <p>Limited information may need to be retained for legal obligations, resolving disputes, preventing fraud, or maintaining security. If this applies, our response will identify the information, the reason, and the retention period. Backup copies, where present, may remain until the applicable backup cycle expires and are not used to restore a deleted account to normal service.</p>
-          <p>Copies other people have independently saved or shared are outside Carsl's control. For a request to delete specific information while keeping your account, use the same email address and describe the information concerned.</p>
-          <p>Read our <Link to="/privacy-policy">privacy policy</Link> for details of how Carsl handles personal information.</p>
-        </section>
-      </article>
-    </main>
+        <div className="hero">
+          <p className="eyebrow">Account &amp; data requests</p>
+          <h1>Delete your Carsl account</h1>
+          <p className="lead">Choose your publisher account, TV viewer account, or both. You can use this page without signing in or reinstalling an app.</p>
+        </div>
+        {result ? <div className="callout" role="status"><h2>Deletion {result.status === "complete" ? "confirmed" : "in progress"}</h2><p>{result.message}</p><p>Reference: {result.reference}</p><p>Hosting backups and provider records are handled separately as explained below.</p></div> : <>
+          <div className="callout"><p><strong>This is permanent.</strong> Account deletion removes the selected account's profile, credentials, settings and saved activity. Publisher deletion also removes its uploaded artwork and carousels from Carsl. You cannot recover the deleted account through the app.</p></div>
+          <form className="legal-form" onSubmit={submit} aria-busy={busy}>
+            {!requestId ? <>
+              <label>Registered email<input type="email" autoComplete="email" required maxLength={254} value={email} onChange={event => setEmail(event.target.value)} disabled={busy} /></label>
+              <label>Account to delete<select value={accountType} onChange={event => setAccountType(event.target.value)} disabled={busy}><option value="publisher">Publisher account</option><option value="viewer">TV viewer account</option><option value="both">Both accounts</option></select></label>
+              <button className="button" disabled={busy} type="submit">{busy ? "Sending…" : "Email a verification code"}</button>
+            </> : <>
+              <p role="status">{message}</p><p>Requested: <strong>{accountType === "both" ? "both accounts" : `${accountType} account`}</strong> for {email}.</p>
+              <label>8-digit deletion code<input type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{8}" required maxLength={8} value={code} onChange={event => setCode(event.target.value.replace(/\D/g, ""))} disabled={busy} /></label>
+              <label className="confirmation"><input type="checkbox" required checked={confirmed} onChange={event => setConfirmed(event.target.checked)} disabled={busy} />I understand this permanently deletes the selected account(s) and associated data.</label>
+              <button className="button" disabled={busy || !confirmed || code.length !== 8} type="submit">{busy ? "Deleting…" : "Confirm permanent deletion"}</button>
+              <button type="button" disabled={busy} onClick={() => { setRequestId(null); setCode(""); setConfirmed(false); setError(""); }}>Change details or request a new code</button>
+            </>}
+            {error && <p className="form-error" role="alert">{error}</p>}
+          </form>
+        </>}
+        <article>
+          <section><h2>What happens next</h2><p>Codes expire in 15 minutes and allow up to five confirmation attempts. After verification and confirmation, Carsl removes the account and its related records from the active database. File cleanup starts immediately and retries automatically if a file could not be removed.</p><p>For viewers, deletion includes favourites, followed publishers, search and watch history, progress, feedback, blocks and reports. For publishers it includes artwork files, carousels, profile and publishing settings. Signing out, uninstalling or unpublishing alone does not delete an account.</p></section>
+          <section><h2>Retention and support</h2><p>A minimal deletion ledger with account identifiers and your reference, but no email or code, is kept for 90 days to prevent accidental restoration. Backups, hosting logs and email-provider records have separate retention settings. Contact us for the period applicable to your request or any legally required retention.</p><p>If you cannot access your registered email or need help with pending cleanup, email <a href="mailto:carsl.ssfo@gmail.com?subject=Carsl%20account%20deletion%20request">carsl.ssfo@gmail.com</a> and identify the account type or deletion reference. Never send passwords or sign-in codes. We will explain any alternative ownership checks and the expected response time.</p><p><Link to="/privacy-policy">Read the Privacy Policy</Link></p></section>
+        </article>
+      </main>
     </LegalPageLayout>
   );
 }

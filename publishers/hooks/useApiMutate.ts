@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { getBaseUrl } from "@/constants/api.config";
 import { useUserStore } from "@/store/userStore";
 import axios, { isAxiosError } from "axios";
@@ -20,6 +21,7 @@ interface RequestOptions {
 }
 
 export const useApiMutate = () => {
+  const router = useRouter();
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -59,12 +61,6 @@ export const useApiMutate = () => {
         // timeout: 30000,
         headers: requestHeaders,
       };
-      console.log("API Request Config:", {
-        method,
-        url,
-        headers: requestHeaders,
-        payload,
-      });
 
       // Attach payload for POST/PUT/PATCH
       if (
@@ -96,6 +92,10 @@ export const useApiMutate = () => {
       let errorMessage = "An unknown error occurred";
 
       if (isAxiosError(err)) {
+        if (err.response?.status === 428) router.push({ pathname: "/legal", params: { document: "terms" } });
+        if (err.response?.status === 401) {
+          void useUserStore.getState().clearUser().catch(() => undefined);
+        }
         console.error("Axios error details:", {
           message: err.message,
         });

@@ -96,7 +96,8 @@ export default function SignUpToken() {
     } else {
       // Save auth token from API response
       if (response.data?.authToken) {
-        setAuthToken(response.data.authToken);
+        try { await setAuthToken(response.data.authToken); }
+        catch { setError("Could not save your session securely. Please try again."); return; }
       }
 
       // Update user with verified status and any returned publisher data

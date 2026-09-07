@@ -30,6 +30,8 @@ const initializeEmailService = () => {
                 port,
                 secure: process.env.SMTP_SECURE === undefined
                     ? port === 465 : process.env.SMTP_SECURE === 'true',
+                requireTLS: process.env.NODE_ENV === 'production',
+                tls: { minVersion: 'TLSv1.2' },
                 auth: {
                     user: process.env.SMTP_USER,
                     pass: process.env.SMTP_PASSWORD,
@@ -351,10 +353,10 @@ const sendEmail = async (to, templateName, variables = {}) => {
             html,
         });
 
-        console.log('Email sent:', response?.message_ids || response);
+        console.log('Email sent successfully');
         return { success: true, messageId: response?.message_ids?.[0] };
     } catch (error) {
-        console.error('Error sending email:', error);
+        console.error('Error sending email:', error?.name || 'Error');
         throw error;
     }
 };
@@ -368,12 +370,28 @@ const sendBulkEmails = async (recipients, templateName, variables = {}) => {
         }
         return results;
     } catch (error) {
-        console.error('Error sending bulk emails:', error);
+        console.error('Error sending bulk emails:', error?.name || 'Error');
         throw error;
     }
 };
 
+// Privacy codes use plain text and are never written to application logs.
+const sendPlainEmail = async (to, subject, text) => {
+    const transport = initializeEmailService();
+    if (usesSmtp()) {
+        return transport.sendMail({
+            from: { address: process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER, name: process.env.SMTP_FROM_NAME || 'Carsl' },
+            to, subject, text,
+        });
+    }
+    return transport.send({
+        from: { email: process.env.MAILTRAP_FROM_EMAIL || process.env.SMTP_FROM_EMAIL || 'hello@joincarsl.com', name: 'Carsl' },
+        to: [{ email: to }], subject, text,
+    });
+};
+
 module.exports = {
+    sendPlainEmail,
     initializeEmailService,
     sendEmail,
     sendBulkEmails,

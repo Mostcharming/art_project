@@ -1,6 +1,8 @@
 [
   { "path": "/", "element": "Home" },
   { "path": "/privacy-policy", "element": "PrivacyPolicy" },
+  { "path": "/terms-of-use", "element": "TermsOfUse" },
+  { "path": "/safety", "element": "SafetyOperations" },
   { "path": "/delete-account", "element": "DeleteAccount" },
   { "path": "/admin", "element": "Login" },
   { "path": "/forgot-password", "element": "ForgotPassword" },

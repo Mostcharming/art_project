@@ -19,6 +19,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
+            set -e
             cd /root/carsl/art_project
             git reset --hard HEAD
             git pull origin main
@@ -30,6 +31,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
+            set -e
             # Load NVM for node/npm
             export NVM_DIR="/root/.nvm"
             source "$NVM_DIR/nvm.sh"
@@ -37,7 +39,7 @@ jobs:
 
             cd /root/carsl/art_project/apis
             /root/.nvm/versions/node/v20.20.0/bin/npm install --omit=dev --legacy-peer-deps
-            /root/.nvm/versions/node/v20.20.0/bin/npm run db:migrate || echo "No migrations needed"
+            /root/.nvm/versions/node/v20.20.0/bin/npm run db:migrate
 
       - name: Build frontend (Admin)
         uses: appleboy/ssh-action@v0.1.10
@@ -46,6 +48,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
+            set -e
             # Load NVM for node/npm
             export NVM_DIR="/root/.nvm"
             source "$NVM_DIR/nvm.sh"
@@ -62,6 +65,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
+            set -e
             # Load NVM for node/npm/pm2
             export NVM_DIR="/root/.nvm"
             source "$NVM_DIR/nvm.sh"

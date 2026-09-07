@@ -1,3 +1,4 @@
+import LegalLinks from "@/components/LegalLinks";
 import { Alert } from "@/components/ui/Alert";
 import { useApiMutate } from "@/hooks/useApiMutate";
 import { usePublisherSettingsStore } from "@/store/publisherSettingsStore";
@@ -161,6 +162,8 @@ export default function Settings() {
         </View>
 
         <View className="mx-5 gap-4">
+          <LegalLinks />
+          <Pressable accessibilityRole="button" className="bg-neutral-900 rounded-xl p-5 border border-neutral-700" onPress={() => router.push("/delete-account")}><Text className="text-orange-300 text-base font-bold">Delete Account</Text></Pressable>
           <Pressable
             className="bg-neutral-900 rounded-xl p-5 border border-neutral-700 flex-row items-center justify-between"
             onPress={() => setShowFrameModal(true)}
@@ -189,9 +192,9 @@ export default function Settings() {
           </View>
           <View
             className="bg-neutral-900 rounded-xl p-5 border border-neutral-700 flex-row items-center justify-between"
-            onTouchEnd={() => {
-              clearUser();
-              router.replace("/splash/splash1");
+            onTouchEnd={async () => {
+              try { await clearUser(); router.replace("/splash/splash1"); }
+              catch { setAlertMessage("Could not clear the saved session. Please try signing out again."); setShowAlert(true); }
             }}
           >
             <Text className="text-white text-base font-bold">Sign Out</Text>

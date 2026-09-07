@@ -14,7 +14,7 @@ const {
 const { optionalVerifyViewerToken, verifyViewerToken } = require('../../middleware/auth');
 
 // Get featured carousel and trending carousels
-router.get('/carousels', getHomeCarousels);
+router.get('/carousels', optionalVerifyViewerToken, getHomeCarousels);
 
 // Get newest active carousels for the viewer home experience
 router.get('/carousels/new-arrivals', optionalVerifyViewerToken, getNewArrivalCarousels);
@@ -26,18 +26,18 @@ router.post('/carousels/watching', verifyViewerToken, saveWatchingCarousel);
 router.get('/carousels/watching', verifyViewerToken, getRecentlyWatchedCarousels);
 
 // Get recommended carousels related to one active carousel
-router.get('/carousels/:carouselId/recommendations', getCarouselRecommendations);
+router.get('/carousels/:carouselId/recommendations', optionalVerifyViewerToken, getCarouselRecommendations);
 
 // Save/update viewer feedback for one active carousel
 router.post('/carousels/:carouselId/feedback', verifyViewerToken, submitCarouselFeedback);
 
 // Get one active carousel for the viewer home experience
-router.get('/carousels/:carouselId', getHomeCarouselById);
+router.get('/carousels/:carouselId', optionalVerifyViewerToken, getHomeCarouselById);
 
 // Get one publisher with their active carousels
-router.get('/publishers/:publisherId', getHomePublisherById);
+router.get('/publishers/:publisherId', optionalVerifyViewerToken, getHomePublisherById);
 
 // Get publishers with their top carousel
-router.get('/publishers', getHomePublishers);
+router.get('/publishers', optionalVerifyViewerToken, getHomePublishers);
 
 module.exports = router;

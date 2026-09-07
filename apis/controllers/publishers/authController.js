@@ -4,6 +4,7 @@ const { generateToken } = require('../../utils/tokenGenerator');
 const { generateVerificationCode, verifyCode } = require('../../utils/verificationCode');
 const emailMiddleware = require('../../middleware/emailMiddleware');
 const crypto = require('crypto');
+const { TERMS_VERSION, termsAccepted } = require('../../utils/legal');
 
 const normalizeEmail = (email) => (
     typeof email === 'string' ? email.trim().toLowerCase() : ''
@@ -28,6 +29,7 @@ const buildSignInDetails = (req) => ({
 
 exports.signup = async (req, res, next) => {
     try {
+        if (!termsAccepted(req.body)) return res.status(400).json({ error: 'Read and accept the current Terms of Use to create an account.', termsVersion: TERMS_VERSION });
         const { email, password } = req.body;
 
         if (!email || !password) {
@@ -49,6 +51,8 @@ exports.signup = async (req, res, next) => {
         const verificationCode = generateVerificationCode();
 
         const publisher = await Publisher.create({
+            termsVersion: TERMS_VERSION,
+            termsAcceptedAt: new Date(),
             email: normalizedEmail,
             password: hashedPassword,
             verificationToken: verificationCode,
@@ -60,7 +64,7 @@ exports.signup = async (req, res, next) => {
         try {
             await emailMiddleware.sendVerificationEmail(normalizedEmail, verificationCode, normalizedEmail.split('@')[0]);
         } catch (emailError) {
-            console.warn('Email sending failed, but account created:', emailError);
+            console.warn('Email sending failed, but account created:', emailError?.name || 'Error');
         }
 
         res.status(201).json({
@@ -71,7 +75,7 @@ exports.signup = async (req, res, next) => {
             },
         });
     } catch (error) {
-        console.error('Signup error:', error);
+        console.error('Signup error:', error?.name || 'Error');
         next(error);
     }
 };
@@ -119,7 +123,7 @@ exports.verifyEmail = async (req, res, next) => {
         try {
             await emailMiddleware.sendWelcomePublisherEmail(normalizedEmail, normalizedEmail.split('@')[0]);
         } catch (emailError) {
-            console.warn('Welcome email sending failed:', emailError);
+            console.warn('Welcome email sending failed:', emailError?.name || 'Error');
         }
 
         res.json({
@@ -133,7 +137,7 @@ exports.verifyEmail = async (req, res, next) => {
             },
         });
     } catch (error) {
-        console.error('Verify email error:', error);
+        console.error('Verify email error:', error?.name || 'Error');
         next(error);
     }
 };
@@ -166,14 +170,14 @@ exports.resendVerificationCode = async (req, res, next) => {
         try {
             await emailMiddleware.sendResendVerificationEmail(normalizedEmail, verificationCode, normalizedEmail.split('@')[0]);
         } catch (emailError) {
-            console.warn('Resend verification email failed:', emailError);
+            console.warn('Resend verification email failed:', emailError?.name || 'Error');
         }
 
         res.json({
             message: 'Verification code has been resent to your email.',
         });
     } catch (error) {
-        console.error('Resend verification code error:', error);
+        console.error('Resend verification code error:', error?.name || 'Error');
         next(error);
     }
 };
@@ -211,7 +215,7 @@ exports.completeProfileSetup = async (req, res, next) => {
                 handle: name,
             });
         } catch (emailError) {
-            console.warn('Profile live email sending failed:', emailError);
+            console.warn('Profile live email sending failed:', emailError?.name || 'Error');
         }
 
         res.json({
@@ -227,7 +231,7 @@ exports.completeProfileSetup = async (req, res, next) => {
             },
         });
     } catch (error) {
-        console.error('Complete profile setup error:', error);
+        console.error('Complete profile setup error:', error?.name || 'Error');
         next(error);
     }
 };
@@ -252,7 +256,7 @@ exports.getProfile = async (req, res, next) => {
 
         res.json(publisher);
     } catch (error) {
-        console.error('Get profile error:', error);
+        console.error('Get profile error:', error?.name || 'Error');
         next(error);
     }
 };
@@ -338,7 +342,7 @@ exports.login = async (req, res, next) => {
                 buildSignInDetails(req)
             );
         } catch (emailError) {
-            console.warn('New sign-in email sending failed:', emailError);
+            console.warn('New sign-in email sending failed:', emailError?.name || 'Error');
         }
 
         res.json({
@@ -355,7 +359,7 @@ exports.login = async (req, res, next) => {
             },
         });
     } catch (error) {
-        console.error('Login error:', error);
+        console.error('Login error:', error?.name || 'Error');
         next(error);
     }
 };
@@ -384,14 +388,14 @@ exports.requestPasswordReset = async (req, res, next) => {
         try {
             await emailMiddleware.sendPasswordResetEmail(normalizedEmail, resetCode, normalizedEmail.split('@')[0]);
         } catch (emailError) {
-            console.warn('Password reset email failed:', emailError);
+            console.warn('Password reset email failed:', emailError?.name || 'Error');
         }
 
         res.json({
             message: 'A 4-digit reset code has been sent to your email',
         });
     } catch (error) {
-        console.error('Request password reset error:', error);
+        console.error('Request password reset error:', error?.name || 'Error');
         next(error);
     }
 };
@@ -436,7 +440,7 @@ exports.verifyResetToken = async (req, res, next) => {
             resetSessionToken,
         });
     } catch (error) {
-        console.error('Verify reset token error:', error);
+        console.error('Verify reset token error:', error?.name || 'Error');
         next(error);
     }
 };
@@ -480,12 +484,12 @@ exports.resetPassword = async (req, res, next) => {
                 getPublisherDisplayName(publisher)
             );
         } catch (emailError) {
-            console.warn('Password changed email sending failed:', emailError);
+            console.warn('Password changed email sending failed:', emailError?.name || 'Error');
         }
 
         res.json({ message: 'Password reset successfully' });
     } catch (error) {
-        console.error('Reset password error:', error);
+        console.error('Reset password error:', error?.name || 'Error');
         next(error);
     }
 };
@@ -530,7 +534,7 @@ exports.updateProfile = async (req, res, next) => {
                     getPublisherDisplayName(publisher)
                 );
             } catch (emailError) {
-                console.warn('Password changed email sending failed:', emailError);
+                console.warn('Password changed email sending failed:', emailError?.name || 'Error');
             }
         }
 
@@ -546,7 +550,7 @@ exports.updateProfile = async (req, res, next) => {
             },
         });
     } catch (error) {
-        console.error('Update profile error:', error);
+        console.error('Update profile error:', error?.name || 'Error');
         next(error);
     }
 };

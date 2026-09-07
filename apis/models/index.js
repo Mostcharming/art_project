@@ -47,27 +47,6 @@ if (config.use_env_variable) {
   );
 }
 
-const modelDefiners = [
-  require("./admin"),
-  require("./favorite"),
-  require("./publisher"),
-  require("./style"),
-  require("./viewer"),
-  require("./viewerstyle"),
-  require("./viewercarouselwatch"),
-  require("./viewercarouselfavorite"),
-  require("./viewercarouselfeedback"),
-  require("./viewersearchhistory"),
-  require("./publishersetting"),
-  require("./carousel"),
-  require("./artwork"),
-  require("./subscriber")
-];
-
-modelDefiners.forEach(modelDefiner => {
-  const model = modelDefiner(sequelize, Sequelize.DataTypes);
-  db[model.name] = model;
-});
 
 fs
   .readdirSync(__dirname)

@@ -19,7 +19,7 @@ const notifyPublisherUploadFailed = async (err, req) => {
 };
 
 const errorHandler = (err, req, res, next) => {
-    console.error('Error:', err);
+    console.error('Request failed:', err.name || 'Error', req.method, req.path);
 
     if (err instanceof multer.MulterError) {
         notifyPublisherUploadFailed(err, req).catch(emailError => {
