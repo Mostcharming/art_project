@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import carslLogo from "../assets/carsl.svg";
 import AuthLayout from "../layouts/AuthPageLayout";
 
@@ -31,6 +32,24 @@ export default function Home() {
               </p>
             </div>
           </div>
+
+          <nav
+            aria-label="Privacy and account information"
+            className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-sm"
+          >
+            <Link
+              to="/privacy-policy"
+              className="text-gray-300 underline underline-offset-4 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-400"
+            >
+              Privacy Policy
+            </Link>
+            <Link
+              to="/delete-account"
+              className="text-gray-300 underline underline-offset-4 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-400"
+            >
+              Delete Account
+            </Link>
+          </nav>
 
           {/* CTA Button */}
           {/* <Link

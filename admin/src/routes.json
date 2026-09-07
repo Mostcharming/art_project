@@ -1,5 +1,7 @@
 [
   { "path": "/", "element": "Home" },
+  { "path": "/privacy-policy", "element": "PrivacyPolicy" },
+  { "path": "/delete-account", "element": "DeleteAccount" },
   { "path": "/admin", "element": "Login" },
   { "path": "/forgot-password", "element": "ForgotPassword" },
   {

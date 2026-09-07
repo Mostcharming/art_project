@@ -10,12 +10,14 @@ import TokenPage from "./pages/auth/TokenPage";
 import CarouselDetails from "./pages/CarouselDetails";
 import Content from "./pages/Content";
 import Dashboard from "./pages/Dashboard";
+import DeleteAccount from "./pages/DeleteAccount";
 import FlaggedContentDetails from "./pages/FlaggedContentDetails";
 import Home from "./pages/Home";
 import Members from "./pages/Members";
 import NotFound from "./pages/NotFound";
 import PendingApprovalDetails from "./pages/PendingApprovalDetails";
 import Profile from "./pages/Profile";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ProtectedRoute from "./pages/ProtectedRoute";
 import ResetPassword from "./pages/ResetPassword";
 import UserDetails from "./pages/UserDetails";
@@ -23,6 +25,8 @@ import Users from "./pages/Users";
 
 const routeComponents: Record<string, React.FC> = {
   Home,
+  PrivacyPolicy,
+  DeleteAccount,
   Login,
   ForgotPassword,
   ForgotPasswordTokenPage,
