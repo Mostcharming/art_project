@@ -4,6 +4,26 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 
 ## Get started
 
+### Testing with the local API on a phone
+
+Run the API from `../apis` and connect the phone and computer to the same Wi-Fi.
+Set these values in the ignored `.env.local`, using your computer's current IPv4
+address from `ipconfig`:
+
+```dotenv
+EXPO_PUBLIC_ENV=development
+EXPO_PUBLIC_API_URL=http://192.168.1.165:3000/api/publishers
+```
+
+`localhost` on a phone points to the phone, not the computer. For the standard
+Android emulator, use `10.0.2.2` instead of the Wi-Fi address if needed. Verify
+`http://<computer-ip>:3000/api/health` opens on the phone, then fully reload the
+Expo app after changing the environment file. If the old address or route list
+persists, stop Metro and restart it with `npx expo start --clear`.
+
+The EAS production profile selects the production API separately. Shared types
+belong in `types/index.ts`; files under `app/` are treated as routes by Expo Router.
+
 1. Install dependencies
 
    ```bash

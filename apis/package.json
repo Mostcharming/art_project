@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "npm run db:migrate && node index.js",
-    "dev": "nodemon index.js",
+    "dev": "npm run db:migrate && nodemon index.js",
     "db:migrate": "sequelize-cli db:migrate",
     "db:migrate:undo": "sequelize-cli db:migrate:undo",
     "db:migrate:undo:all": "sequelize-cli db:migrate:undo:all",

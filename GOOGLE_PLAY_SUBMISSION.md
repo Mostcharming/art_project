@@ -1,6 +1,10 @@
 # Carsl: Google Play submission checklist
 
+**8 September build/submission update:** use [Google Play Console answers](GOOGLE_PLAY_CONSOLE_ANSWERS.md) for copy-ready listings, per-app declarations, Data safety worksheets and reviewer instructions. See [current build status](deployment/PLAY_BUILD_STATUS.md) for the release attempts. The implementation-time statements below describe the earlier audit, not the current build status.
+
 Prepared 7 September 2026 for **Carsl**, contact **carsl.ssfo@gmail.com**. Scope: the Android publisher app and Android TV viewer app. Findings below come from source inspection, not a release-build or device certification.
+
+**Reviewer accounts:** the backend now includes a migration for dedicated publisher and viewer accounts. See [reviewer account provisioning and login instructions](deployment/GOOGLE_PLAY_REVIEW_ACCOUNTS.md). Apply it to the production database used by the submitted builds; development provisioning alone is not production access. Passwords are supplied privately for Play Console.
 
 ## What the projects do
 

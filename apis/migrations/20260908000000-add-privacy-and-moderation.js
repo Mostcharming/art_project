@@ -2,15 +2,38 @@
 module.exports = {
     async up(queryInterface, Sequelize) {
         return queryInterface.sequelize.transaction(async transaction => {
+            // Development sync may have created these tables/indexes before migrations ran.
+            const existingTables = new Set(await queryInterface.showAllTables({ transaction }));
+            const ensureTable = async (table, attributes) => {
+                if (!existingTables.has(table)) {
+                    await queryInterface.createTable(table, attributes, { transaction });
+                }
+            };
+            const ensureIndex = async (table, fields, options = {}) => {
+                const indexes = await queryInterface.showIndex(table, { transaction });
+                const exists = indexes.some(index =>
+                    Boolean(index.unique) === Boolean(options.unique) &&
+                    index.fields.length === fields.length &&
+                    index.fields.every((field, position) => field.attribute === fields[position])
+                );
+                if (!exists) {
+                    await queryInterface.addIndex(table, fields, { ...options, transaction });
+                }
+            };
             const timestamps = () => ({
                 createdAt: { type: Sequelize.DATE, allowNull: false },
                 updatedAt: { type: Sequelize.DATE, allowNull: false },
             });
             for (const table of ['Publishers', 'Viewers']) {
-                await queryInterface.addColumn(table, 'termsVersion', { type: Sequelize.STRING, allowNull: true }, { transaction });
-                await queryInterface.addColumn(table, 'termsAcceptedAt', { type: Sequelize.DATE, allowNull: true }, { transaction });
+                const columns = await queryInterface.describeTable(table, { transaction });
+                if (!columns.termsVersion) {
+                    await queryInterface.addColumn(table, 'termsVersion', { type: Sequelize.STRING, allowNull: true }, { transaction });
+                }
+                if (!columns.termsAcceptedAt) {
+                    await queryInterface.addColumn(table, 'termsAcceptedAt', { type: Sequelize.DATE, allowNull: true }, { transaction });
+                }
             }
-            await queryInterface.createTable('AccountDeletionRequests', {
+            await ensureTable('AccountDeletionRequests', {
                 id: { type: Sequelize.UUID, primaryKey: true, allowNull: false },
                 email: { type: Sequelize.STRING, allowNull: true },
                 accountType: { type: Sequelize.STRING, allowNull: false },
@@ -22,16 +45,16 @@ module.exports = {
                 status: { type: Sequelize.STRING, allowNull: false, defaultValue: 'pending' },
                 completedAt: { type: Sequelize.DATE, allowNull: true },
                 ...timestamps(),
-            }, { transaction });
-            await queryInterface.addIndex('AccountDeletionRequests', ['email', 'createdAt'], { transaction });
-            await queryInterface.createTable('ViewerBlocks', {
+            });
+            await ensureIndex('AccountDeletionRequests', ['email', 'createdAt']);
+            await ensureTable('ViewerBlocks', {
                 id: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
                 viewerId: { type: Sequelize.INTEGER, allowNull: false, references: { model: 'Viewers', key: 'id' }, onDelete: 'CASCADE' },
                 publisherId: { type: Sequelize.INTEGER, allowNull: false, references: { model: 'Publishers', key: 'id' }, onDelete: 'CASCADE' },
                 ...timestamps(),
-            }, { transaction });
-            await queryInterface.addIndex('ViewerBlocks', ['viewerId', 'publisherId'], { unique: true, transaction });
-            await queryInterface.createTable('ContentReports', {
+            });
+            await ensureIndex('ViewerBlocks', ['viewerId', 'publisherId'], { unique: true });
+            await ensureTable('ContentReports', {
                 id: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
                 viewerId: { type: Sequelize.INTEGER, allowNull: true, references: { model: 'Viewers', key: 'id' }, onDelete: 'SET NULL' },
                 publisherId: { type: Sequelize.INTEGER, allowNull: false, references: { model: 'Publishers', key: 'id' }, onDelete: 'CASCADE' },
@@ -43,8 +66,8 @@ module.exports = {
                 reviewedAt: { type: Sequelize.DATE, allowNull: true },
                 reviewedBy: { type: Sequelize.INTEGER, allowNull: true },
                 ...timestamps(),
-            }, { transaction });
-            await queryInterface.addIndex('ContentReports', ['status', 'createdAt'], { transaction });
+            });
+            await ensureIndex('ContentReports', ['status', 'createdAt']);
         });
     },
     async down(queryInterface) {
