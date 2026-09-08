@@ -76,7 +76,7 @@ module.exports = {
                 appUsageLabel: 'Discover art',
             });
 
-            const settings = await select('SELECT id FROM "PublisherSettings" WHERE "publisherId" = :publisherId', { publisherId });
+            const settings = await select('SELECT 1 FROM "PublisherSettings" WHERE "publisherId" = :publisherId LIMIT 1', { publisherId });
             if (!settings.length) {
                 await queryInterface.bulkInsert('PublisherSettings', [{
                     publisherId,
@@ -86,7 +86,8 @@ module.exports = {
                     updatedAt: now,
                 }], { transaction });
             }
-            const preferences = await select('SELECT id FROM "ViewerStyles" WHERE "viewerId" = :viewerId', { viewerId });
+            // Some databases use only the viewer/style pair as this join table's key.
+            const preferences = await select('SELECT 1 FROM "ViewerStyles" WHERE "viewerId" = :viewerId LIMIT 1', { viewerId });
             if (!preferences.length) {
                 await queryInterface.bulkInsert('ViewerStyles', styles.map(style => ({
                     viewerId,
