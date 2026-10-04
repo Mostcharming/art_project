@@ -4,8 +4,8 @@ import { persist } from "zustand/middleware";
 export interface Member {
   id: number;
   email: string;
-  firstName: string;
-  lastName: string;
+  firstName: string | null;
+  lastName: string | null;
   profilePicture?: string;
   dateAdded: string;
   lastActive: string;

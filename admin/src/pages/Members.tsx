@@ -61,8 +61,8 @@ export default function Index() {
       members: section.members.filter(
         (m: Member) =>
           !searchQuery ||
-          m.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          m.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (m.firstName ?? "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (m.lastName ?? "").toLowerCase().includes(searchQuery.toLowerCase()) ||
           m.email.toLowerCase().includes(searchQuery.toLowerCase())
       ),
     }))

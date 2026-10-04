@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 interface Member {
   id: number;
   email: string;
-  firstName: string;
-  lastName: string;
+  firstName: string | null;
+  lastName: string | null;
   profilePicture?: string;
   dateAdded: string;
   lastActive: string;
@@ -67,15 +67,14 @@ export default function MembersTable({ members }: MembersTableProps) {
             {member.profilePicture && (
               <img
                 src={member.profilePicture}
-                alt={`${member.firstName} ${member.lastName}`}
+                alt={[member.firstName, member.lastName].filter(Boolean).join(" ") || member.email}
                 className="w-10 h-10 rounded-full object-cover flex-shrink-0"
               />
             )}
             {!member.profilePicture && (
               <div className="w-10 h-10 rounded-full bg-gray-400 flex items-center justify-center flex-shrink-0">
                 <span className="text-white text-sm font-medium">
-                  {member.firstName[0]}
-                  {member.lastName[0]}
+                  {[member.firstName?.[0], member.lastName?.[0]].filter(Boolean).join("") || member.email?.[0]?.toUpperCase() || "?"}
                 </span>
               </div>
             )}
