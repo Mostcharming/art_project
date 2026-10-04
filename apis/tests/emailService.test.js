@@ -2,6 +2,25 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const nodemailer = require('nodemailer');
 const { MailtrapClient } = require('mailtrap');
+const emailTemplates = require('../config/emailTemplates');
+
+test('all designed email footer links point to joincarsl.com', () => {
+    const service = require('../utils/emailService');
+    for (const [name, template] of Object.entries(emailTemplates.templates)) {
+        if (!template.file) continue;
+        const { html } = service.renderTemplate(service.getTemplate(name), {
+            actionUrl: 'https://actions.example.test/continue',
+            shareUrl: 'https://share.example.test/carousel',
+            managePreferencesUrl: 'https://old.example.test/preferences',
+            unsubscribeUrl: 'https://old.example.test/unsubscribe',
+            helpUrl: 'https://old.example.test/help',
+        });
+        const footer = html.match(/<div class="f-links">([\s\S]*?)<\/div>/);
+        assert.ok(footer, `${name} has a footer`);
+        const links = [...footer[1].matchAll(/href="([^"]*)"/g)].map(match => match[1]);
+        assert.deepEqual(links, Array(3).fill('https://joincarsl.com'), name);
+    }
+});
 
 const keys = ['EMAIL_TRANSPORT', 'SMTP_HOST', 'SMTP_PORT', 'SMTP_SECURE',
     'SMTP_USER', 'SMTP_PASSWORD', 'SMTP_FROM_EMAIL', 'SMTP_FROM_NAME',

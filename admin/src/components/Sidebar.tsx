@@ -17,7 +17,6 @@ interface SidebarProps {
 }
 
 const menuItems = [
-  { label: "Reports & Privacy", href: "/safety", icon: Layers },
   {
     label: "Dashboard",
     href: "/dashboard",
@@ -38,6 +37,7 @@ const menuItems = [
     href: "/members",
     icon: UserPen,
   },
+  { label: "Reports & Privacy", href: "/safety", icon: Layers },
 ];
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
