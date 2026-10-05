@@ -9,15 +9,6 @@ const getViewerDisplayName = (viewer) => (
     viewer?.firstName || viewer?.email?.split('@')[0] || 'there'
 );
 
-const buildSignInDetails = (req) => ({
-    device: req.get('user-agent') || 'Unknown device',
-    location: req.ip || req.get('x-forwarded-for') || 'Unknown location',
-    loginTime: new Date().toLocaleString('en-US', {
-        timeZone: 'Africa/Lagos',
-        timeZoneName: 'short',
-    }),
-});
-
 // Helper function to check viewer status
 const checkViewerStatus = async (viewer) => {
     if (viewer.status === 'banned') {
@@ -369,16 +360,6 @@ exports.login = async (req, res, next) => {
             email: viewer.email,
             type: 'viewer',
         }, { expiresIn: null });
-
-        try {
-            await emailMiddleware.sendNewSignInDetectedEmail(
-                viewer.email,
-                getViewerDisplayName(viewer),
-                buildSignInDetails(req)
-            );
-        } catch (emailError) {
-            console.warn('New sign-in email sending failed:', emailError?.name || 'Error');
-        }
 
         res.json({
             message: 'Login successful',

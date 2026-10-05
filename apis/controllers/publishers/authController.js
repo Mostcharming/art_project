@@ -18,15 +18,6 @@ const getPublisherDisplayName = (publisher) => (
     publisher?.name || publisher?.email?.split('@')[0] || 'there'
 );
 
-const buildSignInDetails = (req) => ({
-    device: req.get('user-agent') || 'Unknown device',
-    location: req.ip || req.get('x-forwarded-for') || 'Unknown location',
-    loginTime: new Date().toLocaleString('en-US', {
-        timeZone: 'Africa/Lagos',
-        timeZoneName: 'short',
-    }),
-});
-
 exports.signup = async (req, res, next) => {
     try {
         if (!termsAccepted(req.body)) return res.status(400).json({ error: 'Read and accept the current Terms of Use to create an account.', termsVersion: TERMS_VERSION });
@@ -334,16 +325,6 @@ exports.login = async (req, res, next) => {
             email: publisher.email,
             type: 'publisher',
         }, { expiresIn: null });
-
-        try {
-            await emailMiddleware.sendNewSignInDetectedEmail(
-                publisher.email,
-                getPublisherDisplayName(publisher),
-                buildSignInDetails(req)
-            );
-        } catch (emailError) {
-            console.warn('New sign-in email sending failed:', emailError?.name || 'Error');
-        }
 
         res.json({
             message: 'Login successful',
