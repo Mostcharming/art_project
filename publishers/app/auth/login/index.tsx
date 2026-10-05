@@ -282,7 +282,7 @@ export default function LoginPage() {
         <View className="mt-auto mb-12 items-center">
           <Pressable onPress={() => router.push("/auth/signup/email-password")}>
             <Text className="text-sm text-gray-400">
-              New to ATFA? <Text className="text-white underline">Sign up</Text>
+              New to Carsl? <Text className="text-white underline">Sign up</Text>
             </Text>
           </Pressable>
         </View>
